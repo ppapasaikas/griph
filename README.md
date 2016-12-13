@@ -1,2 +1,2 @@
-# cellgraph
-Topologically Constrained Graph-based Analysis of Cell Population Heterogeneity.
+# tocograph
+Topologically Constrained Graph-based Analysis of Population Heterogeneity.
