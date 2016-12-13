@@ -19,7 +19,7 @@ require(mclust)       #Optimal class label mapping and
 require(doParallel)   # Parallelization
 require(foreach)      # Parallelization
 
-source ("/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/SC_ParallelM.R")
+source ("./SC_ParallelM.R")
 
 
 gg_color_hue <- function(n) {
