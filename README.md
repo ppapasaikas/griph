@@ -1,2 +1,2 @@
 # tocograph
-Topologically Constrained GRaph-based Analysis of Population Heterogeneity.
+TOpologically COnstrained GRaph-based Analysis of Population Heterogeneity.
