@@ -1,2 +1,2 @@
-# tocograph
-TOpologically COnstrained GRaph-based Analysis of Population Heterogeneity.
+# griph
+Graph Inference of Population Heterogeneity
