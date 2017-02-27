@@ -274,7 +274,7 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
   
   ADJ= -G$X
   ADJ[which(ADJ>0)]=(Cuse[which(ADJ>0)])^2
-  ADJ[which(ADJ>0)]=exp(-  (1-Cuse[which(ADJ>0)])^2 / (1-mean(Cuse[upper.tri((Cuse))]))^2)   #From Haren and Koren 2001 section 3
+  #ADJ[which(ADJ>0)]=exp(-  (1-Cuse[which(ADJ>0)])^2 / (1-mean(Cuse[upper.tri((Cuse))]))^2)   #From Haren and Koren 2001 section 3
   ADJ[which(ADJ < 0)]=0
   G<-NULL
   diag(ADJ)=1
