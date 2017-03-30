@@ -24,6 +24,43 @@ require(KRLS)         # gaussian kernel distance
 require(doParallel)   # Parallelization
 require(foreach)      # Parallelization
 
+source("/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Vector_Metrics.R")
+
+
+WScor <- function (M, C1=matrix(1,ncol(M),ncol(M) ),l=0,p=1  ) { #Spearman's weighted correlation using cor.shrink
+  #D=pcor(log2(M+1))
+  R=vapply(c(1:ncol(C1)),function (x) rank(C1[,x]),FUN.VALUE=double(length=nrow(C1) ) )  #pearson's cor
+  
+  Dt=as.matrix(dist(t(log2(M+1)),method="canberra" )) #
+  Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
+  D=D+Dt
+  R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
+  
+  Dt=Spcor((M))
+  D=D+Dt
+  R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
+
+  Dt=1-CalcHellingerDist((M))
+  Dt= (Dt-min(Dt))/ diff(range(Dt)) 
+  D=D+Dt
+  R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
+  
+  R=R/4
+  WM=D/4
+  
+  ave=mean(WM[which(WM>0)])
+  GK=exp(- ( ((1-WM)^2) / ((1-ave)^2) ) ) 
+  W=apply(GK ,1,sum )^(3) #
+  minW=quantile(W,probs=seq(0,1,0.1))[[2]]
+  W=((minW)/(W+1*minW))  #
+  W=W/max(W)
+
+  R=cor.shrink( R^2 ,verbose=FALSE,lambda=0,w=W ) 
+  
+  dimnames(R)=list(colnames(M),colnames(M))
+  return(as(R,"matrix"))
+}
+
 
 
 Spcor <- function (M) { #Spearman's correlation using coop
@@ -35,21 +72,10 @@ Spcor <- function (M) { #Spearman's correlation using coop
 
 
 
-WScor <- function (M, WM=matrix(1,ncol(M),ncol(M) ),O=1,l=0,p=1  ) { #Spearman's weighted correlation using cor.shrink
-  R=vapply(c(1:ncol(M)),function (x) rank(M[,x]),FUN.VALUE=double(length=nrow(M) ) )
-  s=10^(2*O-2)/2
-  s=max(3,s)
-  s=min(100,s)
-  GK=gausskernel((WM),sigma=s ) #0.5-1
-  W=apply(GK ,1,sum )^(3) #
-  minW=quantile(W,probs=seq(0,1,0.1))[[2]]
-  W=((minW)/(W+1*minW))  #
-  W=W/max(W)
-  R1=cor.shrink( R^(2.5*p),verbose=FALSE,lambda=0,w=W ) 
-  R2=cor.shrink( R^(12*p),verbose=FALSE,lambda=0,w=W ) 
-  R=(R1+R2)/2
-  dimnames(R)=list(colnames(M),colnames(M))
-  return(R)
+get.knn <- function (S, k=rep(round(sqrt(nrow(S))),nrow(S)  ) ) {
+  diag(S)=0
+  kN=sapply(1:nrow(S),function(x) tail(order(S[,x]),k[x]))
+  return(kN)
 }
 
 
@@ -57,7 +83,7 @@ WScor <- function (M, WM=matrix(1,ncol(M),ncol(M) ),O=1,l=0,p=1  ) { #Spearman's
 PPR <- function (G,df=0.75){
 if (!isTRUE(is.igraph(G))) {  
 if (!isSymmetric(G) )  {stop ("!! G should be either a graph object or a symmetric matrix !!")}   
-G=graph.adjacency(G [rev(1:nrow(G)),rev(1:nrow(G))],mode=c("max"),weighted=TRUE,diag=FALSE)
+G=graph.adjacency(G [1:nrow(G),1:nrow(G)],mode=c("max"),weighted=TRUE,diag=FALSE)
 }
   
 L=length(V(G))
@@ -72,19 +98,6 @@ return(PR)
 
 
 
-sparsify <- function (x,pct=0.1){
-  N=which(x>0)
-  L=length(N)
-  if (L<2 ){return (x)}
-  else {
-    cutoff=sort(x[N],decreasing=TRUE)[ 1+ceiling(pct*L)  ]  
-    x[which(x<cutoff)]=0  
-    return(x)
-  }
-}
-
-
-
 pruneE <- function (x,pct=0.1){
   edges <- E(GRAOp) [from(x)]  
   stopifnot (length(edges)>2)
@@ -92,6 +105,20 @@ pruneE <- function (x,pct=0.1){
   k=min(100,k)
   e_top <- order(edges$weight, decreasing=TRUE)[1:k]
   keep_edg=edges[e_top]
+}
+
+
+sparsify <- function (x,pct=0.1){
+  L=length(x)
+  P=sum(x>0)
+  if (P<2 ){return (x)}
+  else {
+    k=max(3,floor(pct * P))
+    k=min(100,k)
+    cutoff=sort(x[which(x>0)],decreasing=TRUE)[ ceiling(pct*P)  ]  
+    x[which(x<cutoff)]=0  
+    return(x)
+  }
 }
 
 
@@ -143,13 +170,16 @@ mycircle <- function(coords, v=NULL, params) {
 
 
 
-SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse.iter=2,p=1,batch.penalty=0.5,ClassAssignment=rep(1,ncol(DM)),BatchAssignment=NULL,plotG=TRUE,maxG=1000,plotSP=TRUE,fsuffix=RandString() ){
+
+
+
+SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.25,diffuse.iter=2,p=1,batch.penalty=0.5,ClassAssignment=rep(1,ncol(DM)),BatchAssignment=NULL,plotG=TRUE,maxG=1000,plotSP=TRUE,fsuffix=RandString() ){
   
   #######Internal parameters for testing puproses only:  
   comm.method=cluster_infomap  # Community detection algorithm. See igraph "communities" 
   ncom=NULL  #Forces the community detection algorithm to a fixed number of communities. Only possible with hierarchical methods (like fast_greedy),
-  qnt=8 #Max gened expression decile for imputation (8->bottom 70% of the genes are imputed) 
-  rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. 
+  qnt=8 #Max gene expression decile for imputation (e.g 8->bottom 70% of the genes are imputed) 
+  rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
   
   
   if(!is.null(BatchAssignment)){
@@ -196,7 +226,13 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
     #############CV=f(mean) -based filtering:
     CellCounts=colSums(DM)
     nDM=sweep(DM,2,CellCounts,FUN="/")
-    nDM=DM*10000 #Counts per 10K  
+    nDM=DM*10000 #Counts per 10K
+    if(is.null(filter)){
+    medianComplexity=median(apply(DM,2,function(x) sum(x>0))) 
+    filter=ifelse( medianComplexity > 2500,TRUE,FALSE)
+    message("Median Library Complexity: ",medianComplexity," --> Gene Filtering: ", filter ,"\r")
+    
+    }
     if (filter){
       X1=log2(rowMeans(nDM+1/ncol(nDM)))
       Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
@@ -212,7 +248,7 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
       BatchAssignment=BatchAssignment[,-NoData]
       CellCounts=CellCounts[-NoData]
     }
-    nDM<-NULL
+    #
     
     C=list()
     
@@ -231,82 +267,156 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
     C[[1]]=DM
   }
   
-  
+  averageDist=NULL
+  if(is.null(diffuse.iter)) {
+  diffuse.iter=2  
+  averageDist=TRUE
+  }
   
   if (diffuse.iter > 1) {
   for(order in 2:diffuse.iter){
     message(paste ("Calculating Diffused Similarities...",(order-1),"/",(diffuse.iter-1)),"\r")
     flush.console() 
-    C[[order]]=WScor( C[[order-1]],WM=C[[1]],O=order-1,p=p )
-    #C[[order]]=Spcor( C[[order-1]] )  
+    C[[order]]=WScor( nDM,C1=C[[1]],p=p )
+    
     if (order >2) {C[[order-1]]=NA}
   }
   }
+  nDM<-NULL
+  
+    ####Normalize Initial Correlation matrix:
+    W=pmax(1e-1,colMeans(C[[1]]))/mean(colMeans(C[[1]]))
+    W=sqrt(W) %o% sqrt(W)
+    C[[1]]=( C[[1]] / W )
+
+    #####Metric by averaging:
+    if(!is.null(averageDist)){
+    Cuse=(C[[1]]+C[[2]])/2
+    }
+    
+    else{  
+    Cuse=as.matrix(C[[diffuse.iter]])
+    }
+  
+  
+
   
   
   
-  
-  
-  
-  ClassAssignment=rev(as.numeric(factor(ClassAssignment)))
+  ClassAssignment=as.numeric(factor(ClassAssignment))
   
   ############### glasso-based graph structure estimation: #####################
   message("Estimating Graph Structure...","\r")
   flush.console() 
   
-  Cuse=C[[diffuse.iter]]
+  RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
+  
   if(!is.null(BatchAssignment)){
     rL=min(1,rho^(1-batch.penalty))
     rS=rho^(1+batch.penalty)
-    rho=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
-    rho=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
+    RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
+    RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
   }
   
   
-  C=NULL
-  #Cuse=as.matrix(nearPD(Cuse,corr = TRUE)$mat) ##### Force Positive Definite Matrix
-  tol=2e-02
-  maxIter=50
-  if (ncol(Cuse)<200) {tol=5e-03;maxIter=200}
-  if (ncol(Cuse)>800) {tol=8e-02;maxIter=25}
-  #message("Rho: ",summary(rho),"\r")
-  G<-QUIC(Cuse,rho=rho,tol=tol,maxIter=maxIter,msg=0)  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
+  ###### Mutual k-nn based pruning as per Haren and Koren 2001:
+  kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
+  kN=get.knn(Cuse,k=kvect )
+  for(i in 1:ncol(  RHO  )){
+    RHO[ -kN[,i],i]=min(1,1.5*rho)
+    RHO[i,-kN[,i] ]=min(1,1.5*rho)
+  }
   
-  ADJ= -G$X
-  ADJ[which(ADJ>0)]=(Cuse[which(ADJ>0)])^2
-  #ADJ[which(ADJ>0)]=exp(-  (1-Cuse[which(ADJ>0)])^2 / (1-mean(Cuse[upper.tri((Cuse))]))^2)   #From Haren and Koren 2001 section 3
+ 
+
+  C=NULL
+  ###Cuse=as.matrix(nearPD(Cuse,corr = TRUE)$mat) ##### Force Positive Definite Matrix (normally not required)
+  tol=5e-02
+  maxIter=40
+  if (ncol(Cuse)<200) {tol=1e-02;maxIter=80}
+  if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
+  X<-QUIC(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)$X  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
+  
+  ADJ= -X
+  X<-NULL
+  
+  ######## Graph weights:
+  message("Calculating edge weights...","\r")
+  flush.console() 
+  #ADJ[which(ADJ>0)]=(Cuse[which(ADJ>0)])^2
+  ave=mean(Cuse[which(ADJ>0)])
+  ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
   ADJ[which(ADJ < 0)]=0
-  G<-NULL
   diag(ADJ)=1
   
 
-  GRAO<-graph.adjacency(ADJ [rev(1:nrow(ADJ)),rev(1:nrow(ADJ))],mode=c("max"),weighted=TRUE,diag=FALSE)
   
-  
-  
-  niter=2
-  for (i in 1:niter){
-  df=0.75
-  ADJ=PPR(GRAO,df=df)
-  ADJ[which(ADJ < (0.01/(ncol(ADJ))  ) ) ]=0
-  medDEG=median(apply(ADJ,1,function(x) (sum(x>0)-1)  ))
-  thr=1000
-  if (i==niter) {thr=5}
-    if (medDEG > thr ) {
-    pct=min(1,1/sqrt(medDEG/thr) )
-    ADJ=apply(ADJ,1,function(x) sparsify(x,pct)  )
+  ###### Mutual k-nn based pruning as per Haren and Koren 2001:
+  kvect=rep(  min(max(5*sqrt(ncol(ADJ)),50) ,floor(ncol( ADJ))/1.5)   ,    ncol(ADJ)  )
+  kN=get.knn(ADJ,k=kvect )
+  for(i in 1:ncol(  ADJ  )){
+    ADJ[ -kN[,i],i]=0
+    ADJ[i,-kN[,i] ]=0
   }
+  
+  
+  
+  
+  GRAO<-graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+  
+  niter=1
+  for (i in 1:niter){
+  message("Reweighing edges...",i,"/",niter,"\r")
+  flush.console() 
+  df=0.75
+  PR=PPR(GRAO,df=df)
+  ADJ=PR
+  ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
+  ###### Mutual k-nn based pruning as per Haren and Koren 2001:
+  kvect=rep( min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)    ,ncol(ADJ)  )
+  kN=get.knn(PR,k=kvect )
+  for(i in 1:ncol(ADJ)){
+    ADJ[ -kN[,i],i]=0
+    ADJ[i,-kN[,i] ]=0
+  }
+
+  PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
+  diag(PR)=1
+  
+  ###Policy 1: Update Cuse, apply kernel  (Sparsification needs to follow)
+  #Cuse[which(ADJ>0)]=PR[which(ADJ>0)]*Cuse[which(ADJ>0)]
+  #ave=mean(Cuse[which(ADJ>0)])
+  #ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Haren and Koren 2001 section 3
+
+  ####Policy 2: No update (Only makes sense if PPR-based pruning is applied beforehand )
+  ave=mean(Cuse[which(ADJ>0)])
+  ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Haren and Koren 2001 section 3
+  
+  
   GRAO<-graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
   }
+  
+  
+  pct=1
+  if (median(degree(GRAO)) > 4 ) {
+    pct=min(1,1/sqrt(0.4*median(degree(GRAO)) ) )
+    ADJ=apply(ADJ,1,function(x) sparsify(x,pct) )
+    GRAO<-graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+  }
+  
+  
 
   
   
-  
-  
-  GRAO<-set.vertex.attribute(GRAO,"labels",value=rev(rownames(Cuse)) )
+  GRAO<-set.vertex.attribute(GRAO,"labels",value=rownames(Cuse) )
   GRAO<-set.vertex.attribute(GRAO,"ids",value=V(GRAO))
   GRAO<-set.vertex.attribute(GRAO,"class",value=ClassAssignment  )
   Cuse<-NULL
+  
+  
+  
+  
+  
   
   
   ######## COMMUNITY DETECTION #########
@@ -331,7 +441,7 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
   V(GRAO)$size<-10 /(length(memb$membership)/60 )^0.3
   V(GRAO)$cex<-V(GRAO)$size / 3
   V(GRAO)$frame.width=2 /(length(memb$membership)/60 )^0.3
-  V(GRAO)$classcolor<-c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","olive")[V(GRAO)$class]
+  V(GRAO)$classcolor<-c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown")[V(GRAO)$class]
   E(GRAO)$width<-E(GRAO)$weight*2.0 / sqrt((length(memb$membership)/60 ))
   
   
@@ -383,20 +493,21 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
     registerDoParallel(cl)
     pct=1
     if (median(degree(GRAOp)) > 4 ) {
-      pct=min(1,1/sqrt(1*median(degree(GRAOp)) ) )
+      pct=min(1,1/sqrt(0.8*median(degree(GRAOp)) ) )
       
     }
     message("percentage of displayed edges: ",pct,"\r")
     flush.console()
     KEEP=foreach(v=1:length(V(GRAOp)), .combine=c, .packages=('igraph'), .export=c('pruneE')  ) %dopar% {
-      if (degree(GRAOp,v)>1){
+      if (degree(GRAOp,v)>2){
         return(pruneE(v,pct)) 
       }
       else {return (E(GRAOp) [from(v)])  }
     }
     stopCluster(cl)
     
-    GRAOp=delete_edges(GRAOp,E(GRAOp)[-KEEP])
+    #GRAOp=delete_edges(GRAOp,E(GRAOp)[-KEEP])
+    
     GRAOp=delete_vertices(GRAOp,which(ego_size(GRAOp,3) < 6))
     
     l<-layout_with_fr(GRAOp)
@@ -407,7 +518,7 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
     plot(GRAOp, layout=l,asp=0,vertex.label=NA,vertex.frame.color=V(GRAOp)$classcolor, vertex.shape="fcircle",vertex.frame.width=V(GRAOp)$frame.width )
     legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
            legend= c(sort(unique(comps)),"" ,sort(unique(ClassAssignment))   ), 
-           col=c(colbar[sort(unique(comps))],"white", c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","olive")[1:length(unique(ClassAssignment))] ), 
+           col=c(colbar[sort(unique(comps))],"white", c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown")[1:length(unique(ClassAssignment))] ), 
            pch=c(rep(20 ,length(unique(comps)) ),1, rep(21 ,length(unique(ClassAssignment))  )   ),
            bty="n", border=F, ncol=2, text.width=0.02)
     dev.off()
@@ -417,9 +528,7 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
   
   
   
-  
-  ADJ=ADJ [rev(1:nrow(ADJ)),rev(1:nrow(ADJ))]
-  
+
   
   
   
@@ -428,17 +537,10 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
   if (plotSP) {
     message("Computing Spectral Projection and Rendering...","\r")
     flush.console() 
-    rcomps=rev(comps)
-    rclass=rev(ClassAssignment)
     symbar <- c(21,24,22,25,23,c(0:14))
+    class=ClassAssignment
     A=ADJ
-    A=log2(A + 0.1/ncol(A))
-    A=A-min(A)
-    A=A/max(A)
-    #n=rnorm(length(A),0,0.1)
-    #A=A+n
-    #A=(A+1)
-    #diag(A)=100
+    diag(A)=max(A)
     
 
     "%^%" <- function(M, power)
@@ -466,8 +568,8 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
     
     if (length(outl)>0 && length(outl) < 8 ) {
     A=A[-outl,-outl]
-    rcomps=rcomps[-outl]
-    rclass=rclass[-outl]
+    comps=comps[-outl]
+    class=class[-outl]
     D <- diag(apply(A, 1, sum)) # sum rows
     U <- D-A
     L <-solve(D) %*% U #Generalized Laplacian
@@ -486,20 +588,21 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
     pdf(fname,12,10)
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
     
-    #plot(PCA$x[,1:2], col=colbar[rcomps], pch=symbar[rclass],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
+    #plot(PCA$x[,1:2], col=colbar[comps], pch=symbar[class],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
     #     main="Spectral Projection")
     
-    plot(Z, col=colbar[rcomps], pch=symbar[rclass],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
+    plot(Z, col=colbar[comps], pch=symbar[class],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
          main="Spectral Projection")
     
     
     legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
-           legend= c(sort(unique(rcomps)),"" ,sort(unique(rclass))   ), 
-           col=c(colbar[sort(unique(rcomps))],"white", rep("black",length(unique(rclass)) ) ), 
-           pch=c(rep(20 ,length(unique(rcomps)) ),1, symbar[sort(unique(rclass))]),
+           legend= c(sort(unique(comps)),"" ,sort(unique(class))   ), 
+           col=c(colbar[sort(unique(comps))],"white", rep("black",length(unique(class)) ) ), 
+           pch=c(rep(20 ,length(unique(comps)) ),1, symbar[sort(unique(class))]),
            bty="n", border=F, ncol=2, text.width=0.02)
     dev.off()
   }
+  
   #########################################
   Te=(proc.time() - ptm)[3]
   Te=signif(Te,digits=6)
@@ -511,8 +614,19 @@ SC_cluster <- function(DM,is.cor=FALSE,impute=FALSE,filter=FALSE,rho=0.3,diffuse
   colnames(ConfMatrix)=paste(rownames(ConfMatrix),".true",sep="")
   rownames(ConfMatrix)=paste(rownames(ConfMatrix),".pred",sep="")
   
-  return(list(MEMB=rev(newmemb), DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix,miscl=misclErr,GRAO=GRAO  ))
+  return(list(MEMB=newmemb, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix,miscl=misclErr,GRAO=GRAO  ))
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
