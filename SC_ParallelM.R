@@ -290,6 +290,117 @@ FlashWSpearmanCor <- function (DM,WM=matrix(1,ncol(DM),ncol(DM) ),O=1,l=0,p=1,nc
 
 
 
+# Fast, memory efficient computation of canberra distance using  parallelization and bigmemory objects 
+# Input is a matrix and the desired number of cores
+FlashCanberra <- function (DM,ncores="all") { 
+  require(foreach)
+  require(doParallel)
+  require (bigmemory)
+  DM=as.big.matrix(DM)
+  desc<-describe(DM)
+  NCOL=desc@description["totalCols"][[1]]
+  NROW=desc@description["totalRows"][[1]]
+  if(ncores=="all"){
+    ncores = detectCores()
+    ncores=min(48,ncores,ceiling(NCOL/200))
+  } else{
+    ncores=min(48,ncores,detectCores(),ceiling(NCOL/200))
+  }
+  nblocks = ncores 
+  cl<-makeCluster(ncores)
+  registerDoParallel(cl)
+  distMAT <- matrix(data=0,nrow=NCOL,ncol=NCOL, dimnames=list(desc@description["colNames"][[1]],desc@description["colNames"][[1]]) )
+  distMAT <- as.big.matrix(distMAT,type="double")
+  bigDIST <-  describe(distMAT)
+  ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
+  SPLIT=split(1:NCOL, ceiling(seq_along(1:NCOL)/ceiling(NCOL/nblocks)  ))
+  COMBS <- expand.grid(1:length(SPLIT), 1:length(SPLIT))
+  COMBS <- t(apply(COMBS, 1, sort))
+  if (nrow(COMBS)>1) {COMBS <- COMBS[-which(COMBS[,1]==COMBS[,2]),]}
+  COMBS <- unique(COMBS)
+  ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+  results<-foreach(i = 1:nrow(COMBS), .packages=('bigmemory') ) %dopar%{
+    COMB <- COMBS[i, ]
+    G1 <- SPLIT[[COMB[1]]]
+    G2 <- SPLIT[[COMB[2]]]
+    x<-attach.big.matrix(desc)
+    distMAT<-attach.big.matrix(bigDIST)
+    v=unique(c(G1,G2))
+    DIST <- as.matrix(dist(t(x[,v]),method="canberra" ))
+    distMAT[v, v] <- DIST
+    DIST <- NULL
+    return(0L)
+  }
+  stopCluster(cl)
+  return(as.matrix(distMAT))
+}
+
+
+
+# Fast, memory efficient computation of Hellinger distance using  parallelization and bigmemory objects 
+# Input is a matrix and the desired number of cores
+FlashHellinger <- function (DM,ncores="all") {
+  source("/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Vector_Metrics.R")
+  require(foreach)
+  require(doParallel)
+  require (bigmemory)
+  DM=as.big.matrix(DM)
+  desc<-describe(DM)
+  NCOL=desc@description["totalCols"][[1]]
+  NROW=desc@description["totalRows"][[1]]
+  if(ncores=="all"){
+    ncores = detectCores()
+    ncores=min(48,ncores,ceiling(NCOL/200))
+  } else{
+    ncores=min(48,ncores,detectCores(),ceiling(NCOL/200))
+  }
+  nblocks = ncores 
+  cl<-makeCluster(ncores)
+  registerDoParallel(cl)
+  distMAT <- matrix(data=0,nrow=NCOL,ncol=NCOL, dimnames=list(desc@description["colNames"][[1]],desc@description["colNames"][[1]]) )
+  distMAT <- as.big.matrix(distMAT,type="double")
+  bigDIST <-  describe(distMAT)
+  ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
+  SPLIT=split(1:NCOL, ceiling(seq_along(1:NCOL)/ceiling(NCOL/nblocks)  ))
+  COMBS <- expand.grid(1:length(SPLIT), 1:length(SPLIT))
+  COMBS <- t(apply(COMBS, 1, sort))
+  if (nrow(COMBS)>1) {COMBS <- COMBS[-which(COMBS[,1]==COMBS[,2]),]}
+  COMBS <- unique(COMBS)
+  ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+  results<-foreach(i = 1:nrow(COMBS), .export=c('calcHellingerDist'),.packages=('bigmemory') ) %dopar%{
+    COMB <- COMBS[i, ]
+    G1 <- SPLIT[[COMB[1]]]
+    G2 <- SPLIT[[COMB[2]]]
+    x<-attach.big.matrix(desc)
+    distMAT<-attach.big.matrix(bigDIST)
+    v=unique(c(G1,G2))
+    DIST<-calcHellingerDist(x[,v])
+    distMAT[v, v] <- DIST
+    DIST <- NULL
+    return(0L)
+  }
+  stopCluster(cl)
+  return(as.matrix(distMAT))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #Parallel calculation of cell quality scores
 FlashQUAL <- function (DM,ncores="all") { 
   require(foreach)
@@ -551,8 +662,6 @@ FlashPR <- function (G,ncores="all") {
   PR=2^PR
   return(PR)
 }
-
-
 
 
 
