@@ -1,0 +1,51 @@
+---
+title: "griph: Graph Inference of Population Heterogeneity"
+author: "Panagiotis Papasaikas, Michael Stadler"
+date: "`r BiocStyle::doc_date()`"
+package: "`r BiocStyle::pkg_ver('griph')`"
+abstract: >
+    griph identifies cell types in single cell RNA-seq datasets,
+    allowing to control for unwanted sources of variance (e.g. cell cycle)
+    that may confound the cell types.
+
+    The most important function that combines all the steps of cell type identification
+    from griph is SC_cluster. Otherwise refer to the vignette
+    to see what else is available and how to optimize results for your particular
+    dataset.
+output: 
+    BiocStyle::html_document
+vignette: >
+    %\VignetteIndexEntry{griph: Graph Inference of Population Heterogeneity}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+    \usepackage[utf8]{inputenc}
+---
+
+# griph
+Graph Inference of Population Heterogeneity
+
+# Sample datasets included in this package  
+
+## Buettner et al., 2015
+Computational analysis of cell-to-cell heterogeneity in single-cell RNA-sequencing data reveals hidden subpopulations of cells. Buettner F, Natarajan KN, Casale FP, Proserpio V, Scialdone A, Theis FJ, Teichmann SA, Marioni JC, Stegle O. Nat Biotechnol. 2015 Feb;33(2):155-60. doi: 10.1038/nbt.3102.  
+
+- Description: 288 mouse ES cells, classified into three cell cycle stages
+- PubMed: http://www.ncbi.nlm.nih.gov/pubmed/25599176
+- DOI: https://doi.org/10.1038/nbt.3102
+- Data: http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2805/
+- Filtering: all cells, top 10,000 genes
+
+```{r Buettner}
+fname <- system.file("extdata", "buettner_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+label <- attr(M, "label")
+table(label)
+```
+
+
+# Session info {.unnumbered}
+Here is the output of sessionInfo() on the system on which this document was compiled:
+```{r sessionInfo, eval=TRUE, echo=FALSE}
+sessionInfo()
+```

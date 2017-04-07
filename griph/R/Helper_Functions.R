@@ -1,0 +1,225 @@
+#' Get k nearest neighbors of variables given a feature matrix. 
+#' 
+#' @param S feature matrix (here: always square)
+#' @param k numeric vector of length \code{nrow(S)} giving the number of nearest
+#'     neighbors to be returned for each column in \code{S}. Defaults to the
+#'     rounded square root of the number of rows (columns).
+#' 
+#' @return If all elements of \code{k} have the same value, a \code{k} by \code{ncol(S)}
+#'     matrix, else a \code{ncol(S)}-element \code{list}.
+get.knn <- function (S, k = rep(round(sqrt(nrow(S))),nrow(S)) ) {
+  diag(S)=0
+  kN=sapply(1:nrow(S),function(x) bigmemory::tail(order(S[,x]),k[x]))
+  return(kN)
+}
+
+
+#' Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors  
+#' 
+#' @param x weighted adjacency matrix represting the grpah to be pruned.
+#' @param pct fraction of edges to keep.
+#' 
+#' @return a matrix with the same dimensions as \code{x}, with only \code{pct} fraction of non-zero values.
+sparsify <- function (x,pct=0.1){
+  L=length(x)
+  P=sum(x>0)
+  if (P<3 ){return (x)}
+  else {
+    k=max(3,floor(pct * P)) 
+    k=min(100,k) 
+    cutoff=sort(x[which(x>0)],decreasing=TRUE)[ k  ]
+    x[which(x<cutoff)]=0  
+    return(x)
+  }
+}
+
+
+#' Emulate ggplot2 color palette.
+#' 
+#' @param n numeric(1) specifying the number of colors to return.
+#' 
+#' @return A character verctor with \code{n} colors spreading the whole rainbow.
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+
+#' Generate a random alpha-numeric string
+#' 
+#' @details
+#' Generate a character vector of \code{n} random strings of length \code{len}
+#' consisting of alpha-numeric characters (0-9, a-z or A-Z), for example to use
+#' as output files prefixes.
+#' 
+#' @param n numeric(1) specifying the number of strings to generate (default: 1)
+#' @param len the number of characters per string (default: 5)
+#' 
+#' @return a character vector with \code{n} random strings with \code{len} characters each.
+RandString <- function(n=1, len=5){
+  randomString <- c(1:n)  # initialize vector
+  for (i in 1:n)  {
+    randomString[i] <- paste(sample(c(0:9, letters, LETTERS),
+                                    len, replace=TRUE),collapse="")
+  }
+  return(randomString)
+}
+
+
+#' Generate custom vertices for igraph plotting
+#' 
+#' @description 
+#' A plotting function for graph nodes used in graph visualization, passed to
+#' \code{igraph::add.vertex.shape(..., plot=mycircle)}.
+#' 
+#' @param coords The coordinates of the vertices, a matrix with two columns.
+#' @param v The ids of the vertices to plot. It should match the number of rows in the coords argument.
+#' @param params This is a function object that can be called to query graphical parameters.
+#' 
+#' @return This function is used for its side effect of plotting graph vertices.
+#' 
+#' @seealso \code{\link[igraph]{add.vertex.shape}}.
+mycircle <- function(coords, v=NULL, params) {
+  vertex.color <- params("vertex", "color")
+  if (length(vertex.color) != 1 && !is.null(v)) {
+    vertex.color <- vertex.color[v]
+  }
+  vertex.size  <- 1/200 * params("vertex", "size")
+  if (length(vertex.size) != 1 && !is.null(v)) {
+    vertex.size <- vertex.size[v]
+  }
+  vertex.frame.color <- params("vertex", "frame.color")
+  if (length(vertex.frame.color) != 1 && !is.null(v)) {
+    vertex.frame.color <- vertex.frame.color[v]
+  }
+  vertex.frame.width <- params("vertex", "frame.width")
+  if (length(vertex.frame.width) != 1 && !is.null(v)) {
+    vertex.frame.width <- vertex.frame.width[v]
+  }
+  mapply(coords[,1], coords[,2], vertex.color, vertex.frame.color,
+         vertex.size, vertex.frame.width,
+         FUN=function(x, y, bg, fg, size, lwd) {
+           symbols(x=x, y=y, bg=bg, fg=fg, lwd=lwd,
+                   circles=size, add=TRUE, inches=FALSE)
+         })
+}
+
+
+#' @title Map class labels using a greedy heuristic.
+#' 
+#' @description 
+#' Map class labels (levels) of a given classification \code{a} in a greedy
+#' fashion to its corresponding labels (levels) of a second classifciation \code{b}.
+#' 
+#' @details 
+#' Each label in \code{a} is assigned to the label from \code{b} that it most
+#' frequently co-occurs with. If there are multiple equally frequent pairs,
+#' an arbitrary one of them is selected.
+#' 
+#' @param a Either a numeric, charactor of factor with class labels, or if \code{b}
+#'     is \code{NULL}, a matrix or two-dimensional array (e.g. returned by \code{table})
+#'     corresponding to the confusion matrix.
+#' @param b Either a numeric, charactor of factor with class labels of the same
+#'     length as \code{a}, or \code{NULL} if \code{a} is the confusion matrix.
+#'
+#' @return A character vector with the mapping of labels from \code{a} (names) to
+#'     labels in \code{b} (values, coerced to \code{character}).
+#' 
+#' @seealso \code{\link{mapLabelsExhaustive}} for an exhaustive version that is
+#'     guaranteed to return the optimal mapping that minimizes the classification
+#'     error. \code{\link{classError}} to calculate classification error. 
+mapLabelsGreedy <- function(a, b=NULL) {
+    if(is.null(b)) {
+        cm <- a # assume a to be a confusion matrix
+    } else {
+        stopifnot(length(a) == length(b))
+        a <- as.character(a)
+        b <- as.character(b)
+        cm <- table(a, b)
+    }
+    map <- rownames(cm)
+    names(map) <- map
+    ub <- colnames(cm)
+    for(i in seq_along(map))
+        map[i] <- ub[which.max(cm[i,])]
+    return(map)
+}
+
+#' @title Map class labels using an exhaustive algorithm.
+#' 
+#' @description 
+#' Map class labels (levels) of a given classification \code{a} in an exhaustive
+#' fashion to its corresponding labels (levels) of a second classifciation \code{b}.
+#' 
+#' @details 
+#' Each label in \code{a} is assigned to the label from \code{b} that minimizes
+#' the classification error, exhaustively searching over all possible permutations
+#' of label assignments.
+#' 
+#' @param a Either a numeric, charactor of factor with class labels, or if \code{b}
+#'     is \code{NULL}, a matrix or two-dimensional array (e.g. returned by \code{table})
+#'     corresponding to the confusion matrix.
+#' @param b Either a numeric, charactor of factor with class labels of the same
+#'     length as \code{a}, or \code{NULL} if \code{a} is the confusion matrix.
+#'
+#' @return A character vector with the mapping of labels from \code{a} (names) to
+#'     labels in \code{b} (values, coerced to \code{character}).
+#' 
+#' @seealso \code{\link{mapLabelsGreedy}} for a greedy version that is
+#'     faster especially for many classes. \code{\link{classError}} to calculate classification error. 
+mapLabelsExhaustive <- function(a, b=NULL) {
+    #.permutations <- function( x, prefix = c() ) {
+    #    if(length(x) == 0 )
+    #        return(prefix)
+    #    do.call(rbind, sapply(1:length(x), FUN = function(idx) .permutations( x[-idx], c( prefix, x[idx])), simplify = FALSE))
+    #}
+    
+    if(is.null(b)) {
+        cm <- a # assume a to be a confusion matrix
+    } else {
+        stopifnot(length(a) == length(b))
+        a <- as.character(a)
+        b <- as.character(b)
+        cm <- table(a, b)
+    }
+    
+    # permC <- .permutations(rownames(cm)) # does not work if length(unique(a)) != length(unique(b))
+    permC <- gtools::permutations(n = ncol(cm), r = nrow(cm), v = colnames(cm), set = FALSE, repeats.allowed = TRUE)
+    colnames(permC) <- rownames(cm)
+    permC[which.min(sapply(seq.int(nrow(permC)), function(i) classError(a, b, permC[i,]))), ]
+}
+
+#' @title Classification error.
+#' 
+#' @description 
+#' Calculate the error of a given classification relative to a second one.
+#' 
+#' @details
+#' The classification error is calculated as the fraction of elements, for which
+#' the label in \code{a} is not equal to the label given in \code{b}. Optionally,
+#' a mapping between the two label sets can be specificed using \code{map}.
+#' 
+#' @param a A numeric, charactor of factor with class labels.
+#' @param b A numeric, charactor of factor with class labels (same length as \code{a}).
+#' @param map A mapping from labels in \code{a} to labels in \code{b}, for example
+#'     returned by \code{mapLabelsGreedy}. If \code{map} is \code{NULL},
+#'     \code{mapLabelsExhaustive} (if \code{exhaustive} is \code{TRUE}) or
+#'     \code{mapLabelsGreedy} is called to create such a mapping.
+#' @param exhaustive If \code{TRUE} and \code{map} is \code{NULL}, use \code{mapLabelsExhaustive}
+#'     to get \code{map}. If \code{FALSE} and \code{map} is \code{NULL}, use \code{mapLabelsGreedy}.
+#'     Otherwise, \code{exhaustive} is ignored.
+#'     
+#' @return A numerical value corresponding to the classification error.
+#'     
+#' @seealso \code{\link{mapLabelsExhaustive}} and \code{\link{mapLabelsGreedy}} for
+#'     calculation of a mapping between \code{a} and \code{b} labels.
+classError <- function(a, b, map=NULL, exhaustive=FALSE) {
+    if(is.null(map))
+        map <- if(exhaustive) mapLabelsExhaustive(a, b) else mapLabelsGreedy(a, b)
+    am <- map[as.character(a)]
+    mean(am != as.character(b))
+}
+
+
+
+

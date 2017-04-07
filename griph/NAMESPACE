@@ -1,0 +1,20 @@
+import(igraph)#Various functions for graph creation, manipulation, plotting and analysis
+import(QUIC)  #Faster implementation of the glasso algorithm from Firedman, Tibshirani using Newton's coordinate descent
+import(doParallel)  #Parallelization
+import(foreach)     #Parallelization
+import(bigmemory)
+importFrom(parallel, detectCores, makeCluster, stopCluster)
+importFrom(corpcor, cor.shrink) #Fast pearson's correlation using BLAS, incorporating weights and shrinkage
+importFrom(coop, pcor)  #Fast pearson's correlation implementation using BLAS
+importFrom(rNMF, rnmf)  #Non-negative matrix factorization
+importFrom("methods", "new", "as")
+importFrom("grDevices", "dev.off", "hcl", "pdf")
+importFrom("graphics", "legend", "par", "plot", "symbols")
+importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd")
+importFrom("utils", "flush.console")
+importFrom("Rcpp", "evalCpp")
+importFrom("gtools", "permutations")
+
+useDynLib(griph)
+
+export(SC_cluster, HellingerMat, JSDmat)

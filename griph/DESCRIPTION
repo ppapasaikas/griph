@@ -1,0 +1,22 @@
+Package: griph
+Type: Package
+Title: Graph Inference of Population Heterogeneity
+Version: 0.1.0
+Authors@R: c(person("Panagiotis", "Papasaikas", role = c("aut", "cre"),
+                     email = "panagiotis.papasaikas@fmi.ch"),
+              person("Michael", "Stadler", role = "aut",
+                     email = "michael.stadler@fmi.ch"))
+Author: Panagiotis Papasaikas <panagiotis.papasaikas@fmi.ch>,
+    Michael Stadler <michael.stadler@fmi.ch>
+Maintainer: Panagiotis Papasaikas <panagiotis.papasaikas@fmi.ch>
+Description: Identify cell types from single cell RNA-seq data, allowing to
+    control for unwanted sources of variance that may mask the cell type differences.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends: igraph
+Imports: Rcpp (>= 0.12.9), methods, QUIC, coop, corpcor, rNMF, foreach, doParallel, parallel, gtools, bigmemory
+LinkingTo: Rcpp
+Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1

@@ -1,4 +1,11 @@
+griph.Rproj
 .Rproj.user
 .Rhistory
 .RData
+.Rdata
 .Ruserdata
+.DS_Store
+*.o
+*.so
+*.pdf
+._*
