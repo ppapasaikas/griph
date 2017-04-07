@@ -49,6 +49,34 @@ x <- matrix(0:8, nrow = 3)
 format(sum(HellingerMat(x)), digits = 10)
 sum(is.finite(HellingerMat(x-3)))
 
+# ... test data from pacakge
+list.files(system.file("extdata", package = "griph"))
+
+# ... ... Buettner
+M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
+label <- attr(M, "label")
+res <- SC_cluster(M, ClassAssignment = label)
+res$miscl # 0.09722222
+
+# ... ... Kolodziejck
+M <- readRDS(system.file("extdata", "kolodziejck_top10k.rds", package = "griph"))
+label <- attr(M, "label")
+res <- SC_cluster(M, ClassAssignment = label)
+res$miscl # 0
+
+# ... ... Usoskin
+M <- readRDS(system.file("extdata", "usoskin_top10k.rds", package = "griph"))
+label <- attr(M, "label")
+#label <- attr(M, "label2")
+#label <- attr(M, "label3")
+res <- SC_cluster(M, ClassAssignment = label)
+res$miscl # 0.1451815
+griph:::classError(res$MEMB, attr(M, "label"))  # 0.1451815
+griph:::classError(res$MEMB, attr(M, "label2")) # 0.2941176
+griph:::classError(res$MEMB, attr(M, "label3")) # 0.3128911
+
+res$ConfMatrix
+
 # ... test data
 load(file="/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Data/Test_1_mECS.RData",verbose=TRUE)    # Buettneret al Nat. Biotechn. 2015: Embryonic stem cell under different cell cycle stages, http://www.ncbi.nlm.nih.gov/pubmed/25599176
 load(file="/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Data/Test_2_Kolod.RData",verbose=TRUE)   # Kolodziejck et. al Cell Stem Cell 2015: pluripotent cells under different environment conditions, http://www.ncbi.nlm.nih.gov/pmc/articles/PMC4595712/
@@ -56,8 +84,8 @@ load(file="/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Data/Test_3_Po
 load(file="/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Data/Test_4_Usoskin.RData",verbose=TRUE) # Usoskin et. al Nat NeuroSc, 2014. Neuronal cells with sensory subtypes, http://www.ncbi.nlm.nih.gov/pubmed/25420068
 load(file="/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Data/Zelsel.RData",verbose=TRUE)         # Zeisel et al., Science, 2015. Brain structure. Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq, https://www.ncbi.nlm.nih.gov/pubmed/25700174
 
-Data=Test_1_mECS    # 182 cells (<5s)
-Data=Test_2_Kolod   # 704 cells (currently fails in coop::pcor due to NaN)
+Data=Test_1_mECS    # Fluidigm C1, 182 cells (<5s)
+Data=Test_2_Kolod   # Smart-seq2,  704 cells (~1min)
 Data=Test_3_Pollen  # 249 cells (~8s)
 Data=Test_4_Usoskin # 622 cells (~1min)
 Data=Zelsel         # 3005 cells (~82min)
@@ -68,7 +96,8 @@ ClassAssignment=as.vector(unlist(Data$true_labs)) # True Assignment
 ncol(M)
 summary(as.vector(M))
 
-res <- SC_cluster(M, ClassAssignment = ClassAssignment)
+## res <- SC_cluster(M, ClassAssignment = ClassAssignment)
+res <- SC_cluster(2^M, ClassAssignment = ClassAssignment) # M is in log space (assume base 2)
 
 names(res)
 res$ConfMatrix

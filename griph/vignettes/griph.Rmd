@@ -9,9 +9,8 @@ abstract: >
     that may confound the cell types.
 
     The most important function that combines all the steps of cell type identification
-    from griph is SC_cluster. Otherwise refer to the vignette
-    to see what else is available and how to optimize results for your particular
-    dataset.
+    from griph is \code{\link{SC_cluster}}. The vignette illustrates its use
+    applied to several publicly available datasets.
 output: 
     BiocStyle::html_document
 vignette: >
@@ -26,10 +25,10 @@ Graph Inference of Population Heterogeneity
 
 # Sample datasets included in this package  
 
-## Buettner et al., 2015
+## Buettner et al., Nature Biotechnology 2015
 Computational analysis of cell-to-cell heterogeneity in single-cell RNA-sequencing data reveals hidden subpopulations of cells. Buettner F, Natarajan KN, Casale FP, Proserpio V, Scialdone A, Theis FJ, Teichmann SA, Marioni JC, Stegle O. Nat Biotechnol. 2015 Feb;33(2):155-60. doi: 10.1038/nbt.3102.  
 
-- Description: 288 mouse ES cells, classified into three cell cycle stages
+- Description: 288 mouse ES cells (Fluidigm C1), classified into three cell cycle stages
 - PubMed: http://www.ncbi.nlm.nih.gov/pubmed/25599176
 - DOI: https://doi.org/10.1038/nbt.3102
 - Data: http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2805/
@@ -43,6 +42,38 @@ label <- attr(M, "label")
 table(label)
 ```
 
+
+## Kolodziejck et al., Cell Stem Cell 2015
+Single Cell RNA-Sequencing of Pluripotent States Unlocks Modular Transcriptional Variation. Kolodziejczyk AA, Kim JK, Tsang JC, Ilicic T, Henriksson J, Natarajan KN, Tuck AC, Gao X, Bühler M, Liu P, Marioni JC, Teichmann SA. Cell Stem Cell. 2015 Oct 1;17(4):471-85. doi: 10.1016/j.stem.2015.09.011.
+
+- Description: 704 mouse ES cells (Fluidigm C1), three culture conditions: serum + LIF (lif), 2i + LIF (2i) and alternative 2i + LIF (a2i)
+- PubMed: https://www.ncbi.nlm.nih.gov/pubmed/26431182  
+- DOI: https://doi.org/10.1016/j.stem.2015.09.011  
+- Data: http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2600/, http://www.ebi.ac.uk/teichmann-srv/espresso  
+
+```{r Kolodziejck}
+fname <- system.file("extdata", "kolodziejck_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+label <- attr(M, "label")
+table(label)
+```
+
+## Usoskin et al., Nat Neurosci. 2015
+Unbiased classification of sensory neuron types by large-scale single-cell RNA sequencing. Usoskin D, Furlan A, Islam S, Abdo H, Lönnerberg P, Lou D, Hjerling-Leffler J, Haeggström J, Kharchenko O, Kharchenko PV, Linnarsson S, Ernfors P. Nat Neurosci. 2015 Jan;18(1):145-53. doi: 10.1038/nn.3881.
+
+- Description: 799 mouse cells (622 neurons) from lumbar DRGs (custom protocol), different sensory neuron subtypes
+- PubMed: https://www.ncbi.nlm.nih.gov/pubmed/25420068  
+- DOI: https://doi.org/10.1038/nn.3881  
+- Data: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59739  
+
+```{r Usoskin}
+fname <- system.file("extdata", "usoskin_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+label <- attr(M, "label")
+table(label)
+```
 
 # Session info {.unnumbered}
 Here is the output of sessionInfo() on the system on which this document was compiled:

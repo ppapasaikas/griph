@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <h4 class="author"><em>Panagiotis Papasaikas, Michael Stadler</em></h4>
 <h4 class="date"><em>7 April 2017</em></h4>
 <h4 class="abstract">Abstract</h4>
-<p>griph identifies cell types in single cell RNA-seq datasets, allowing to control for unwanted sources of variance (e.g. cell cycle) that may confound the cell types. The most important function that combines all the steps of cell type identification from griph is SC_cluster. Otherwise refer to the vignette to see what else is available and how to optimize results for your particular dataset.</p>
+<p>griph identifies cell types in single cell RNA-seq datasets, allowing to control for unwanted sources of variance (e.g. cell cycle) that may confound the cell types. The most important function that combines all the steps of cell type identification from griph is . The vignette illustrates its use applied to several publicly available datasets.</p>
 </div>
 <h4 class="package">Package version: <span style="font-weight: normal">griph 0.1.0</span></h4>
 
@@ -61,7 +61,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <ul>
 <li><a href="#griph"><span class="toc-section-number">1</span> griph</a></li>
 <li><a href="#sample-datasets-included-in-this-package"><span class="toc-section-number">2</span> Sample datasets included in this package</a><ul>
-<li><a href="#buettner-et-al.-2015"><span class="toc-section-number">2.1</span> Buettner et al., 2015</a></li>
+<li><a href="#buettner-et-al.-nature-biotechnology-2015"><span class="toc-section-number">2.1</span> Buettner et al., Nature Biotechnology 2015</a></li>
+<li><a href="#kolodziejck-et-al.-cell-stem-cell-2015"><span class="toc-section-number">2.2</span> Kolodziejck et al., Cell Stem Cell 2015</a></li>
 </ul></li>
 <li><a href="#session-info">Session info</a></li>
 </ul>
@@ -73,11 +74,11 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 <div id="sample-datasets-included-in-this-package" class="section level1">
 <h1><span class="header-section-number">2</span> Sample datasets included in this package</h1>
-<div id="buettner-et-al.-2015" class="section level2">
-<h2><span class="header-section-number">2.1</span> Buettner et al., 2015</h2>
+<div id="buettner-et-al.-nature-biotechnology-2015" class="section level2">
+<h2><span class="header-section-number">2.1</span> Buettner et al., Nature Biotechnology 2015</h2>
 <p>Computational analysis of cell-to-cell heterogeneity in single-cell RNA-sequencing data reveals hidden subpopulations of cells. Buettner F, Natarajan KN, Casale FP, Proserpio V, Scialdone A, Theis FJ, Teichmann SA, Marioni JC, Stegle O. Nat Biotechnol. 2015 Feb;33(2):155-60. doi: 10.1038/nbt.3102.</p>
 <ul>
-<li>Description: 288 mouse ES cells, classified into three cell cycle stages</li>
+<li>Description: 288 mouse ES cells (Fluidigm C1), classified into three cell cycle stages</li>
 <li>PubMed: <a href="http://www.ncbi.nlm.nih.gov/pubmed/25599176" class="uri">http://www.ncbi.nlm.nih.gov/pubmed/25599176</a></li>
 <li>DOI: <a href="https://doi.org/10.1038/nbt.3102" class="uri">https://doi.org/10.1038/nbt.3102</a></li>
 <li>Data: <a href="http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2805/" class="uri">http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2805/</a></li>
@@ -92,6 +93,27 @@ table(label)</code></pre>
 <pre><code>## label
 ##  G1 G2M   S 
 ##  96  96  96</code></pre>
+</div>
+<div id="kolodziejck-et-al.-cell-stem-cell-2015" class="section level2">
+<h2><span class="header-section-number">2.2</span> Kolodziejck et al., Cell Stem Cell 2015</h2>
+<p>Single Cell RNA-Sequencing of Pluripotent States Unlocks Modular Transcriptional Variation. Kolodziejczyk AA, Kim JK, Tsang JC, Ilicic T, Henriksson J, Natarajan KN, Tuck AC, Gao X, Bühler M, Liu P, Marioni JC, Teichmann SA. Cell Stem Cell. 2015 Oct 1;17(4):471-85. doi: 10.1016/j.stem.2015.09.011.</p>
+<ul>
+<li>Description: 704 mouse ES cells (Fluidigm C1), three culture conditions: serum + LIF (lif), 2i + LIF (2i) and alternative 2i + LIF (a2i)</li>
+<li>PubMed: <a href="https://www.ncbi.nlm.nih.gov/pubmed/26431182" class="uri">https://www.ncbi.nlm.nih.gov/pubmed/26431182</a><br />
+</li>
+<li>DOI: <a href="https://doi.org/10.1016/j.stem.2015.09.011" class="uri">https://doi.org/10.1016/j.stem.2015.09.011</a><br />
+</li>
+<li>Data: <a href="http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2600/" class="uri">http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2600/</a>, <a href="http://www.ebi.ac.uk/teichmann-srv/espresso" class="uri">http://www.ebi.ac.uk/teichmann-srv/espresso</a></li>
+</ul>
+<pre class="r"><code>fname &lt;- system.file(&quot;extdata&quot;, &quot;kolodziejck_top10k.rds&quot;, package = &quot;griph&quot;)
+M &lt;- readRDS(fname)
+dim(M)</code></pre>
+<pre><code>## [1] 10000   704</code></pre>
+<pre class="r"><code>label &lt;- attr(M, &quot;label&quot;)
+table(label)</code></pre>
+<pre><code>## label
+## lif  2i a2i 
+## 250 295 159</code></pre>
 </div>
 </div>
 <div id="session-info" class="section level1 unnumbered">
