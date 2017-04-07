@@ -295,7 +295,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   
   
   
-  ClassAssignment=as.numeric(factor(ClassAssignment))
+  ClassAssignment.numeric=as.numeric(factor(ClassAssignment))
   ############### glasso-based graph structure estimation: #####################
   message("Estimating Graph Structure...","\r")
   flush.console() 
@@ -383,7 +383,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   }
   
   
-  GRAO<-igraph::set.vertex.attribute(GRAO,"class",value=ClassAssignment  )
+  GRAO<-igraph::set.vertex.attribute(GRAO,"class",value=ClassAssignment.numeric  )
   Cuse<-NULL
   
   
@@ -508,9 +508,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
     igraph::plot.igraph(GRAOp, layout=l,asp=0,vertex.label=NA,vertex.frame.color=igraph::V(GRAOp)$classcolor, vertex.shape="fcircle",vertex.frame.width=igraph::V(GRAOp)$frame.width )
     legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
-           legend= c(sort(unique(V(GRAOp)$membership)),"" ,sort(unique(ClassAssignment))   ), 
+           legend= c(sort(unique(V(GRAOp)$membership)),"" ,sort(unique(ClassAssignment.numeric))   ), 
            col=c(colbar,"white", c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown")[1:length(unique(ClassAssignment))] ), 
-           pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(ClassAssignment))  )   ),
+           pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(ClassAssignment.numeric))  )   ),
            bty="n", border=F, ncol=2, text.width=0.02)
     dev.off()
     GRAOp<-NULL
@@ -529,7 +529,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     message("Computing Spectral Projection and Rendering...","\r")
     flush.console() 
     symbar <- c(21,24,22,25,23,c(0:14))
-    class=ClassAssignment
+    class=ClassAssignment.numeric
     A=ADJ
     diag(A)=max(A)
     
