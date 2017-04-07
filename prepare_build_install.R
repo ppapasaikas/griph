@@ -21,6 +21,7 @@ devtools::install(pkg = "./griph", build_vignettes = TRUE)
 devtools::install(pkg = "./griph", reload = TRUE, quick = TRUE)
 
 # ... directly from github
+devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
 devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph", branch = "Testing")
 
 # setup unit tests with testthat
@@ -32,6 +33,7 @@ if (!file.exists("./griph/tests"))
 # library(BiocCheck)
 # BiocCheck(package = "./griph") # currently does not work
 devtools::test(pkg = "./griph") # automatically reloads code/tests
+devtools::check(pkg = "./griph")
 
 # run examples
 devtools::run_examples(pkg = "./griph")
