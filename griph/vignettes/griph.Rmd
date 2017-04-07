@@ -20,7 +20,7 @@ vignette: >
     \usepackage[utf8]{inputenc}
 ---
 
-# griph
+# Introduction
 Graph Inference of Population Heterogeneity
 
 # Sample datasets included in this package  
@@ -97,6 +97,53 @@ label2 <- attr(M, "label2")
 table(label2)
 ```
 
+
+
+# Quickstart: A sample analysis
+We will use the mouse ES cell data from Buettner et al. for this example. The dataset is
+included in the package, including know cell cycle labels:  
+```{r buettner_data}
+M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
+dim(M) # genes by cells
+label.true <- attr(M, "label")
+table(label.true)
+```
+
+Cell types can be identified using \code{\link{SC_cluster}}:  
+```{r buettner_types}
+library(griph)
+res <- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)
+table(res$MEMB)
+```
+
+The automatic generation of plots (\code{plotG} and \code{plotSP} arguments) is
+switched off here. \code{\link{SC_cluster}} identified `r length(unique(res$MEMB))`
+cell types in the data, and the confusion matrix returned in the result summarizes
+how they relate to the known cell types or states:  
+```{r buettner_eval}
+res$ConfMatrix # confusion matrix
+res$miscl # misclassification error
+```
+
+When comparing different classifications with each other, they may differ in granularity,
+yet be consistent with each other. This can be seen for example in the above confusion
+matrix for predicted classes *3*, *4* and *5* that all contain mostly *G1* cells.
+\code{griph} takes this into account when calculating classification error by assigning
+each identified class to the major known class (*G1* in this example) and only counting
+the 6 cells in *3*, *4* and *5* as wrongly classified that are not *G1*:  
+
+The obtained results can be visualized for example by plotting the graph obtained from \code{griph}:  
+```{r buettner_graph}
+plot(res$GRAO)
+```
+
+or also by applying a dimensionality reduction/projection technique such as tSNE to the affinity
+matrix returned by \code{griph}:  
+```{r buettner_tsne}
+library(Rtsne)
+out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
+plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
+```
 
 # Session info {.unnumbered}
 Here is the output of sessionInfo() on the system on which this document was compiled:

@@ -487,7 +487,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     min.csize=ceiling(0.25*sqrt(length(V(GRAO))))
     GRAOp=igraph::delete_vertices(GRAOp,which( V(GRAOp)$community.size < min.csize ))  
     
-    message("percentage of displayed edges: ",pct,"\r")
+    message("percentage of displayed edges: ",round(100*pct,1),"\r")
     message("WARNING: Nodes from communities with <",min.csize, " members will not be displayed.","\r")
     flush.console()
     
