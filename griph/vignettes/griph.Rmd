@@ -73,7 +73,30 @@ M <- readRDS(fname)
 dim(M)
 label <- attr(M, "label")
 table(label)
+label2 <- attr(M, "label2")
+table(label2)
+label3 <- attr(M, "label3")
+table(label3)
 ```
+
+## Zeisel et al., Science 2015
+Brain structure. Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq. Zeisel A, Muñoz-Manchado AB, Codeluppi S, Lönnerberg P, La Manno G, Juréus A, Marques S, Munguba H, He L, Betsholtz C, Rolny C, Castelo-Branco G, Hjerling-Leffler J, Linnarsson S. Science. 2015 Mar 6;347(6226):1138-42. doi: 10.1126/science.aaa1934.
+
+- Description: 3005 mouse brain cells (Fluidigm C1), different neuron subtypes
+- PubMed: https://www.ncbi.nlm.nih.gov/pubmed/25700174  
+- DOI: https://doi.org/10.1126/science.aaa1934  
+- Data: http://linnarssonlab.org/cortex/, https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE60361  
+
+```{r Zeisel}
+fname <- system.file("extdata", "zeisel_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+label <- attr(M, "label")
+table(label)
+label2 <- attr(M, "label2")
+table(label2)
+```
+
 
 # Session info {.unnumbered}
 Here is the output of sessionInfo() on the system on which this document was compiled:

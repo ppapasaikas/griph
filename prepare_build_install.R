@@ -75,7 +75,19 @@ griph:::classError(res$MEMB, attr(M, "label"))  # 0.1451815
 griph:::classError(res$MEMB, attr(M, "label2")) # 0.2941176
 griph:::classError(res$MEMB, attr(M, "label3")) # 0.3128911
 
+# ... ... Zeisel
+M <- readRDS(system.file("extdata", "zeisel_top10k.rds", package = "griph"))
+label <- attr(M, "label")
+#label <- attr(M, "label2")
+#res <- SC_cluster(M, ClassAssignment = label) # not run yet - takes a long time
+#res$miscl # 
+griph:::classError(res$MEMB, attr(M, "label"))  #
+griph:::classError(res$MEMB, attr(M, "label2")) #
+
 res$ConfMatrix
+
+
+
 
 # ... test data
 load(file="/work/gbioinfo/papapana/FMI_groups/SingleCell_Analysis/Data/Test_1_mECS.RData",verbose=TRUE)    # Buettneret al Nat. Biotechn. 2015: Embryonic stem cell under different cell cycle stages, http://www.ncbi.nlm.nih.gov/pubmed/25599176

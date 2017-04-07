@@ -63,6 +63,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <li><a href="#sample-datasets-included-in-this-package"><span class="toc-section-number">2</span> Sample datasets included in this package</a><ul>
 <li><a href="#buettner-et-al.-nature-biotechnology-2015"><span class="toc-section-number">2.1</span> Buettner et al., Nature Biotechnology 2015</a></li>
 <li><a href="#kolodziejck-et-al.-cell-stem-cell-2015"><span class="toc-section-number">2.2</span> Kolodziejck et al., Cell Stem Cell 2015</a></li>
+<li><a href="#usoskin-et-al.-nat-neurosci.-2015"><span class="toc-section-number">2.3</span> Usoskin et al., Nat Neurosci. 2015</a></li>
+<li><a href="#zeisel-et-al.-science-2015"><span class="toc-section-number">2.4</span> Zeisel et al., Science 2015</a></li>
 </ul></li>
 <li><a href="#session-info">Session info</a></li>
 </ul>
@@ -114,6 +116,95 @@ table(label)</code></pre>
 <pre><code>## label
 ## lif  2i a2i 
 ## 250 295 159</code></pre>
+</div>
+<div id="usoskin-et-al.-nat-neurosci.-2015" class="section level2">
+<h2><span class="header-section-number">2.3</span> Usoskin et al., Nat Neurosci. 2015</h2>
+<p>Unbiased classification of sensory neuron types by large-scale single-cell RNA sequencing. Usoskin D, Furlan A, Islam S, Abdo H, Lönnerberg P, Lou D, Hjerling-Leffler J, Haeggström J, Kharchenko O, Kharchenko PV, Linnarsson S, Ernfors P. Nat Neurosci. 2015 Jan;18(1):145-53. doi: 10.1038/nn.3881.</p>
+<ul>
+<li>Description: 799 mouse cells (622 neurons) from lumbar DRGs (custom protocol), different sensory neuron subtypes</li>
+<li>PubMed: <a href="https://www.ncbi.nlm.nih.gov/pubmed/25420068" class="uri">https://www.ncbi.nlm.nih.gov/pubmed/25420068</a><br />
+</li>
+<li>DOI: <a href="https://doi.org/10.1038/nn.3881" class="uri">https://doi.org/10.1038/nn.3881</a><br />
+</li>
+<li>Data: <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59739" class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59739</a></li>
+</ul>
+<pre class="r"><code>fname &lt;- system.file(&quot;extdata&quot;, &quot;usoskin_top10k.rds&quot;, package = &quot;griph&quot;)
+M &lt;- readRDS(fname)
+dim(M)</code></pre>
+<pre><code>## [1] 10000   799</code></pre>
+<pre class="r"><code>label &lt;- attr(M, &quot;label&quot;)
+table(label)</code></pre>
+<pre><code>## label
+## Central, unsolved                NF        NF outlier               NoN 
+##                39               139                 9               109 
+##       NoN outlier                NP               PEP                TH 
+##                 2               169                81               233 
+##        TH outlier 
+##                18</code></pre>
+<pre class="r"><code>label2 &lt;- attr(M, &quot;label2&quot;)
+table(label2)</code></pre>
+<pre><code>## label2
+## Central, unsolved               NF1             NF2/3             NF4/5 
+##                39                31                60                48 
+##        NF outlier               NoN       NoN outlier               NP1 
+##                 9               109                 2               125 
+##               NP2              PEP1              PEP2                TH 
+##                44                64                17               233 
+##        TH outlier 
+##                18</code></pre>
+<pre class="r"><code>label3 &lt;- attr(M, &quot;label3&quot;)
+table(label3)</code></pre>
+<pre><code>## label3
+## Central, unsolved               NF1               NF2               NF3 
+##                39                31                48                12 
+##               NF4               NF5        NF outlier               NoN 
+##                22                26                 9               109 
+##       NoN outlier               NP1               NP2               NP3 
+##                 2               125                32                12 
+##              PEP1              PEP2                TH        TH outlier 
+##                64                17               233                18</code></pre>
+</div>
+<div id="zeisel-et-al.-science-2015" class="section level2">
+<h2><span class="header-section-number">2.4</span> Zeisel et al., Science 2015</h2>
+<p>Brain structure. Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq. Zeisel A, Muñoz-Manchado AB, Codeluppi S, Lönnerberg P, La Manno G, Juréus A, Marques S, Munguba H, He L, Betsholtz C, Rolny C, Castelo-Branco G, Hjerling-Leffler J, Linnarsson S. Science. 2015 Mar 6;347(6226):1138-42. doi: 10.1126/science.aaa1934.</p>
+<ul>
+<li>Description: 3005 mouse brain cells (Fluidigm C1), different neuron subtypes</li>
+<li>PubMed: <a href="https://www.ncbi.nlm.nih.gov/pubmed/25700174" class="uri">https://www.ncbi.nlm.nih.gov/pubmed/25700174</a><br />
+</li>
+<li>DOI: <a href="https://doi.org/10.1126/science.aaa1934" class="uri">https://doi.org/10.1126/science.aaa1934</a><br />
+</li>
+<li>Data: <a href="http://linnarssonlab.org/cortex/" class="uri">http://linnarssonlab.org/cortex/</a>, <a href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE60361" class="uri">https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE60361</a></li>
+</ul>
+<pre class="r"><code>fname &lt;- system.file(&quot;extdata&quot;, &quot;zeisel_top10k.rds&quot;, package = &quot;griph&quot;)
+M &lt;- readRDS(fname)
+dim(M)</code></pre>
+<pre><code>## [1] 10000  3005</code></pre>
+<pre class="r"><code>label &lt;- attr(M, &quot;label&quot;)
+table(label)</code></pre>
+<pre><code>## label
+## astrocytes_ependymal    endothelial-mural         interneurons 
+##                  224                  235                  290 
+##            microglia     oligodendrocytes        pyramidal CA1 
+##                   98                  820                  939 
+##         pyramidal SS 
+##                  399</code></pre>
+<pre class="r"><code>label2 &lt;- attr(M, &quot;label2&quot;)
+table(label2)</code></pre>
+<pre><code>## label2
+##    Astro1    Astro2   CA1Pyr1   CA1Pyr2 CA1PyrInt   CA2Pyr2   Choroid 
+##        68        61       380       447        49        41        10 
+##   ClauPyr     Epend      Int1     Int10     Int11     Int12     Int13 
+##         5        20        12        21        10        21        15 
+##     Int14     Int15     Int16      Int2      Int3      Int4      Int5 
+##        22        18        20        24        10        15        20 
+##      Int6      Int7      Int8      Int9      Mgl1      Mgl2    (none) 
+##        22        23        26        11        17        16       189 
+##    Oligo1    Oligo2    Oligo3    Oligo4    Oligo5    Oligo6     Peric 
+##        45        98        87       106       125       359        21 
+##      Pvm1      Pvm2   S1PyrDL  S1PyrL23   S1PyrL4   S1PyrL5  S1PyrL5a 
+##        32        33        81        74        26        16        28 
+##   S1PyrL6  S1PyrL6b    SubPyr     Vend1     Vend2      Vsmc 
+##        39        21        22        32       105        62</code></pre>
 </div>
 </div>
 <div id="session-info" class="section level1 unnumbered">
