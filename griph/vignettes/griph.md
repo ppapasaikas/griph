@@ -296,7 +296,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Elapsed Time:  4.567
+## Elapsed Time:  4.624
 ```
 
 ```r
