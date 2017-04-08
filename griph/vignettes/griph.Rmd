@@ -13,8 +13,8 @@ abstract: >
     applied to several publicly available datasets.
 output: 
     BiocStyle::html_document:
-#        keep_md: yes
-#    github_document: default
+        keep_md: yes
+    github_document: default
 vignette: >
     %\VignetteIndexEntry{griph: Graph Inference of Population Heterogeneity}
     %\VignetteEngine{knitr::rmarkdown}
