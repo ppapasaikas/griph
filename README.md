@@ -265,8 +265,7 @@ The obtained results can be visualized for example by plotting the graph obtaine
 plot(res$GRAO)
 ```
 
-![](/Users/ppapasaikas/RESEARCH/griph/README_files/figure-markdown_github/buettner_graph-1.png)
-
+![](README_files/figure-markdown_github/buettner_graph-1.png)
 or also by applying a dimensionality reduction/projection technique such as tSNE to the affinity matrix returned by :
 
 ``` r
@@ -275,7 +274,8 @@ out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
 plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
 ```
 
-![](/Users/ppapasaikas/RESEARCH/griph/README_files/figure-markdown_github/buettner_tsne-1.png)
+
+![](README_files/figure-markdown_github/buettner_tsne-1.png)
 
 Session info
 ============
@@ -307,14 +307,3 @@ Here is the output of sessionInfo() on the system on which this document was com
     ## [22] codetools_0.2-15    evaluate_0.10       stringi_1.1.5      
     ## [25] backports_1.0.5
 
-Render output in html and md in master root:
---------------------------------------------
-
-library(rmarkdown)
-==================
-
-rmarkdown::render('griph/vignettes/griph.Rmd', output\_file='README.md', output\_dir='./')
-==========================================================================================
-
-rmarkdown::render('griph/vignettes/griph.Rmd', output\_file='index.html', output\_dir='./')
-===========================================================================================
