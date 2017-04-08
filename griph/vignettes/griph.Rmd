@@ -155,7 +155,6 @@ sessionInfo()
 
 ## Render output in html and md in master root:
 #library(rmarkdown)
-#rmarkdown::render('griph.Rmd', output_file='README.md', output_dir='../../')
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_file='README.md', output_dir='./')
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
-#```
+

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -139,15 +140,127 @@ dim(M)</code></pre>
 <pre class="r"><code>label &lt;- attr(M, &quot;label&quot;)
 table(label)</code></pre>
 <pre><code>## label
+=======
+# griph: Graph Inference of Population Heterogeneity
+Panagiotis Papasaikas, Michael Stadler  
+`r BiocStyle::doc_date()`  
+
+# Introduction
+Graph Inference of Population Heterogeneity
+
+# Sample datasets included in this package  
+
+## Buettner et al., Nature Biotechnology 2015
+Computational analysis of cell-to-cell heterogeneity in single-cell RNA-sequencing data reveals hidden subpopulations of cells. Buettner F, Natarajan KN, Casale FP, Proserpio V, Scialdone A, Theis FJ, Teichmann SA, Marioni JC, Stegle O. Nat Biotechnol. 2015 Feb;33(2):155-60. doi: 10.1038/nbt.3102.  
+
+- Description: 288 mouse ES cells (Fluidigm C1), classified into three cell cycle stages
+- PubMed: http://www.ncbi.nlm.nih.gov/pubmed/25599176
+- DOI: https://doi.org/10.1038/nbt.3102
+- Data: http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2805/
+- Filtering: all cells, top 10,000 genes
+
+
+```r
+fname <- system.file("extdata", "buettner_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+```
+
+```
+## [1] 10000   288
+```
+
+```r
+label <- attr(M, "label")
+table(label)
+```
+
+```
+## label
+##  G1 G2M   S 
+##  96  96  96
+```
+
+
+## Kolodziejck et al., Cell Stem Cell 2015
+Single Cell RNA-Sequencing of Pluripotent States Unlocks Modular Transcriptional Variation. Kolodziejczyk AA, Kim JK, Tsang JC, Ilicic T, Henriksson J, Natarajan KN, Tuck AC, Gao X, Bühler M, Liu P, Marioni JC, Teichmann SA. Cell Stem Cell. 2015 Oct 1;17(4):471-85. doi: 10.1016/j.stem.2015.09.011.
+
+- Description: 704 mouse ES cells (Fluidigm C1), three culture conditions: serum + LIF (lif), 2i + LIF (2i) and alternative 2i + LIF (a2i)
+- PubMed: https://www.ncbi.nlm.nih.gov/pubmed/26431182  
+- DOI: https://doi.org/10.1016/j.stem.2015.09.011  
+- Data: http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2600/, http://www.ebi.ac.uk/teichmann-srv/espresso  
+
+
+```r
+fname <- system.file("extdata", "kolodziejck_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+```
+
+```
+## [1] 10000   704
+```
+
+```r
+label <- attr(M, "label")
+table(label)
+```
+
+```
+## label
+## lif  2i a2i 
+## 250 295 159
+```
+
+## Usoskin et al., Nat Neurosci. 2015
+Unbiased classification of sensory neuron types by large-scale single-cell RNA sequencing. Usoskin D, Furlan A, Islam S, Abdo H, Lönnerberg P, Lou D, Hjerling-Leffler J, Haeggström J, Kharchenko O, Kharchenko PV, Linnarsson S, Ernfors P. Nat Neurosci. 2015 Jan;18(1):145-53. doi: 10.1038/nn.3881.
+
+- Description: 799 mouse cells (622 neurons) from lumbar DRGs (custom protocol), different sensory neuron subtypes
+- PubMed: https://www.ncbi.nlm.nih.gov/pubmed/25420068  
+- DOI: https://doi.org/10.1038/nn.3881  
+- Data: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59739  
+
+
+```r
+fname <- system.file("extdata", "usoskin_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+```
+
+```
+## [1] 10000   799
+```
+
+```r
+label <- attr(M, "label")
+table(label)
+```
+
+```
+## label
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## Central, unsolved                NF        NF outlier               NoN 
 ##                39               139                 9               109 
 ##       NoN outlier                NP               PEP                TH 
 ##                 2               169                81               233 
 ##        TH outlier 
+<<<<<<< HEAD
 ##                18</code></pre>
 <pre class="r"><code>label2 &lt;- attr(M, &quot;label2&quot;)
 table(label2)</code></pre>
 <pre><code>## label2
+=======
+##                18
+```
+
+```r
+label2 <- attr(M, "label2")
+table(label2)
+```
+
+```
+## label2
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## Central, unsolved               NF1             NF2/3             NF4/5 
 ##                39                31                60                48 
 ##        NF outlier               NoN       NoN outlier               NP1 
@@ -155,10 +268,23 @@ table(label2)</code></pre>
 ##               NP2              PEP1              PEP2                TH 
 ##                44                64                17               233 
 ##        TH outlier 
+<<<<<<< HEAD
 ##                18</code></pre>
 <pre class="r"><code>label3 &lt;- attr(M, &quot;label3&quot;)
 table(label3)</code></pre>
 <pre><code>## label3
+=======
+##                18
+```
+
+```r
+label3 <- attr(M, "label3")
+table(label3)
+```
+
+```
+## label3
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## Central, unsolved               NF1               NF2               NF3 
 ##                39                31                48                12 
 ##               NF4               NF5        NF outlier               NoN 
@@ -166,6 +292,7 @@ table(label3)</code></pre>
 ##       NoN outlier               NP1               NP2               NP3 
 ##                 2               125                32                12 
 ##              PEP1              PEP2                TH        TH outlier 
+<<<<<<< HEAD
 ##                64                17               233                18</code></pre>
 </div>
 <div id="zeisel-et-al.-science-2015" class="section level2">
@@ -186,15 +313,59 @@ dim(M)</code></pre>
 <pre class="r"><code>label &lt;- attr(M, &quot;label&quot;)
 table(label)</code></pre>
 <pre><code>## label
+=======
+##                64                17               233                18
+```
+
+## Zeisel et al., Science 2015
+Brain structure. Cell types in the mouse cortex and hippocampus revealed by single-cell RNA-seq. Zeisel A, Muñoz-Manchado AB, Codeluppi S, Lönnerberg P, La Manno G, Juréus A, Marques S, Munguba H, He L, Betsholtz C, Rolny C, Castelo-Branco G, Hjerling-Leffler J, Linnarsson S. Science. 2015 Mar 6;347(6226):1138-42. doi: 10.1126/science.aaa1934.
+
+- Description: 3005 mouse brain cells (Fluidigm C1), different neuron subtypes
+- PubMed: https://www.ncbi.nlm.nih.gov/pubmed/25700174  
+- DOI: https://doi.org/10.1126/science.aaa1934  
+- Data: http://linnarssonlab.org/cortex/, https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE60361  
+
+
+```r
+fname <- system.file("extdata", "zeisel_top10k.rds", package = "griph")
+M <- readRDS(fname)
+dim(M)
+```
+
+```
+## [1] 10000  3005
+```
+
+```r
+label <- attr(M, "label")
+table(label)
+```
+
+```
+## label
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## astrocytes_ependymal    endothelial-mural         interneurons 
 ##                  224                  235                  290 
 ##            microglia     oligodendrocytes        pyramidal CA1 
 ##                   98                  820                  939 
 ##         pyramidal SS 
+<<<<<<< HEAD
 ##                  399</code></pre>
 <pre class="r"><code>label2 &lt;- attr(M, &quot;label2&quot;)
 table(label2)</code></pre>
 <pre><code>## label2
+=======
+##                  399
+```
+
+```r
+label2 <- attr(M, "label2")
+table(label2)
+```
+
+```
+## label2
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ##    Astro1    Astro2   CA1Pyr1   CA1Pyr2 CA1PyrInt   CA2Pyr2   Choroid 
 ##        68        61       380       447        49        41        10 
 ##   ClauPyr     Epend      Int1     Int10     Int11     Int12     Int13 
@@ -208,6 +379,7 @@ table(label2)</code></pre>
 ##      Pvm1      Pvm2   S1PyrDL  S1PyrL23   S1PyrL4   S1PyrL5  S1PyrL5a 
 ##        32        33        81        74        26        16        28 
 ##   S1PyrL6  S1PyrL6b    SubPyr     Vend1     Vend2      Vsmc 
+<<<<<<< HEAD
 ##        39        21        22        32       105        62</code></pre>
 </div>
 </div>
@@ -241,6 +413,125 @@ res &lt;- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)</code></pre
 <p>The automatic generation of plots ( and  arguments) is switched off here.  identified 9 cell types in the data, and the confusion matrix returned in the result summarizes how they relate to the known cell types or states:</p>
 <pre class="r"><code>res$ConfMatrix # confusion matrix</code></pre>
 <pre><code>##          true
+=======
+##        39        21        22        32       105        62
+```
+
+
+
+# Quickstart: A sample analysis
+We will use the mouse ES cell data from Buettner et al. for this example. The dataset is
+included in the package, including know cell cycle labels:  
+
+```r
+M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
+dim(M) # genes by cells
+```
+
+```
+## [1] 10000   288
+```
+
+```r
+label.true <- attr(M, "label")
+table(label.true)
+```
+
+```
+## label.true
+##  G1 G2M   S 
+##  96  96  96
+```
+
+Cell types can be identified using \code{\link{SC_cluster}}:  
+
+```r
+library(griph)
+```
+
+```
+## Loading required package: igraph
+```
+
+```
+## 
+## Attaching package: 'igraph'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     decompose, spectrum
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     union
+```
+
+```r
+res <- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)
+```
+
+```
+## Preprocessing...
+```
+
+```
+## Calculating Pairwise and Diffused Similarities... 1 / 1
+```
+
+```
+## Estimating Graph Structure...
+```
+
+```
+## Calculating edge weights and knn-based pruning...
+```
+
+```
+## Pruning based on global node similarity...1/1
+```
+
+```
+## Keeping...32.7% of edges
+```
+
+```
+## Detecting Graph Communities...
+```
+
+```
+## Done...
+```
+
+```
+## Elapsed Time:  2.855
+```
+
+```r
+table(res$MEMB)
+```
+
+```
+## 
+##  1  2  3  4  5  6  7  8  9 
+## 94 75 32 31 24  8 12  6  6
+```
+
+The automatic generation of plots (\code{plotG} and \code{plotSP} arguments) is
+switched off here. \code{\link{SC_cluster}} identified 9
+cell types in the data, and the confusion matrix returned in the result summarizes
+how they relate to the known cell types or states:  
+
+```r
+res$ConfMatrix # confusion matrix
+```
+
+```
+##          true
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## predicted G1 G2M  S
 ##         1 13   5 76
 ##         2  2  73  0
@@ -250,6 +541,7 @@ res &lt;- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)</code></pre
 ##         6  0   0  8
 ##         7  0  10  2
 ##         8  0   0  6
+<<<<<<< HEAD
 ##         9  0   6  0</code></pre>
 <pre class="r"><code>res$miscl # misclassification error</code></pre>
 <pre><code>## [1] 0.09722222</code></pre>
@@ -267,6 +559,50 @@ plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))</code></pre>
 <h1>Session info</h1>
 <p>Here is the output of sessionInfo() on the system on which this document was compiled:</p>
 <pre><code>## R version 3.3.2 (2016-10-31)
+=======
+##         9  0   6  0
+```
+
+```r
+res$miscl # misclassification error
+```
+
+```
+## [1] 0.09722222
+```
+
+When comparing different classifications with each other, they may differ in granularity,
+yet be consistent with each other. This can be seen for example in the above confusion
+matrix for predicted classes *3*, *4* and *5* that all contain mostly *G1* cells.
+\code{griph} takes this into account when calculating classification error by assigning
+each identified class to the major known class (*G1* in this example) and only counting
+the 6 cells in *3*, *4* and *5* as wrongly classified that are not *G1*:  
+
+The obtained results can be visualized for example by plotting the graph obtained from \code{griph}:  
+
+```r
+plot(res$GRAO)
+```
+
+![](griph_files/figure-html/buettner_graph-1.png)
+
+or also by applying a dimensionality reduction/projection technique such as tSNE to the affinity
+matrix returned by \code{griph}:  
+
+```r
+library(Rtsne)
+out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
+plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
+```
+
+![](griph_files/figure-html/buettner_tsne-1.png)
+
+# Session info {.unnumbered}
+Here is the output of sessionInfo() on the system on which this document was compiled:
+
+```
+## R version 3.3.2 (2016-10-31)
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## Platform: x86_64-apple-darwin13.4.0 (64-bit)
 ## Running under: macOS Sierra 10.12.4
 ## 
@@ -277,8 +613,12 @@ plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))</code></pre>
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
+<<<<<<< HEAD
 ## [1] Rtsne_0.11      BiocStyle_2.2.1 rmarkdown_1.4   griph_0.1.0    
 ## [5] igraph_1.0.1   
+=======
+## [1] Rtsne_0.11      griph_0.1.0     igraph_1.0.1    BiocStyle_2.2.1
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] Rcpp_0.12.10        bigmemory.sri_0.1.3 knitr_1.15.1       
@@ -286,6 +626,7 @@ plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))</code></pre>
 ##  [7] coop_0.6-0          foreach_1.4.3       bigmemory_4.5.19   
 ## [10] stringr_1.2.0       tools_3.3.2         QUIC_1.1           
 ## [13] parallel_3.3.2      rNMF_0.5.0          corpcor_1.6.9      
+<<<<<<< HEAD
 ## [16] htmltools_0.3.5     iterators_1.0.8     gtools_3.5.0       
 ## [19] yaml_2.1.14         digest_0.6.12       rprojroot_1.2      
 ## [22] codetools_0.2-15    evaluate_0.10       stringi_1.1.5      
@@ -312,3 +653,10 @@ plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))</code></pre>
 
 </body>
 </html>
+=======
+## [16] gtools_3.5.0        htmltools_0.3.5     iterators_1.0.8    
+## [19] yaml_2.1.14         rprojroot_1.2       digest_0.6.12      
+## [22] codetools_0.2-15    evaluate_0.10       rmarkdown_1.4      
+## [25] stringi_1.1.5       backports_1.0.5
+```
+>>>>>>> 314a55b94019aafba0b5a88a1a47661b9fb8cd1c
