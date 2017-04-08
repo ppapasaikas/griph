@@ -117,7 +117,7 @@ library(griph)
 res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettner')
 table(res$MEMB)
 ```
-```{r move, echo=FALSE}
+```{r movegraph, echo=FALSE}
   files <- list.files("./")
   index <- grep(".png", files)
   file.rename(file.path("./", files[index]),
@@ -171,3 +171,11 @@ sessionInfo()
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', output_dir='./')
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
 ```
+
+```{r setup_documentation, echo=FALSE}
+#### Copy the created html to master root as index.html
+#### and the md as README.md
+  file.copy("griph.html","../../index.html",overwrite=TRUE)
+  file.copy("griph.md","../../README.md",overwrite=TRUE)
+```
+

@@ -296,7 +296,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Elapsed Time:  4.513
+## Elapsed Time:  4.304
 ```
 
 ```r
@@ -405,8 +405,18 @@ Here is the output of sessionInfo() on the system on which this document was com
 
 
 ```r
-## Render output in html and md in master root:
+## Render output in html and md in master root. DO NOT uncomment. Execute separately.
 #library(rmarkdown)
-#rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', #output_dir='./')
+#rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', output_dir='./')
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
 ```
+
+
+```
+## [1] TRUE
+```
+
+```
+## [1] TRUE
+```
+
