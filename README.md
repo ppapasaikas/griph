@@ -265,7 +265,7 @@ The obtained results can be visualized for example by plotting the graph obtaine
 plot(res$GRAO)
 ```
 
-![](griph/README_files/figure-markdown_github/buettner_graph-1.png)
+![](https://github.com/ppapasaikas/griph/griph/README_files/figure-markdown_github/buettner_graph-1.png)
 
 or also by applying a dimensionality reduction/projection technique such as tSNE to the affinity matrix returned by :
 
@@ -275,7 +275,7 @@ out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
 plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
 ```
 
-![](griph/README_files/figure-markdown_github/buettner_tsne-1.png)
+![](https://github.com/ppapasaikas/griph/griph/README_files/figure-markdown_github/buettner_tsne-1.png)
 
 Session info
 ============
