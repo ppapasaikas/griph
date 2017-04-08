@@ -131,13 +131,15 @@ PPR <- function (G,df=0.75){
 #' @param plotSP if \code{TRUE} plots the speactral projection of the graph in 2D
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string.
+#' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
+
 #' 
 #' @return Currently a list with the clustering results.
 
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = FALSE, filter = FALSE, rho = 0.25,
                        diffuse.iter = 2, batch.penalty = 0.5,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString() ){
+                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString(), image.format='png' ){
 
   #######Internal parameters for testing puproses only:  
   comm.method=igraph::cluster_infomap  # Community detection algorithm. See igraph "communities" 
@@ -406,7 +408,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   V(GRAO)$membership <- comps
   V(GRAO)$community.size <- csize[comps]
   GRAO<-igraph::set.vertex.attribute(GRAO,"labels",value=CellIds )
-  
+  GRAOp<-NULL
   
   
   if (plotG) {
@@ -503,8 +505,16 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     
     l<-igraph::layout_with_fr(GRAOp)
     igraph::add.vertex.shape("fcircle", clip=igraph.shape.noclip, plot=mycircle, parameters=list(vertex.frame.color=1, vertex.frame.width=1))
+    
+    if(image.format=='pdf'){
     fname=paste('graph_',fsuffix,'.pdf',sep="")
     pdf(fname,12,10)
+    }
+    else {
+    fname=paste('graph_',fsuffix,'.png',sep="")
+    png(fname,12,10,units="in",res=400)   
+    }
+    
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
     igraph::plot.igraph(GRAOp, layout=l,asp=0,vertex.label=NA,vertex.frame.color=igraph::V(GRAOp)$classcolor, vertex.shape="fcircle",vertex.frame.width=igraph::V(GRAOp)$frame.width )
     legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
@@ -513,7 +523,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
            pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(ClassAssignment.numeric))  )   ),
            bty="n", border=F, ncol=2, text.width=0.02)
     dev.off()
-    #GRAOp<-NULL
   }
   
   
@@ -574,9 +583,15 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     
     #PCA=prcomp(x=Z,scale=T) 
     
+    if(image.format=='pdf'){
+        fname=paste('specProj_',fsuffix,'.pdf',sep="")
+        pdf(fname,12,10)
+    }
+    else {
+        fname=paste('specProj_',fsuffix,'.png',sep="")
+        png(fname,12,10,units="in",res=400)   
+    }
     
-    fname=paste('specProj_',fsuffix,'.pdf',sep="")
-    pdf(fname,12,10)
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
     
     #plot(PCA$x[,1:2], col=colbar[comps], pch=symbar[class],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
@@ -613,5 +628,5 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   }
   
   
-  return(list(MEMB=newmemb, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix,miscl=misclErr,GRAO=GRAO,plot.GRAO=GRAOp  ))
+  return(list(MEMB=newmemb, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix,miscl=misclErr,GRAO=GRAO,plotGRAO=GRAO  ))
 }
