@@ -136,10 +136,12 @@ the 6 cells in *3*, *4* and *5* as wrongly classified that are not *G1*:
 
 The obtained results can be visualized for example by plotting the graph obtained from \code{griph}:  
 ```{r buettner_graph}
-plot(res$GRAO)
+plot(res$plot.GRAO)
 ```
 
-or also by applying a dimensionality reduction/projection technique such as tSNE to the affinity
+plot.GRAO contais an optimized for rendering version of the complete graph. Edges are pruned, vertex attributes are added in order to visualize predicted and know class assignment (if given) and vertices are sampled if they exceed the maxG argument.
+
+Alternatively (and preferably for large - >1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity
 matrix returned by \code{griph}:  
 ```{r buettner_tsne}
 library(Rtsne)
@@ -153,7 +155,7 @@ Here is the output of sessionInfo() on the system on which this document was com
 sessionInfo()
 ```
 
-```
+```{r generate_root_files}
 ## Render output in html and md in master root:
 #library(rmarkdown)
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', output_dir='./')

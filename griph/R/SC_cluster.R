@@ -405,7 +405,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   comps <-memb$membership
   V(GRAO)$membership <- comps
   V(GRAO)$community.size <- csize[comps]
-
+  GRAO<-igraph::set.vertex.attribute(GRAO,"labels",value=CellIds )
   
   
   
@@ -513,7 +513,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
            pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(ClassAssignment.numeric))  )   ),
            bty="n", border=F, ncol=2, text.width=0.02)
     dev.off()
-    GRAOp<-NULL
+    #GRAOp<-NULL
   }
   
   
@@ -595,7 +595,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   }
   
   ####Add back Cell Ids to igraph object, ADJ, MEMB:
-  GRAO<-igraph::set.vertex.attribute(GRAO,"labels",value=CellIds )
   dimnames(ADJ)=list(CellIds,CellIds)
   names(newmemb)=CellIds
   
@@ -614,5 +613,5 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
   }
   
   
-  return(list(MEMB=newmemb, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix,miscl=misclErr,GRAO=GRAO  ))
+  return(list(MEMB=newmemb, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix,miscl=misclErr,GRAO=GRAO,plot.GRAO=GRAOp  ))
 }

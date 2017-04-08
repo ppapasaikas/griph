@@ -20,6 +20,10 @@ setOldClass("igraph") # make S3 class igraph visible to S4
 #' @slot miscl A length-one numerical value giving the misclassification error.
 #' @slot GRAO An object of class \code{igraph} with c nodes representing cells
 #'     and edges between similar cells.
+#' @slot plot.GRAO An object of class \code{igraph} with c nodes representing cells
+#'     and edges between similar cells. This is a rendering optimized version of GRAO.
+#'     Edges are pruned, vertex attributes for plotting are added and vertices are sampled
+#'     if they exceed the maxG argument.  
 GriphResult <- setClass("GriphResult",
                         slots = representation(DM = "matrix",
                                                is.cor = "logical",
@@ -30,7 +34,8 @@ GriphResult <- setClass("GriphResult",
                                                specp = "matrix",
                                                ConfMatrix = "matrix",
                                                miscl = "numeric",
-                                               GRAO = "igraph")
+                                               GRAO = "igraph",
+                                               plot.GRAO="igraph")
 )
 
 #' @param object Instance of class \code{GriphResult}.
