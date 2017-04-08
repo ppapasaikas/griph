@@ -296,7 +296,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Elapsed Time:  4.681
+## Elapsed Time:  4.567
 ```
 
 ```r
@@ -331,7 +331,7 @@ out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
 plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
 ```
 
-![Buettner tSNE](https://github.com/ppapasaikas/griph/blob/master/griph/vignettes/griph_files/figure-html/graph_tsne-1.png)
+![Buettner tSNE](https://github.com/ppapasaikas/griph/blob/master/griph/vignettes/griph_files/figure-html/buettner_tsne-1.png)
 
 \code{\link{SC_cluster}} identified 9
 cell types in the data, and the confusion matrix returned in the result summarizes
