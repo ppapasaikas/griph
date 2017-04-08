@@ -307,14 +307,3 @@ Here is the output of sessionInfo() on the system on which this document was com
     ## [22] codetools_0.2-15    evaluate_0.10       stringi_1.1.5      
     ## [25] backports_1.0.5
 
-Render output in html and md in master root:
---------------------------------------------
-
-library(rmarkdown)
-==================
-
-rmarkdown::render('griph/vignettes/griph.Rmd', output\_file='README.md', output\_dir='./')
-==========================================================================================
-
-rmarkdown::render('griph/vignettes/griph.Rmd', output\_file='index.html', output\_dir='./')
-===========================================================================================
