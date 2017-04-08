@@ -135,11 +135,13 @@ In plotGRAO weak edges are pruned, vertex attributes are added for visualization
 
 Alternatively (and preferably for large - typically >1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity
 matrix returned by \code{griph}:  
-```{r buettner_tsne}
+```{r buettner_tsne, fig.show='hide'}
 library(Rtsne)
 out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
 plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
 ```
+
+![Buettner tSNE](https://github.com/ppapasaikas/griph/blob/master/griph/vignettes/griph_files/figure-html/graph_tsne-1.png)
 
 \code{\link{SC_cluster}} identified `r length(unique(res$MEMB))`
 cell types in the data, and the confusion matrix returned in the result summarizes
@@ -167,7 +169,7 @@ sessionInfo()
 
 
 
-```{r setup_documentation, echo=FALSE}
+```{r setup_documentation, echo=FALSE,message=FALSE,results='hide'}
 #### Copy the created html to master root as index.html
 #### and the md as README.md
   file.copy("griph.html","../../index.html",overwrite=TRUE)
