@@ -407,6 +407,6 @@ Here is the output of sessionInfo() on the system on which this document was com
 ```r
 ## Render output in html and md in master root:
 #library(rmarkdown)
-#rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', output_dir='./')
+#rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', #output_dir='./')
 #rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
 ```

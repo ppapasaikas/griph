@@ -204,7 +204,7 @@ Cell types can be identified using :
 
 ``` r
 library(griph)
-res <- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)
+res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettner')
 ```
 
     ## Preprocessing...
@@ -221,9 +221,15 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)
 
     ## Detecting Graph Communities...
 
+    ## Computing Graph Layout and Rendering...
+
+    ## percentage of displayed edges: 27.5
+
+    ## WARNING: Nodes from communities with <5 members will not be displayed.
+
     ## Done...
 
-    ## Elapsed Time:  2.911
+    ## Elapsed Time:  4.519
 
 ``` r
 table(res$MEMB)
@@ -233,7 +239,25 @@ table(res$MEMB)
     ##  1  2  3  4  5  6  7  8  9 
     ## 94 75 32 31 24  8 12  6  6
 
-The automatic generation of plots ( and arguments) is switched off here. identified 9 cell types in the data, and the confusion matrix returned in the result summarizes how they relate to the known cell types or states:
+    ## [1] TRUE
+
+The automatic generation of a graph plot ( and arguments) is switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an optimized for rendering version of the complete graph and a pdf file of this graph plot is automatically generated:
+
+![Buettner Grpah](./griph_files/figure-html/graph_buettner.png)
+
+In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
+
+Alternatively (and preferably for large - typically &gt;1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity matrix returned by :
+
+``` r
+library(Rtsne)
+out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
+plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
+```
+
+![](/Users/ppapasaikas/RESEARCH/griph/README_files/figure-markdown_github/buettner_tsne-1.png)
+
+ identified 9 cell types in the data, and the confusion matrix returned in the result summarizes how they relate to the known cell types or states:
 
 ``` r
 res$ConfMatrix # confusion matrix
@@ -259,24 +283,6 @@ res$miscl # misclassification error
 
 When comparing different classifications with each other, they may differ in granularity, yet be consistent with each other. This can be seen for example in the above confusion matrix for predicted classes *3*, *4* and *5* that all contain mostly *G1* cells. takes this into account when calculating classification error by assigning each identified class to the major known class (*G1* in this example) and only counting the 6 cells in *3*, *4* and *5* as wrongly classified that are not *G1*:
 
-The obtained results can be visualized for example by plotting the graph obtained from :
-
-``` r
-plot(res$GRAO)
-```
-
-![](README_files/figure-markdown_github/buettner_graph-1.png)
-or also by applying a dimensionality reduction/projection technique such as tSNE to the affinity matrix returned by :
-
-``` r
-library(Rtsne)
-out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
-plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
-```
-
-
-![](README_files/figure-markdown_github/buettner_tsne-1.png)
-
 Session info
 ============
 
@@ -293,17 +299,23 @@ Here is the output of sessionInfo() on the system on which this document was com
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ## [1] Rtsne_0.11      BiocStyle_2.2.1 rmarkdown_1.4   griph_0.1.0    
-    ## [5] igraph_1.0.1   
+    ## [1] Rtsne_0.11    rmarkdown_1.4 griph_0.1.0   igraph_1.0.1 
     ## 
     ## loaded via a namespace (and not attached):
     ##  [1] Rcpp_0.12.10        bigmemory.sri_0.1.3 knitr_1.15.1       
     ##  [4] magrittr_1.5        nnls_1.4            doParallel_1.0.10  
-    ##  [7] coop_0.6-0          foreach_1.4.3       bigmemory_4.5.19   
-    ## [10] stringr_1.2.0       tools_3.3.2         QUIC_1.1           
-    ## [13] parallel_3.3.2      rNMF_0.5.0          corpcor_1.6.9      
-    ## [16] htmltools_0.3.5     iterators_1.0.8     gtools_3.5.0       
-    ## [19] yaml_2.1.14         digest_0.6.12       rprojroot_1.2      
-    ## [22] codetools_0.2-15    evaluate_0.10       stringi_1.1.5      
-    ## [25] backports_1.0.5
+    ##  [7] lattice_0.20-35     coop_0.6-0          foreach_1.4.3      
+    ## [10] bigmemory_4.5.19    stringr_1.2.0       tools_3.3.2        
+    ## [13] QUIC_1.1            grid_3.3.2          parallel_3.3.2     
+    ## [16] rNMF_0.5.0          corpcor_1.6.9       htmltools_0.3.5    
+    ## [19] iterators_1.0.8     gtools_3.5.0        yaml_2.1.14        
+    ## [22] digest_0.6.12       rprojroot_1.2       Matrix_1.2-8       
+    ## [25] codetools_0.2-15    evaluate_0.10       stringi_1.1.5      
+    ## [28] backports_1.0.5     BiocStyle_2.2.1
 
+``` r
+## Render output in html and md in master root. DO NOT uncomment. Execute separately.
+#library(rmarkdown)
+#rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', output_dir='./')
+#rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
+```
