@@ -13,8 +13,8 @@ abstract: >
     applied to several publicly available datasets.
 output: 
     BiocStyle::html_document:
-        keep_md: yes
-    github_document: default
+#        keep_md: yes
+#    github_document: default
 vignette: >
     %\VignetteIndexEntry{griph: Graph Inference of Population Heterogeneity}
     %\VignetteEngine{knitr::rmarkdown}
@@ -152,3 +152,10 @@ Here is the output of sessionInfo() on the system on which this document was com
 ```{r sessionInfo, eval=TRUE, echo=FALSE}
 sessionInfo()
 ```
+
+## Render output in html and md in master root:
+#library(rmarkdown)
+#rmarkdown::render('griph.Rmd', output_file='README.md', output_dir='../../')
+#rmarkdown::render('griph/vignettes/griph.Rmd', output_file='README.md', output_dir='./')
+#rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
+#```

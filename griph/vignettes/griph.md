@@ -284,7 +284,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = FALSE)
 ```
 
 ```
-## Elapsed Time:  2.855
+## Elapsed Time:  2.885
 ```
 
 ```r
@@ -381,4 +381,9 @@ Here is the output of sessionInfo() on the system on which this document was com
 ## [19] yaml_2.1.14         rprojroot_1.2       digest_0.6.12      
 ## [22] codetools_0.2-15    evaluate_0.10       rmarkdown_1.4      
 ## [25] stringi_1.1.5       backports_1.0.5
+```
+
+# Render output:
+```
+rmarkdown::render('griph.Rmd', output_file='README.md', output_dir='../../')
 ```
