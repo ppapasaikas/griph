@@ -165,12 +165,7 @@ Here is the output of sessionInfo() on the system on which this document was com
 sessionInfo()
 ```
 
-```{r generate_root_files}
-## Render output in html and md in master root. DO NOT uncomment. Execute separately.
-#library(rmarkdown)
-#rmarkdown::render('griph/vignettes/griph.Rmd', output_format="github_document", output_file='README.md', output_dir='./')
-#rmarkdown::render('griph/vignettes/griph.Rmd', output_file='index.html', output_dir='./')
-```
+
 
 ```{r setup_documentation, echo=FALSE}
 #### Copy the created html to master root as index.html
