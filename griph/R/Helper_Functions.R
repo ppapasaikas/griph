@@ -223,3 +223,32 @@ classError <- function(a, b, map=NULL, exhaustive=FALSE) {
 
 
 
+
+#' @title Edge reweighting to group nodes by community during plotting
+#' 
+#' @description 
+#' Edges crossing communites are downweighted while edges within 
+#' a community are unaffected (or up-weighted). As a result during plotting
+#' with an \code{igraph} layout algorithm that takes into account edge
+#' weights (such as \code{layout_with_fr}) communities are brought 
+#' together and stand out better in the plot. This operation distorts
+#' the "true node distances" to improve community visibility
+#' 
+#' @param community A community object returned by any community detection
+#' function of \code{igraph}
+#' @param network A graph object of class \code{igraph}
+#' @param weight.within A scalar specifying the weight for edges connecting nodes
+#' within the same community
+#' @param weight.between A scalar specifying the weight for edges connecting nodes
+#' between different communities (communities crossing edges)
+#' @return A numeric vector of length \code{length(E(network))} with the new
+#' edge weights
+#' 
+edge.weights <- function(community, network, weight.within = 10, weight.between = 1) {
+    bridges <- crossing(communities = community, graph = network)
+    weights <- ifelse(test = bridges, yes = weight.between, no = weight.within)
+    weights=weights*E(network)$weight
+    return(weights) 
+}
+
+

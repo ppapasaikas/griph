@@ -284,7 +284,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## percentage of displayed edges: 27.5
+## percentage of displayed edges: 55
 ```
 
 ```
@@ -296,7 +296,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Elapsed Time:  4.624
+## Elapsed Time:  4.69
 ```
 
 ```r
