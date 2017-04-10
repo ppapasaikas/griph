@@ -296,7 +296,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Elapsed Time:  4.41
+## Elapsed Time:  4.32
 ```
 
 ```r
@@ -317,7 +317,8 @@ table(res$MEMB)
 The automatic generation of a graph plot (\code{plotG} and \code{plotSP} arguments) is
 switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an optimized for rendering version of the complete graph and a pdf file of this graph plot is automatically generated:
 
-![Buettner Graph](https://github.com/ppapasaikas/griph/blob/master/griph/vignettes/griph_files/figure-html/graph_buettner.png)
+![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/graph_buettner.png)
+
 
 In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
 
@@ -331,7 +332,7 @@ out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5)
 plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
 ```
 
-![Buettner tSNE](https://github.com/ppapasaikas/griph/blob/master/griph/vignettes/griph_files/figure-html/buettner_tsne-1.png)
+![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_tsne-1.png)
 
 \code{\link{SC_cluster}} identified 9
 cell types in the data, and the confusion matrix returned in the result summarizes
