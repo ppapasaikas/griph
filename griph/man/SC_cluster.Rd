@@ -8,7 +8,7 @@ SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   impute = FALSE, filter = FALSE, rho = 0.25, diffuse.iter = 2,
   batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
   BatchAssignment = NULL, plotG = TRUE, maxG = 2500, plotSP = FALSE,
-  fsuffix = RandString())
+  fsuffix = RandString(), image.format = "png")
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -54,6 +54,8 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
 \item{fsuffix}{A suffix added to the file names of output plots. If not given
 it will use a random 5 character string.}
+
+\item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}
 }
 \value{
 Currently a list with the clustering results.

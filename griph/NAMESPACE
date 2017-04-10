@@ -8,7 +8,7 @@ importFrom(corpcor, cor.shrink) #Fast pearson's correlation using BLAS, incorpor
 importFrom(coop, pcor)  #Fast pearson's correlation implementation using BLAS
 importFrom(rNMF, rnmf)  #Non-negative matrix factorization
 importFrom("methods", "new", "as")
-importFrom("grDevices", "dev.off", "hcl", "pdf")
+importFrom("grDevices", "dev.off", "hcl", "pdf", "png")
 importFrom("graphics", "legend", "par", "plot", "symbols")
 importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd")
 importFrom("utils", "flush.console")

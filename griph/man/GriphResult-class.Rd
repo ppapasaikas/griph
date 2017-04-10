@@ -51,5 +51,10 @@ class 1..n (\code{ClassAssignment}, rows) classified by \code{griph} as cell typ
 
 \item{\code{GRAO}}{An object of class \code{igraph} with c nodes representing cells
 and edges between similar cells.}
+
+\item{\code{plotGRAO}}{An object of class \code{igraph} with c nodes representing cells
+and edges between similar cells. This is a rendering optimized version of GRAO.
+Edges are pruned, vertex attributes for plotting are added and vertices are sampled
+if they exceed the maxG argument.}
 }}
 
