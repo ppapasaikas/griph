@@ -272,7 +272,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Keeping...24.5% of edges
+## Keeping...32.7% of edges
 ```
 
 ```
@@ -284,7 +284,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## percentage of displayed edges: 17.6
+## percentage of displayed edges: 55
 ```
 
 ```
@@ -296,7 +296,7 @@ res <- SC_cluster(M, ClassAssignment = label.true, plotG = TRUE, fsuffix='buettn
 ```
 
 ```
-## Elapsed Time:  4.845
+## Elapsed Time:  4.172
 ```
 
 ```r
@@ -305,8 +305,8 @@ table(res$MEMB)
 
 ```
 ## 
-##   1   2   3   4 
-## 145  90  45   8
+##  1  2  3  4  5  6  7  8  9 
+## 94 75 32 31 24  8 12  6  6
 ```
 
 ```
@@ -333,7 +333,7 @@ plot(out$Y, col=res$MEMB, pch=as.numeric(label.true))
 
 ![Buettner tSNE](https://github.com/ppapasaikas/griph/blob/master/griph/vignettes/griph_files/figure-html/buettner_tsne-1.png)
 
-\code{\link{SC_cluster}} identified 4
+\code{\link{SC_cluster}} identified 9
 cell types in the data, and the confusion matrix returned in the result summarizes
 how they relate to the known cell types or states:  
 
@@ -344,10 +344,15 @@ res$ConfMatrix # confusion matrix
 ```
 ##          true
 ## predicted G1 G2M  S
-##         1 45  16 84
-##         2 10  78  2
-##         3 41   2  2
-##         4  0   0  8
+##         1 13   5 76
+##         2  2  73  0
+##         3 28   2  2
+##         4 29   0  2
+##         5 24   0  0
+##         6  0   0  8
+##         7  0  10  2
+##         8  0   0  6
+##         9  0   6  0
 ```
 
 ```r
@@ -355,7 +360,7 @@ res$miscl # misclassification error
 ```
 
 ```
-## [1] 0.2673611
+## [1] 0.09722222
 ```
 
 When comparing different classifications with each other, they may differ in granularity,

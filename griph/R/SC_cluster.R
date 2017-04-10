@@ -136,7 +136,7 @@ PPR <- function (G,df=0.75){
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = FALSE, filter = FALSE, rho = 0.25,
                        diffuse.iter = 2, batch.penalty = 0.5,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString(), image.format='png' ){
+                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString(), image.format='pdf' ){
     
     #######Internal parameters for testing puproses only:  
     comm.method=igraph::cluster_infomap  # Community detection algorithm. See igraph "communities" 
