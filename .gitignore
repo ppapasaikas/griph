@@ -7,4 +7,5 @@ griph.Rproj
 .DS_Store
 *.o
 *.so
+*.pdf
 ._*

@@ -136,7 +136,7 @@ PPR <- function (G,df=0.75){
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = FALSE, filter = FALSE, rho = 0.25,
                        diffuse.iter = 2, batch.penalty = 0.5,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString(), image.format='pdf' ){
+                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString(), image.format='png' ){
     
     #######Internal parameters for testing puproses only:  
     comm.method=igraph::cluster_infomap  # Community detection algorithm. See igraph "communities" 
@@ -511,7 +511,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         }
         else {
             fname=paste('graph_',fsuffix,'.png',sep="")
-            png(fname,12,10,units="in",res=400)   
+            png(fname,12,10,units="in",res=300)   
         }
         
         par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
@@ -590,7 +590,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         }
         else {
             fname=paste('specProj_',fsuffix,'.png',sep="")
-            png(fname,12,10,units="in",res=400)   
+            png(fname,12,10,units="in",res=300)   
         }
         
         par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
