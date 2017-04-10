@@ -188,19 +188,18 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     if (!isTRUE(is.cor)) {  
         
         if (impute==TRUE){
-            message("Imputing...","\r")
-            flush.console() 
+            message("Imputing...", appendLF = FALSE)
             DMimp=RNMF(DM,k =6,alpha = 0.15,tol=1e-2,maxit=10,showprogress=FALSE,quiet=TRUE)$fit
             GF=rowSums(DM)/sum(rowSums(DM))
             QNT=quantile(GF,probs=seq(0,1,0.1))
             Low=which(GF <= QNT[qnt]  )  
             DM[Low,]=DMimp[Low,]
             DMimp=NULL
+            message("done")
         }
         
-        message("Preprocessing...","\r")
-        flush.console()  
-        
+        message("Preprocessing...", appendLF = FALSE)
+
         AllZeroRows=which  ( rowSums(DM)<1e-9 )
         if(length(AllZeroRows)>0){
             DM=DM[-AllZeroRows , ] 
@@ -249,11 +248,12 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         
         C=list()
         C[[1]]=PearsonCor(log2(DM+1))
+        
+        message("done")
     }
     
     
     else {
-        flush.console() 
         C=list()
         C[[1]]=DM
     }
@@ -266,9 +266,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     
     if (diffuse.iter > 1) {
         for(order in 2:diffuse.iter){
-            message(paste ("Calculating Pairwise and Diffused Similarities...",(order-1),"/",(diffuse.iter-1)),"\r")
-            flush.console() 
-            C[[order]]=WScor( nDM,C1=C[[1]], CanberraDist=CanberraDist, SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor  )
+            message("Calculating Pairwise and Diffused Similarities: ", order-1, " / ", diffuse.iter-1)
+            C[[order]]=WScor( nDM,C1=C[[1]], CanberraDist=CanberraDist,
+                              SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor  )
             
             if (order >2) {C[[order-1]]=NA}
         }
@@ -290,15 +290,11 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     }
     
     
-    
-    
-    
-    
     ClassAssignment.numeric=as.numeric(factor(ClassAssignment))
+
     ############### glasso-based graph structure estimation: #####################
-    message("Estimating Graph Structure...","\r")
-    flush.console() 
-    
+    message("Estimating Graph Structure...", appendLF = FALSE)
+
     RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
     
     if(!is.null(BatchAssignment)){
@@ -327,9 +323,10 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     ADJ= -X
     X<-NULL
     
+    message("done")
+    
     ######## Graph weights:
-    message("Calculating edge weights and knn-based pruning...","\r")
-    flush.console() 
+    message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
     ave=mean(Cuse[which(ADJ>0)])
     ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
     ADJ[which(ADJ < 0)]=0
@@ -343,13 +340,13 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         ADJ[ -kN[,i],i]=0
         ADJ[i,-kN[,i] ]=0
     }
-    
-    
+
     GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+    message("done")
     
     niter=1
     for (i in 1:niter){
-        message("Pruning based on global node similarity...",i,"/",niter,"\r")
+        message("Pruning based on global node similarity: ",i," / ",niter, "\r", appendLF = FALSE)
         flush.console()
         df=0.75
         PR=PPRank(GRAO,df=df)
@@ -370,56 +367,57 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         #ADJ=(ADJ*(PR))
         GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
     }
+    message("")
     
     
     pct=1
-    if (median(igraph::degree(GRAO)) > 8 ) {
+    if (median(igraph::degree(GRAO)) > 8) {
         pct=min(1,1/(median(igraph::degree(GRAO))^0.25 )  )
-        message("Keeping...",round(100*pct,1),"% of edges\r")
+        message("\tkeeping ",round(100*pct,1),"% of edges")
         ADJtemp=apply(ADJ,1,function(x) sparsify(x,pct) )
         GRAO<-igraph::graph.adjacency(ADJtemp,mode=c("max"),weighted=TRUE,diag=FALSE)
         ADJtemp=NULL
     }
     
     
-    GRAO<-igraph::set.vertex.attribute(GRAO,"class",value=ClassAssignment.numeric  )
+    GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
     Cuse<-NULL
     
     
     
     
     ######## COMMUNITY DETECTION #########
-    message("Detecting Graph Communities...","\r")
-    flush.console() 
+    message("Detecting Graph Communities...", appendLF = FALSE)
     memb=comm.method(GRAO)
     if (!is.null(ncom)) {
         memb$membership=cut_at(memb,no=ncom)  
     }
     csize=table(memb$membership)
-    
-    ######### Optimal Mapping between true and estimated class assignments: ##########
-    mapping=mapLabelsGreedy(memb$membership, ClassAssignment)
-    misclErr=classError(memb$membership, ClassAssignment, mapping) #should be the same as classError(ClassAssignment,memb$membership) before mapping
-    newmemb=memb$membership
-    comps <-memb$membership
-    V(GRAO)$membership <- comps
-    V(GRAO)$community.size <- csize[comps]
+    ConfMatrix <- table(predicted=memb$membership, true=ClassAssignment)
+    message("done")
+
+    V(GRAO)$membership <- memb$membership
+    V(GRAO)$community.size <- csize[memb$membership]
     E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within=2, weight.between=0.5)
     
-    GRAO<-igraph::set.vertex.attribute(GRAO,"labels",value=CellIds )
+    GRAO<-igraph::set.vertex.attribute(GRAO, "labels", value=CellIds)
     GRAOp<-NULL
     
     
+    ######### Optimal Mapping between true and estimated class assignments: ##########
+    mapping <- mapLabelsGreedy(memb$membership, ClassAssignment)
+    misclErr <- classError(memb$membership, ClassAssignment, mapping)
+    
+    
+    ######### graph visualization
     if (plotG) {
-        message("Computing Graph Layout and Rendering...","\r")
-        flush.console() 
-        
+        message("Computing Graph Layout and Rendering...")
+        comps <-memb$membership
         
         if (length(V(GRAO) ) > 1.25*maxG ) {
-            message("WARNING: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted","\r")
-            message("$GRAO element of the results list will contain the complete graph object","\r")
-            flush.console() 
-            
+            message("\tRemark: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted")
+            message("\t$GRAO element of the results list will contain the complete graph object")
+
             ###### Sample well-connected seeds from the members of each community 
             DEG=igraph::degree(GRAO)
             snowball_seeds=c()
@@ -455,14 +453,12 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
             
             GRAOp=igraph::induced.subgraph(GRAO,sort(snowball) )
             
-            message("Used vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size , "\r")
-            flush.console() 
-        }
-        
-        else{
+            message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size, appendLF = FALSE)
+
+        } else {
             GRAOp=GRAO
         }
-        
+
         
         ######## Prune graph for better plot output
         pct=1
@@ -477,21 +473,15 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
             ADJp=NULL
         }
         
-        
-        
-        
-        
-        
-        
+
         GRAOp=igraph::delete_vertices(GRAOp,which(igraph::ego_size(GRAOp,3) < 6))
         ###Delete Vertices from communites with few members:
         min.csize=ceiling(0.25*sqrt(length(V(GRAO))))
         GRAOp=igraph::delete_vertices(GRAOp,which( V(GRAOp)$community.size < min.csize ))  
         
-        message("percentage of displayed edges: ",round(100*pct,1),"\r")
-        message("WARNING: Nodes from communities with <",min.csize, " members will not be displayed.","\r")
-        flush.console()
-        
+        message("\tdisplaying ",round(100*pct,1), "% of edges")
+        message("\tRemark: Nodes from communities with <",min.csize, " members will not be displayed.")
+
         
         V(GRAOp)$classcolor<-c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown")[V(GRAOp)$class]
         V(GRAOp)$size<-10 /(length(V(GRAOp))/60 )^0.3
@@ -508,8 +498,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         if(image.format=='pdf'){
             fname=paste('graph_',fsuffix,'.pdf',sep="")
             pdf(fname,12,10)
-        }
-        else {
+        } else {
             fname=paste('graph_',fsuffix,'.png',sep="")
             png(fname,12,10,units="in",res=300)   
         }
@@ -612,16 +601,13 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     
     ####Add back Cell Ids to igraph object, ADJ, MEMB:
     dimnames(ADJ)=list(CellIds,CellIds)
-    names(newmemb)=CellIds
+    names(memb$membership)=CellIds
     
     #########################################
     Te=(proc.time() - ptm)[3]
     Te=signif(Te,digits=6)
-    message("Done...","\r",appendLF=FALSE)
-    message(paste("Elapsed Time: ", Te),"\r")
-    flush.console() 
-    
-    ConfMatrix <- table(predicted=newmemb, true=ClassAssignment)
+    message("Finished (Elapsed Time: ", Te, ")")
+
     
     ##### Stop registered cluster:
     if (isTRUE(use.par) & getDoParRegistered()) {  
@@ -629,5 +615,5 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     }
     
     
-    return(list(MEMB=newmemb, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix, miscl=misclErr, GRAO=GRAO, plotGRAO=GRAOp  ))
+    return(list(MEMB=memb$membership, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix, miscl=misclErr, GRAO=GRAO, plotGRAO=GRAOp  ))
 }
