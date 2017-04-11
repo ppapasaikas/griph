@@ -56,6 +56,12 @@ switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an opt
 
 ![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/graph_buettner.png)
 
+This allows you to easily plot the graph again, for example to separately illustrate known and
+predicted cell types:  
+```{r knownVsPred, message=FALSE}
+g.true <- plotGraph(res, fill.type = "true", line.type = "none")
+g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
+```
 
 In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
 

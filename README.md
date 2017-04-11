@@ -67,7 +67,11 @@ res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettne
 ```
 
 ```
-## Calculating Pairwise and Diffused Similarities... 1 / 1
+## done
+```
+
+```
+## Calculating Pairwise and Diffused Similarities: 1 / 1
 ```
 
 ```
@@ -75,15 +79,27 @@ res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettne
 ```
 
 ```
+## done
+```
+
+```
 ## Calculating edge weights and knn-based pruning...
 ```
 
 ```
-## Pruning based on global node similarity...1/1
+## done
 ```
 
 ```
-## Keeping...32.6% of edges
+## Pruning based on global node similarity: 1 / 1
+```
+
+```
+## 
+```
+
+```
+## 	keeping 32.6% of edges
 ```
 
 ```
@@ -91,23 +107,27 @@ res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettne
 ```
 
 ```
+## done
+```
+
+```
 ## Computing Graph Layout and Rendering...
 ```
 
 ```
-## percentage of displayed edges: 27.5
+## 	Remark: Nodes from communities with <5 members will not be displayed.
 ```
 
 ```
-## WARNING: Nodes from communities with <5 members will not be displayed.
+## 	displaying 55% of edges
 ```
 
 ```
-## Done...
+## 	saving graph to graph_buettner.png
 ```
 
 ```
-## Elapsed Time:  4.289
+## Finished (Elapsed Time: 4.275)
 ```
 
 ```r
@@ -127,6 +147,44 @@ switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an opt
 
 ![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/graph_buettner.png)
 
+This allows you to easily plot the graph again, for example to separately illustrate known and
+predicted cell types:  
+
+```r
+g.true <- plotGraph(res, fill.type = "true", line.type = "none")
+```
+
+```
+## Computing Graph Layout and Rendering...
+```
+
+```
+## using existing plot-optimized graph
+```
+
+```
+## 	displaying 100% of edges
+```
+
+![](griph_files/figure-html/knownVsPred-1.png)
+
+```r
+g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
+```
+
+```
+## Computing Graph Layout and Rendering...
+```
+
+```
+## using existing plot-optimized graph
+```
+
+```
+## 	displaying 100% of edges
+```
+
+![](griph_files/figure-html/knownVsPred-2.png)
 
 In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
 

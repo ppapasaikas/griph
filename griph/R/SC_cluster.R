@@ -289,8 +289,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         Cuse=as.matrix(C[[diffuse.iter]])
     }
     
-    
-    ClassAssignment.numeric=as.numeric(factor(ClassAssignment))
+    ClassAssignment.numeric <- as.numeric(factor(ClassAssignment, levels=unique(ClassAssignment)))
 
     ############### glasso-based graph structure estimation: #####################
     message("Estimating Graph Structure...", appendLF = FALSE)
@@ -370,17 +369,18 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     message("")
     
     
-    pct=1
+    pct <- 1
     if (median(igraph::degree(GRAO)) > 8) {
-        pct=min(1,1/(median(igraph::degree(GRAO))^0.25 )  )
-        message("\tkeeping ",round(100*pct,1),"% of edges")
-        ADJtemp=apply(ADJ,1,function(x) sparsify(x,pct) )
-        GRAO<-igraph::graph.adjacency(ADJtemp,mode=c("max"),weighted=TRUE,diag=FALSE)
-        ADJtemp=NULL
+        pct <- min(1,1/(median(igraph::degree(GRAO))^0.25 )  )
+        message("\tkeeping ", round(100*pct,1), "% of edges")
+        ADJtemp <- apply(ADJ,1,function(x) sparsify(x,pct) )
+        GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
+        ADJtemp <- NULL
     }
     
     
-    GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
+    #GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
+    GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
     Cuse<-NULL
     
     
@@ -409,124 +409,25 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     misclErr <- classError(memb$membership, ClassAssignment, mapping)
     
     
+    #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
+    dimnames(ADJ) <- list(CellIds,CellIds)
+    names(memb$membership) <- CellIds
+    ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
+                DISTM=ADJ, specp=NULL, ConfMatrix=ConfMatrix,
+                miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
+
+        
     ######### graph visualization
-    if (plotG) {
-        message("Computing Graph Layout and Rendering...")
-        comps <-memb$membership
-        
-        if (length(V(GRAO) ) > 1.25*maxG ) {
-            message("\tRemark: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted")
-            message("\t$GRAO element of the results list will contain the complete graph object")
+    if (plotG)
+        ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,
+                                       image.format = image.format, quiet = FALSE)
 
-            ###### Sample well-connected seeds from the members of each community 
-            DEG=igraph::degree(GRAO)
-            snowball_seeds=c()
-            for (i in 1:length(csize)){
-                if (csize[i]<5) {next}
-                members= which(memb$membership==i)
-                minDegree=quantile(DEG[members])[2]-1
-                maxDegree=quantile(DEG[members])[4]+1
-                #seedn=ceiling(csize[i]/max(csize))
-                seedn=ceiling (5 *(    sqrt(csize[i]-4)   /sqrt( max(csize)-4)   )  )
-                seedn=min(seedn,floor(csize[i]/4) )
-                #message("minD:",minDegree, " maxD:",maxDegree," csize:", csize[i]  ,"\r")
-                if (seedn > 1){
-                    module_seeds=sample (which(memb$membership==i & DEG >= floor(minDegree) & DEG <= ceiling(maxDegree) ),seedn)
-                }
-                else{
-                    module_seeds=sample(which(memb$membership==i & DEG==max(DEG[members])   ),1)    
-                }
-                
-                snowball_seeds=unique(c(snowball_seeds,module_seeds))
-            }
-            
-            snowball=c()
-            seed.ego_size=0
-            while (length(snowball) < maxG/2){
-                seed.ego_size=seed.ego_size+1  
-                snowball=unique(unlist(igraph::ego(GRAO,seed.ego_size,snowball_seeds)))
-            }
-            if (length(snowball) > 1.25*maxG && seed.ego_size > 1 ) {
-                seed.ego_size=seed.ego_size-1
-                snowball=unique(unlist(igraph::ego(GRAO,seed.ego_size,snowball_seeds))) 
-            }
-            
-            GRAOp=igraph::induced.subgraph(GRAO,sort(snowball) )
-            
-            message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size, appendLF = FALSE)
-
-        } else {
-            GRAOp=GRAO
-        }
-
-        
-        ######## Prune graph for better plot output
-        pct=1
-        if (median(igraph::degree(GRAOp)) > 4 ) {
-            pct=min(1,1/sqrt(0.1*median(igraph::degree(GRAOp)) ) )
-            ADJp=as.matrix(igraph::get.adjacency(GRAOp,attr='weight'))
-            ADJp=apply(ADJp,1,function(x) sparsify(x,pct) )
-            ADJp[which(abs(ADJp) >0)]=1
-            GRAOtemp<-igraph::graph.adjacency(ADJp,mode=c("max"),weighted=NULL,diag=FALSE)
-            GRAOp=igraph::intersection(GRAOp,GRAOtemp,byname=FALSE)
-            GRAOtemp=NULL
-            ADJp=NULL
-        }
-        
-
-        GRAOp=igraph::delete_vertices(GRAOp,which(igraph::ego_size(GRAOp,3) < 6))
-        ###Delete Vertices from communites with few members:
-        min.csize=ceiling(0.25*sqrt(length(V(GRAO))))
-        GRAOp=igraph::delete_vertices(GRAOp,which( V(GRAOp)$community.size < min.csize ))  
-        
-        message("\tdisplaying ",round(100*pct,1), "% of edges")
-        message("\tRemark: Nodes from communities with <",min.csize, " members will not be displayed.")
-
-        
-        V(GRAOp)$classcolor<-c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown")[V(GRAOp)$class]
-        V(GRAOp)$size<-10 /(length(V(GRAOp))/60 )^0.3
-        V(GRAOp)$cex<-V(GRAOp)$size / 3
-        V(GRAOp)$frame.width=2 /(length(V(GRAOp))/60 )^0.3
-        E(GRAOp)$width<-E(GRAOp)$weight / sqrt((length(V(GRAOp))/60 ))
-        colbar  <- gg_color_hue(  length(table(V(GRAOp)$membership) ) )
-        names(colbar)=paste("c",sort(unique(V(GRAOp)$membership)),sep=""  )
-        V(GRAOp)$color <- colbar[   paste("c",V(GRAOp)$membership,sep=""  )   ]
-        
-        l<-igraph::layout_with_fr(GRAOp)
-        igraph::add.vertex.shape("fcircle", clip=igraph.shape.noclip, plot=mycircle, parameters=list(vertex.frame.color=1, vertex.frame.width=1))
-        
-        if(image.format=='pdf'){
-            fname=paste('graph_',fsuffix,'.pdf',sep="")
-            pdf(fname,12,10)
-        } else {
-            fname=paste('graph_',fsuffix,'.png',sep="")
-            png(fname,12,10,units="in",res=300)   
-        }
-        
-        par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
-        igraph::plot.igraph(GRAOp, layout=l,asp=0,vertex.label=NA, edge.lty=0,
-        vertex.frame.color=igraph::V(GRAOp)$classcolor, vertex.shape="fcircle",
-        vertex.frame.width=igraph::V(GRAOp)$frame.width, edge.curved=TRUE )
-        legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
-               legend= c(sort(unique(V(GRAOp)$membership)),"" ,sort(unique(ClassAssignment.numeric))   ), 
-               col=c(colbar,"white", c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown")[1:length(unique(ClassAssignment))] ), 
-               pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(ClassAssignment.numeric))  )   ),
-               bty="n", border=F, ncol=2, text.width=0.02)
-        dev.off()
-    }
-    
-    
-    
-    
-    
-    
     
     
     ########## SPECTRAL PROJECTION ########
-    Z=NULL
     if (plotSP) {
-        message("Computing Spectral Projection and Rendering...","\r")
-        flush.console() 
+        message("Computing Spectral Projection and Rendering...")
+        comps <-memb$membership
         symbar <- c(21,24,22,25,23,c(0:14))
         class=ClassAssignment.numeric
         A=ADJ
@@ -597,11 +498,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
                pch=c(rep(20 ,length(unique(comps)) ),1, symbar[sort(unique(class))]),
                bty="n", border=F, ncol=2, text.width=0.02)
         dev.off()
+        
+        ret[["specp"]] <- Z
     }
-    
-    ####Add back Cell Ids to igraph object, ADJ, MEMB:
-    dimnames(ADJ)=list(CellIds,CellIds)
-    names(memb$membership)=CellIds
     
     #########################################
     Te=(proc.time() - ptm)[3]
@@ -614,6 +513,208 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         stopCluster(cl)
     }
     
+    return(ret)
+}
+
+
+#' @title Visualize griph result as a graph.
+#' 
+#' @description 
+#' 
+#' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
+#' @param maxG Approximate maximal number of vertices to include when plotting the graph.
+#' @param fill.type Type of fill color, one of \code{predicted} (predicted class labels, default),
+#'     \code{true} (true class labels, if available) or \code{none} (no fill color).
+#' @param line.type Type of line color, one of \code{true} (true class labels, if available, default),
+#'     \code{predicted} (predicted class labels) or \code{none} no fill color.
+#' @param fill.col Color vector defining the palette to use for vertex fill coloring.
+#' @param line.col Color vector defining the palette to use for vertex outline coloring.
+#' @param seed Random number seed to make graph layout deterministic.
+#' @param fsuffix A suffix added to the file names of output plots. If not given
+#'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
+#' @param image.format Specifies the format of the created image. Currently supported are
+#'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
+#'     is rendered on the currently opened plotting device.
+#' @param forceRecalculation If \code{TRUE}, recalculate plotting-optimized graph
+#'     even if it is already contained in \code{gr}.
+#' @param quiet If \code{TRUE}, do not report on progress.
+#' 
+#' @return The plot-optimized version of the graph as an \code{igraph} object.
+plotGraph <- function(gr, maxG=2500,
+                      fill.type=c("predicted","true","none"), line.type=c("true","predicted","none"),
+                      fill.col=c("#9E0142","#D53E4F","#F46D43","#FDAE61","#FEE08B","#FFFFBF","#E6F598","#ABDDA4","#66C2A5","#3288BD","#5E4FA2"),
+                      #line.col=c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown"),
+                      line.col=c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#D9D9D9","#BC80BD","#CCEBC5","#FFED6F"),
+                      seed=91919,
+                      fsuffix=RandString(), image.format=NA,
+                      forceRecalculation=FALSE, quiet=FALSE) {
+    message("Computing Graph Layout and Rendering...")
     
-    return(list(MEMB=memb$membership, DISTM=ADJ, specp=Z, ConfMatrix=ConfMatrix, miscl=misclErr, GRAO=GRAO, plotGRAO=GRAOp  ))
+    # get varaibles from gr
+    GRAO <- gr$GRAO
+    csize <- table(gr$MEMB)
+    fill.type <- match.arg(fill.type)
+    line.type <- match.arg(line.type)
+    pct <- 1
+    
+    # get plot-optimized graph
+    if(is.null(gr$plotGRAO) || forceRecalculation) {
+        if (length(V(GRAO) ) > 1.25*maxG ) {
+            if(!quiet) {
+                message("\tRemark: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted")
+                #message("\t$GRAO element of the results list will contain the complete graph object")
+            }
+    
+            ###### Sample well-connected seeds from the members of each community 
+            DEG <- igraph::degree(GRAO)
+            snowball_seeds <- c()
+            for (i in 1:length(csize)){
+                if (csize[i]<5) {next}
+                members <- which(memb$membership==i)
+                minDegree <- quantile(DEG[members])[2]-1
+                maxDegree <- quantile(DEG[members])[4]+1
+                #seedn <- ceiling(csize[i]/max(csize))
+                seedn <- ceiling (5 *(    sqrt(csize[i]-4)   /sqrt( max(csize)-4)   )  )
+                seedn <- min(seedn,floor(csize[i]/4) )
+                #message("minD:",minDegree, " maxD:",maxDegree," csize:", csize[i]  ,"\r")
+                if (seedn > 1){
+                    module_seeds <- sample(which(memb$membership==i & DEG >= floor(minDegree) &
+                                                 DEG <= ceiling(maxDegree) ), seedn)
+                } else {
+                    module_seeds <- sample(which(memb$membership==i & DEG==max(DEG[members])), 1)    
+                }
+        
+                snowball_seeds <- unique(c(snowball_seeds,module_seeds))
+            }
+    
+            snowball <- c()
+            seed.ego_size <- 0
+            while (length(snowball) < maxG/2){
+                seed.ego_size <- seed.ego_size+1  
+                snowball <- unique(unlist(igraph::ego(GRAO,seed.ego_size,snowball_seeds)))
+            }
+            if (length(snowball) > 1.25*maxG && seed.ego_size > 1 ) {
+                seed.ego_size <- seed.ego_size-1
+                snowball <- unique(unlist(igraph::ego(GRAO,seed.ego_size,snowball_seeds))) 
+            }
+    
+            GRAOp <- igraph::induced.subgraph(GRAO,sort(snowball) )
+    
+            if(!quiet)
+                message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size, appendLF = FALSE)
+    
+        } else {
+            GRAOp <- GRAO
+        }
+
+        ######## Prune graph for better plot output
+        if (median(igraph::degree(GRAOp)) > 4 ) {
+            pct <- min(1,1/sqrt(0.1*median(igraph::degree(GRAOp)) ) )
+            ADJp <- as.matrix(igraph::get.adjacency(GRAOp,attr='weight'))
+            ADJp <- apply(ADJp,1,function(x) sparsify(x,pct) )
+            ADJp[which(abs(ADJp) >0)] <- 1
+            GRAOtemp <- igraph::graph.adjacency(ADJp,mode=c("max"),weighted=NULL,diag=FALSE)
+            GRAOp <- igraph::intersection(GRAOp,GRAOtemp,byname=FALSE)
+            GRAOtemp <- NULL
+            ADJp <- NULL
+        }
+
+        GRAOp <- igraph::delete_vertices(GRAOp,which(igraph::ego_size(GRAOp,3) < 6))
+        ###Delete Vertices from communites with few members:
+        min.csize <- ceiling(0.25*sqrt(length(V(GRAO))))
+        GRAOp <- igraph::delete_vertices(GRAOp,which( V(GRAOp)$community.size < min.csize ))  
+
+        if(!quiet)
+            message("\tRemark: Nodes from communities with <",min.csize, " members will not be displayed.")
+        
+    } else {
+        if(!quiet)
+            message("using existing plot-optimized graph")
+        GRAOp <- gr$plotGRAO
+    }
+    if(!quiet)
+        message("\tdisplaying ",round(100*pct,1), "% of edges")
+
+    # get colors
+    class.pred <- factor(V(GRAOp)$membership, levels=sort(unique(V(GRAOp)$membership)))
+    #class.pred.numeric <- as.numeric(class.pred)
+    class.true <- factor(V(GRAOp)$class, levels=unique(V(GRAOp)$class))
+
+    fillColorPalette <- switch(fill.type,
+                               predicted=grDevices::colorRampPalette(fill.col)(nlevels(class.pred)),
+                               true=grDevices::colorRampPalette(fill.col)(nlevels(class.true)),
+                               none=NA)
+    fillColor <- switch(fill.type,
+                        predicted=fillColorPalette[as.numeric(class.pred)],
+                        true=fillColorPalette[as.numeric(class.true)],
+                        none=rep(NA, length(V(GRAOp))))
+    lineColorPalette <- switch(line.type,
+                               predicted=grDevices::colorRampPalette(line.col)(nlevels(class.pred)),
+                               true=grDevices::colorRampPalette(line.col)(nlevels(class.true)),
+                               none=NA)
+    lineColor <- switch(line.type,
+                        predicted=lineColorPalette[as.numeric(class.pred)],
+                        true=lineColorPalette[as.numeric(class.true)],
+                        none=rep("black", length(V(GRAOp))))
+    
+    # set some more graph attributes
+    #V(GRAOp)$classcolor <- line.col[V(GRAOp)$class]
+    V(GRAOp)$classcolor <- lineColor
+    V(GRAOp)$size <- 10 /(length(V(GRAOp))/60 )^0.3
+    V(GRAOp)$cex <- V(GRAOp)$size / 3
+    V(GRAOp)$frame.width <- 2 /(length(V(GRAOp))/60 )^0.3
+    E(GRAOp)$width <- E(GRAOp)$weight / sqrt((length(V(GRAOp))/60 ))
+    #colbar  <- gg_color_hue(  length(table(V(GRAOp)$membership) ) )
+    #colbar <- grDevices::colorRampPalette(fill.col)(length(table(V(GRAOp)$membership)))
+    #names(colbar) <- paste("c",sort(unique(V(GRAOp)$membership)),sep=""  )
+    #V(GRAOp)$color <- colbar[   paste("c",V(GRAOp)$membership,sep=""  )   ]
+    V(GRAOp)$color <- fillColor
+    
+    set.seed(seed = seed)
+    l <- igraph::layout_with_fr(graph = GRAOp)
+    # igraph::add.vertex.shape("fcircle", clip=igraph.shape.noclip, plot=mycircle, parameters=list(vertex.frame.color=1, vertex.frame.width=1))
+
+    if(!is.na(image.format)) {
+        if(image.format=='pdf') {
+            fname <- paste('graph_',fsuffix,'.pdf',sep="")
+            pdf(file = fname, width = 12, height = 10)
+        } else if (image.format=="png") {
+            fname <- paste('graph_',fsuffix,'.png',sep="")
+            png(filename = fname, width = 12, height = 10, units = "in", res = 300)   
+        }
+        if(!quiet)
+            message("\tsaving graph to ",fname)
+    }
+
+    par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
+    #igraph::plot.igraph(GRAOp, layout=l, asp=0, vertex.label=NA, edge.lty=0,
+    #                    vertex.frame.color=igraph::V(GRAOp)$classcolor, vertex.shape="fcircle",
+    #                    vertex.frame.width=igraph::V(GRAOp)$frame.width, edge.curved=TRUE )
+    #legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
+    #       legend= c(sort(unique(V(GRAOp)$membership)),"" ,sort(unique(class.pred.numeric))   ), 
+    #       col=c(colbar,"white", line.col[1:length(unique(class.pred.numeric))] ), 
+    #       pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(class.pred.numeric))  )   ),
+    #       bty="n", border=F, ncol=2, text.width=0.02)
+    plot(l[,1], l[,2], col=lineColor, bg=fillColor, pch=21, cex=2.5, lwd=2, axes=FALSE, xlab="", ylab="")
+    if(fill.type != "none") {
+        lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+                      pch = 21, cex = 1, pt.cex = 2.5, col = if(line.type=="none") "black" else NA, pt.bg = fillColorPalette,
+                      title = fill.type, legend = switch(fill.type,
+                                                         predicted=levels(class.pred),
+                                                         true=levels(class.true)))
+    } else {
+        lgd <- list(rect=list(left=par("usr")[2]+12*par("cxy")[1]))
+    }
+    if(line.type != "none") {
+        legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+               pch = 21, cex = 1, pt.cex = 2.5, col = lineColorPalette, pt.bg = "white",
+               title = line.type, legend = switch(line.type,
+                                                  predicted=levels(class.pred),
+                                                  true=levels(class.true)))
+    }
+
+    if(!is.na(image.format))
+        dev.off()
+    
+    return(GRAOp)
 }
