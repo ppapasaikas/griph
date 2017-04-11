@@ -519,7 +519,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 
 #' @title Visualize griph result as a graph.
 #' 
-#' @description 
+#' @description Plot a graph obtained from \code{\link{SC_cluster}}, allowing to
+#'     apply graph subsampling and control coloring.
 #' 
 #' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
 #' @param maxG Approximate maximal number of vertices to include when plotting the graph.
