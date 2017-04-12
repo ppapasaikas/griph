@@ -427,6 +427,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     ########## SPECTRAL PROJECTION ########
     if (plotSP) {
         message("Computing Spectral Projection and Rendering...")
+        colbar  <- gg_color_hue(  length(table(memb$membership) ) )
         comps <-memb$membership
         symbar <- c(21,24,22,25,23,c(0:14))
         class=ClassAssignment.numeric
@@ -571,7 +572,7 @@ plotGraph <- function(gr, maxG=2500,
             snowball_seeds <- c()
             for (i in 1:length(csize)){
                 if (csize[i]<5) {next}
-                members <- which(memb$membership==i)
+                members <- which(gr$MEMB==i)
                 minDegree <- quantile(DEG[members])[2]-1
                 maxDegree <- quantile(DEG[members])[4]+1
                 #seedn <- ceiling(csize[i]/max(csize))
@@ -579,10 +580,10 @@ plotGraph <- function(gr, maxG=2500,
                 seedn <- min(seedn,floor(csize[i]/4) )
                 #message("minD:",minDegree, " maxD:",maxDegree," csize:", csize[i]  ,"\r")
                 if (seedn > 1){
-                    module_seeds <- sample(which(memb$membership==i & DEG >= floor(minDegree) &
+                    module_seeds <- sample(which(gr$MEMB==i & DEG >= floor(minDegree) &
                                                  DEG <= ceiling(maxDegree) ), seedn)
                 } else {
-                    module_seeds <- sample(which(memb$membership==i & DEG==max(DEG[members])), 1)    
+                    module_seeds <- sample(which(gr$MEMB==i & DEG==max(DEG[members])), 1)    
                 }
         
                 snowball_seeds <- unique(c(snowball_seeds,module_seeds))
@@ -602,7 +603,7 @@ plotGraph <- function(gr, maxG=2500,
             GRAOp <- igraph::induced.subgraph(GRAO,sort(snowball) )
     
             if(!quiet)
-                message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size, appendLF = FALSE)
+                message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size)
     
         } else {
             GRAOp <- GRAO

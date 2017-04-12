@@ -62,6 +62,7 @@ res$miscl # 0.09722222
 g <- plotGraph(res)
 par(mfrow=c(1,2)); g.true <- plotGraph(res, fill.type = "true", line.type = "none"); g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 g <- plotGraph(res)
+g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
 # g <- plotGraph(res, image.format = NA)
 # g <- plotGraph(res, image.format = "png")
 # igraph::plot.igraph(g, asp=0, vertex.label=NA, edge.lty=0)
