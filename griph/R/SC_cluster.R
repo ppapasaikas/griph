@@ -545,7 +545,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 plotGraph <- function(gr, maxG=2500,
                       fill.type=c("predicted","true","none"), line.type=c("true","predicted","none"),
                       fill.col=c("#9E0142","#D53E4F","#F46D43","#FDAE61","#FEE08B","#FFFFBF","#E6F598","#ABDDA4","#66C2A5","#3288BD","#5E4FA2"),
-                      #line.col=c("gold","maroon","green","blue","red","black","purple","darkorange","darkslategray","brown"),
                       line.col=c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#D9D9D9","#BC80BD","#CCEBC5","#FFED6F"),
                       seed=91919,
                       fsuffix=RandString(), image.format=NA,
@@ -562,11 +561,9 @@ plotGraph <- function(gr, maxG=2500,
     # get plot-optimized graph
     if(is.null(gr$plotGRAO) || forceRecalculation) {
         if (length(V(GRAO) ) > 1.25*maxG ) {
-            if(!quiet) {
+            if(!quiet)
                 message("\tRemark: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted")
-                #message("\t$GRAO element of the results list will contain the complete graph object")
-            }
-    
+
             ###### Sample well-connected seeds from the members of each community 
             DEG <- igraph::degree(GRAO)
             snowball_seeds <- c()
@@ -639,7 +636,6 @@ plotGraph <- function(gr, maxG=2500,
 
     # get colors
     class.pred <- factor(V(GRAOp)$membership, levels=sort(unique(V(GRAOp)$membership)))
-    #class.pred.numeric <- as.numeric(class.pred)
     class.true <- factor(V(GRAOp)$class, levels=unique(V(GRAOp)$class))
 
     fillColorPalette <- switch(fill.type,
@@ -660,16 +656,11 @@ plotGraph <- function(gr, maxG=2500,
                         none=rep("black", length(V(GRAOp))))
     
     # set some more graph attributes
-    #V(GRAOp)$classcolor <- line.col[V(GRAOp)$class]
     V(GRAOp)$classcolor <- lineColor
     V(GRAOp)$size <- 10 /(length(V(GRAOp))/60 )^0.3
     V(GRAOp)$cex <- V(GRAOp)$size / 3
     V(GRAOp)$frame.width <- 2 /(length(V(GRAOp))/60 )^0.3
     E(GRAOp)$width <- E(GRAOp)$weight / sqrt((length(V(GRAOp))/60 ))
-    #colbar  <- gg_color_hue(  length(table(V(GRAOp)$membership) ) )
-    #colbar <- grDevices::colorRampPalette(fill.col)(length(table(V(GRAOp)$membership)))
-    #names(colbar) <- paste("c",sort(unique(V(GRAOp)$membership)),sep=""  )
-    #V(GRAOp)$color <- colbar[   paste("c",V(GRAOp)$membership,sep=""  )   ]
     V(GRAOp)$color <- fillColor
     
     set.seed(seed = seed)
@@ -689,14 +680,6 @@ plotGraph <- function(gr, maxG=2500,
     }
 
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
-    #igraph::plot.igraph(GRAOp, layout=l, asp=0, vertex.label=NA, edge.lty=0,
-    #                    vertex.frame.color=igraph::V(GRAOp)$classcolor, vertex.shape="fcircle",
-    #                    vertex.frame.width=igraph::V(GRAOp)$frame.width, edge.curved=TRUE )
-    #legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
-    #       legend= c(sort(unique(V(GRAOp)$membership)),"" ,sort(unique(class.pred.numeric))   ), 
-    #       col=c(colbar,"white", line.col[1:length(unique(class.pred.numeric))] ), 
-    #       pch=c(rep(20 ,length(unique( V(GRAOp)$membership  )) ),1, rep(21 ,length(unique(class.pred.numeric))  )   ),
-    #       bty="n", border=F, ncol=2, text.width=0.02)
     plot(l[,1], l[,2], col=lineColor, bg=fillColor, pch=21, cex=2.5, lwd=2, axes=FALSE, xlab="", ylab="")
     if(fill.type != "none") {
         lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
