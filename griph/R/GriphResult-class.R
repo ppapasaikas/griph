@@ -13,7 +13,6 @@ setOldClass("igraph") # make S3 class igraph visible to S4
 #' @slot MEMB A numeric vector of length c giving the cell type memberships
 #'     identified by \code{griph} for the provided cells (columns of \code{M} matrix)
 #' @slot DISTM A c-by-c matrix with similarities for each pair of cells
-#' @slot specp A c-by-k matrix with the spectral projection of the c cells to k spectral components
 #' @slot ConfMatrix A n-by-m confusion matrix with the numbers of cells of known
 #'     class 1..n (\code{ClassAssignment}, rows) classified by \code{griph} as cell type
 #'     1..m (columns).
@@ -31,7 +30,6 @@ GriphResult <- setClass("GriphResult",
                                                BatchAssignment = "numeric",
                                                MEMB = "numeric",
                                                DISTM = "matrix",
-                                               specp = "matrix",
                                                ConfMatrix = "matrix",
                                                miscl = "numeric",
                                                GRAO = "igraph",

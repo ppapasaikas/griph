@@ -41,8 +41,6 @@ identified by \code{griph} for the provided cells (columns of \code{M} matrix)}
 
 \item{\code{DISTM}}{A c-by-c matrix with similarities for each pair of cells}
 
-\item{\code{specp}}{A c-by-k matrix with the spectral projection of the c cells to k spectral components}
-
 \item{\code{ConfMatrix}}{A n-by-m confusion matrix with the numbers of cells of known
 class 1..n (\code{ClassAssignment}, rows) classified by \code{griph} as cell type
 1..m (columns).}

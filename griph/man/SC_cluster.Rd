@@ -7,7 +7,7 @@
 SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   impute = FALSE, filter = FALSE, rho = 0.25, diffuse.iter = 2,
   batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
-  BatchAssignment = NULL, plotG = TRUE, maxG = 2500, plotSP = FALSE,
+  BatchAssignment = NULL, plotG = TRUE, maxG = 2500,
   fsuffix = RandString(), image.format = "png")
 }
 \arguments{
@@ -49,8 +49,6 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 \item{plotG}{if \code{TRUE} plots the resulting graph}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
-
-\item{plotSP}{if \code{TRUE} plots the speactral projection of the graph in 2D}
 
 \item{fsuffix}{A suffix added to the file names of output plots. If not given
 it will use a random 5 character string.}

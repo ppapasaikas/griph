@@ -125,7 +125,6 @@ PPR <- function (G,df=0.75){
 #'     batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
 #' @param plotG if \code{TRUE} plots the resulting graph
 #' @param maxG Approximate maximal number of vertices to include when plotting the graph.
-#' @param plotSP if \code{TRUE} plots the speactral projection of the graph in 2D
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
@@ -136,7 +135,7 @@ PPR <- function (G,df=0.75){
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = FALSE, filter = FALSE, rho = 0.25,
                        diffuse.iter = 2, batch.penalty = 0.5,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, plotSP = FALSE, fsuffix = RandString(), image.format='png' ){
+                       plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png' ){
     
     #######Internal parameters for testing puproses only:  
     comm.method=igraph::cluster_infomap  # Community detection algorithm. See igraph "communities" 
@@ -413,7 +412,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     dimnames(ADJ) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
-                DISTM=ADJ, specp=NULL, ConfMatrix=ConfMatrix,
+                DISTM=ADJ, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
 
         
@@ -422,87 +421,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,
                                        image.format = image.format, quiet = FALSE)
 
-    
-    
-    ########## SPECTRAL PROJECTION ########
-    if (plotSP) {
-        message("Computing Spectral Projection and Rendering...")
-        colbar  <- gg_color_hue(  length(table(memb$membership) ) )
-        comps <-memb$membership
-        symbar <- c(21,24,22,25,23,c(0:14))
-        class=ClassAssignment.numeric
-        A=ADJ
-        diag(A)=max(A)
-        
-        
-        "%^%" <- function(M, power)
-            with(eigen(M), vectors %*% (values^power * solve(vectors)))
-        
-        D <- diag(apply(A, 1, sum)) # sum rows
-        U <- D-A
-        #L <- diag(nrow(A)) - solve(D) %*% A #simple Laplacian
-        #L <- (D %^% (-1/2)) %*% U %*% (D %^% (-1/2))  # normalized Laplacian
-        L <-solve(D) %*% U #Generalized Laplacian
-        
-        k   <- 2
-        evL <- eigen(U, symmetric=TRUE)
-        Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
-        Z=apply(Z,2,function(x) (x-min(x))/ (max(x)-min(x)) )
-        #Z=apply(Z,2,function(x) jitter(x,amount=max(IQR(x),0.25) /10 ))
-        D<-NULL; U<-NULL; L<-NULL; evL<-NULL
-        
-        mZ1=mean(Z[,1])
-        mZ2=mean(Z[,2])
-        outl=which(  abs(Z[,1]-mZ1) > 0.9 | abs(Z[,2]-mZ2)>0.9    )
-        #message(length(outl),"\r")
-        flush.console() 
-        
-        
-        if (length(outl)>0 && length(outl) < 8 ) {
-            A=A[-outl,-outl]
-            comps=comps[-outl]
-            class=class[-outl]
-            D <- diag(apply(A, 1, sum)) # sum rows
-            U <- D-A
-            L <-solve(D) %*% U #Generalized Laplacian
-            evL <- eigen(U, symmetric=TRUE)
-            Z   <- evL$vectors[,(ncol(evL$vectors)-k+1):ncol(evL$vectors)]
-            Z=apply(Z,2,function(x) (x-min(x))/ (max(x)-min(x)) )
-            Z=apply(Z,2,function(x) jitter(x,amount=max(IQR(x),0.25) /10 ))
-            D<-NULL; U<-NULL; L<-NULL; evL<-NULL
-        }
-        A<-NULL;
-        
-        #PCA=prcomp(x=Z,scale=T) 
-        
-        if(image.format=='pdf'){
-            fname=paste('specProj_',fsuffix,'.pdf',sep="")
-            pdf(fname,12,10)
-        }
-        else {
-            fname=paste('specProj_',fsuffix,'.png',sep="")
-            png(fname,12,10,units="in",res=300)   
-        }
-        
-        par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
-        
-        #plot(PCA$x[,1:2], col=colbar[comps], pch=symbar[class],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
-        #     main="Spectral Projection")
-        
-        plot(Z, col=colbar[comps], pch=symbar[class],cex=10/(nrow(Z)^0.35 ),bty='L',xlab="SD1",ylab="SD2",
-             main="Spectral Projection")
-        
-        
-        legend("topright",inset=c(-0.35,0),title=" Pred.      True        ",
-               legend= c(sort(unique(comps)),"" ,sort(unique(class))   ), 
-               col=c(colbar[sort(unique(comps))],"white", rep("black",length(unique(class)) ) ), 
-               pch=c(rep(20 ,length(unique(comps)) ),1, symbar[sort(unique(class))]),
-               bty="n", border=F, ncol=2, text.width=0.02)
-        dev.off()
-        
-        ret[["specp"]] <- Z
-    }
-    
+
     #########################################
     Te=(proc.time() - ptm)[3]
     Te=signif(Te,digits=6)
