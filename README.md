@@ -2,9 +2,30 @@
 Panagiotis Papasaikas, Michael Stadler  
 `r BiocStyle::doc_date()`  
 
-# Introduction
-Graph Inference of Population Heterogeneity
 
+# Introduction and installation
+Graph Inference of Population Heterogeneity (griph) is an R package for the analysis of
+single cell RNA-sequencing data. It can be used to automatically identify different cell
+types or states, even in the presence of confounding sources of variance such as
+cell cycle stages or batch effects.
+
+griph is currently available through https://github.com. It can be installed using:  
+
+```r
+library(devtools)
+install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
+```
+
+In order for griph to work, some additional packages may have to be installed.
+You'll need all the ones under "Needed". You can do without the ones under
+"Optional", as they are only used in the vignette:  
+
+```
+## Needed :
+## 	 igraph, Rcpp, methods, QUIC, coop, corpcor, rNMF, foreach, doParallel, parallel, gtools, bigmemory, Rcpp 
+## Optional :
+## 	 BiocStyle, knitr, rmarkdown, testthat, Rtsne
+```
 
 # Quickstart: A sample analysis
 We will use the mouse ES cell data from Buettner et al. for this example (see details
@@ -35,27 +56,6 @@ Cell types can be identified using \code{\link{SC_cluster}}:
 
 ```r
 library(griph)
-```
-
-```
-## Loading required package: igraph
-```
-
-```
-## 
-## Attaching package: 'igraph'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     decompose, spectrum
-```
-
-```
-## The following object is masked from 'package:base':
-## 
-##     union
 ```
 
 ```r
@@ -127,7 +127,7 @@ res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettne
 ```
 
 ```
-## Finished (Elapsed Time: 4.275)
+## Finished (Elapsed Time: 4.428)
 ```
 
 ```r
@@ -154,37 +154,12 @@ predicted cell types:
 g.true <- plotGraph(res, fill.type = "true", line.type = "none")
 ```
 
-```
-## Computing Graph Layout and Rendering...
-```
-
-```
-## using existing plot-optimized graph
-```
-
-```
-## 	displaying 100% of edges
-```
-
-![](griph_files/figure-html/knownVsPred-1.png)
-
 ```r
 g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 ```
 
-```
-## Computing Graph Layout and Rendering...
-```
-
-```
-## using existing plot-optimized graph
-```
-
-```
-## 	displaying 100% of edges
-```
-
-![](griph_files/figure-html/knownVsPred-2.png)
+![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/knownVsPred-1.png)
+![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/knownVsPred-2.png)
 
 In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
 

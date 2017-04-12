@@ -45,5 +45,6 @@ even if it is already contained in \code{gr}.}
 The plot-optimized version of the graph as an \code{igraph} object.
 }
 \description{
-
+Plot a graph obtained from \code{\link{SC_cluster}}, allowing to
+    apply graph subsampling and control coloring.
 }

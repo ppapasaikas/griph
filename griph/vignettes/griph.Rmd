@@ -9,7 +9,7 @@ abstract: >
     that may confound the cell types.
 
     The most important function that combines all the steps of cell type identification
-    from griph is \code{\link{SC_cluster}}. The vignette illustrates its use
+    from griph is SC_cluster. The vignette illustrates its use
     applied to several publicly available datasets.
 output: 
     BiocStyle::html_document:
@@ -22,9 +22,35 @@ vignette: >
     \usepackage[utf8]{inputenc}
 ---
 
-# Introduction
-Graph Inference of Population Heterogeneity
 
+# Introduction and installation
+Graph Inference of Population Heterogeneity (griph) is an R package for the analysis of
+single cell RNA-sequencing data. It can be used to automatically identify different cell
+types or states, even in the presence of confounding sources of variance such as
+cell cycle stages or batch effects.
+
+griph is currently available through https://github.com. It can be installed using:  
+```{r install_github, eval=FALSE}
+library(devtools)
+install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
+```
+
+In order for griph to work, some additional packages may have to be installed.
+You'll need all the ones under "Needed". You can do without the ones under
+"Optional", as they are only used in the vignette:  
+```{r griph_dependencies, echo=FALSE}
+get_deps <- function(path, which=c("Depends", "Imports", "Suggests")) {
+    dcf <- read.dcf(file.path(path, "DESCRIPTION"))
+    jj <- intersect(which, colnames(dcf))
+    val <- unlist(strsplit(dcf[, jj], ","), use.names=FALSE)
+    val <- gsub("\\s.*", "", trimws(val))
+    val[val != "R"]
+}
+deps <- list(Needed=get_deps(system.file(package="griph"), c("Depends","Imports","LinkingTo")),
+             Optional=get_deps(system.file(package="griph"), "Suggests"))
+for(i in seq_along(deps))
+    cat(names(deps)[i], ":\n\t", paste(deps[[i]], collapse=", "), "\n")
+```
 
 # Quickstart: A sample analysis
 We will use the mouse ES cell data from Buettner et al. for this example (see details
@@ -38,9 +64,11 @@ table(trueLabel)
 ```
 
 Cell types can be identified using \code{\link{SC_cluster}}:  
-```{r buettner_types}
+```{r load_griph, message=FALSE}
 library(griph)
 res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')
+```
+```{r buettner_types}
 table(res$MEMB)
 ```
 ```{r movegraph, echo=FALSE, results='hide'}
@@ -58,10 +86,13 @@ switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an opt
 
 This allows you to easily plot the graph again, for example to separately illustrate known and
 predicted cell types:  
-```{r knownVsPred, message=FALSE}
+```{r knownVsPred, message=FALSE, fig.show='hide'}
 g.true <- plotGraph(res, fill.type = "true", line.type = "none")
 g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 ```
+
+![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/knownVsPred-1.png)
+![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/knownVsPred-2.png)
 
 In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
 
