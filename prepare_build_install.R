@@ -49,7 +49,7 @@ example(HellingerMat)
 
 x <- matrix(0:8, nrow = 3)
 format(sum(HellingerMat(x)), digits = 10)
-sum(is.finite(HellingerMat(x-3)))
+sum(is.finite(HellingerMat(x - 3)))
 
 # ... test data from pacakge
 list.files(system.file("extdata", package = "griph"))
@@ -60,7 +60,7 @@ label <- attr(M, "label")
 res <- SC_cluster(M, ClassAssignment = label)
 res$miscl # 0.09722222
 g <- plotGraph(res)
-par(mfrow=c(1,2)); g.true <- plotGraph(res, fill.type = "true", line.type = "none"); g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
+par(mfrow = c(1,2)); g.true <- plotGraph(res, fill.type = "true", line.type = "none"); g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 g <- plotGraph(res)
 g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
 # g <- plotGraph(res, image.format = NA)
@@ -134,13 +134,13 @@ res$miscl
 #    times = 10
 #)
 
-library(microbenchmark)
-x <- matrix(rpois(2000*200, 5), ncol = 200) # 2000 genes by 200 cells
-res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1)
-res2 <- griph:::JSDmatColumns(x)
-identical(res1, res2) # TRUE
-microbenchmark(
-    { res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1) },
-    { res2 <- griph:::JSDmatColumns(x) },
-    times = 3
-)
+#library(microbenchmark)
+#x <- matrix(rpois(2000*200, 5), ncol = 200) # 2000 genes by 200 cells
+#res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1)
+#res2 <- griph:::JSDmatColumns(x)
+#identical(res1, res2) # TRUE
+#microbenchmark(
+#    { res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1) },
+#    { res2 <- griph:::JSDmatColumns(x) },
+#    times = 3
+#)

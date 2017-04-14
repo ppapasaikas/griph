@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{JSDmat}
 \alias{JSDmat}
-\title{Jensen-Shannon divergence between rows of a matrix.}
+\title{Jensen-Shannon divergence between columns of a matrix.}
 \usage{
 JSDmat(A)
 }
@@ -10,20 +10,20 @@ JSDmat(A)
 \item{A}{Numeric matrix.}
 }
 \value{
-A square matrix of dimensions \code{nrow(A})-by-\code{nrow(A)}.
+A square matrix of dimensions \code{ncol(A})-by-\code{ncol(A)}.
 }
 \description{
-\code{JSDmat} returns a matrix of Jensen-Shannon divergences between the rows
+\code{JSDmat} returns a matrix of Jensen-Shannon divergences between the columns
 of the matrix passed as argument.
 }
 \details{
-This function calculates the Jensen-Shannon divergences between row of the matrix
+This function calculates the Jensen-Shannon divergences between columns of the matrix
 given as argument. It is implemented in C++ for efficiency. For an argument
-matrix with r rows and c columns, the return value is an r-by-r matrix with
-all pairwise distances, where only the upper-triangle of the matrix is filled.
+matrix with r rows and c columns, the return value is an c-by-c matrix with
+all pairwise distances.
 }
 \examples{
 x <- matrix(1:12, nrow=3, ncol=4)
-JSDmat(t(x))
+JSDmat(x)
 
 }
