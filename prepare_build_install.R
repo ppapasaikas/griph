@@ -134,9 +134,13 @@ res$miscl
 #    times = 10
 #)
 
-# TODO
-# - export/document R functions
-# - split SC_cluster into modules (clustering, visualization, error calculation, ???),
-#   make SC_cluster a wrapper function that calls these modules
-# - add sample data to package
-# - write vignette
+library(microbenchmark)
+x <- matrix(rpois(2000*200, 5), ncol = 200) # 2000 genes by 200 cells
+res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1)
+res2 <- griph:::JSDmatColumns(x)
+identical(res1, res2) # TRUE
+microbenchmark(
+    { res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1) },
+    { res2 <- griph:::JSDmatColumns(x) },
+    times = 3
+)

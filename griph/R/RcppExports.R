@@ -49,3 +49,27 @@ JSDmat <- function(A) {
     .Call('griph_JSDmat', PACKAGE = 'griph', A)
 }
 
+#' @title Jensen-Shannon divergence between columns of a matrix.
+#'
+#' @description
+#' \code{JSDmat} returns a matrix of Jensen-Shannon divergences between the columns
+#' of the matrix passed as argument.
+#'
+#' @details
+#' This function calculates the Jensen-Shannon divergences between columns of the matrix
+#' given as argument. It is implemented in C++ for efficiency. For an argument
+#' matrix with r rows and c columns, the return value is an c-by-c matrix with
+#' all pairwise distances.
+#'
+#' @param A Numeric matrix.
+#'
+#' @return A square matrix of dimensions \code{ncol(A})-by-\code{ncol(A)}.
+#'
+#' @examples
+#' x <- matrix(1:12, nrow=3, ncol=4)
+#' JSDmat(x)
+#'
+JSDmatColumns <- function(A) {
+    .Call('griph_JSDmatColumns', PACKAGE = 'griph', A)
+}
+

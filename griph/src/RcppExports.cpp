@@ -27,3 +27,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// JSDmatColumns
+NumericMatrix JSDmatColumns(NumericMatrix A);
+RcppExport SEXP griph_JSDmatColumns(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(JSDmatColumns(A));
+    return rcpp_result_gen;
+END_RCPP
+}
