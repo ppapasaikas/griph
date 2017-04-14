@@ -134,13 +134,13 @@ res$miscl
 #    times = 10
 #)
 
-library(microbenchmark)
-x <- matrix(rpois(2000*200, 5), ncol = 200) # 2000 genes by 200 cells
-res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1)
-res2 <- griph:::JSDmatColumns(x)
-identical(res1, res2) # TRUE
-microbenchmark(
-    { res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1) },
-    { res2 <- griph:::JSDmatColumns(x) },
-    times = 3
-)
+#library(microbenchmark)
+#x <- matrix(rpois(2000*200, 5), ncol = 200) # 2000 genes by 200 cells
+#res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1)
+#res2 <- griph:::JSDmatColumns(x)
+#identical(res1, res2) # TRUE
+#microbenchmark(
+#    { res1 <- griph:::JSDmat(t(x)); res1 <- res1 + t(res1) },
+#    { res2 <- griph:::JSDmatColumns(x) },
+#    times = 3
+#)
