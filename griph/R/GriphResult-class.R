@@ -26,11 +26,11 @@ setOldClass("igraph") # make S3 class igraph visible to S4
 GriphResult <- setClass("GriphResult",
                         slots = representation(DM = "matrix",
                                                is.cor = "logical",
-                                               ClassAssignment = "numeric",
-                                               BatchAssignment = "numeric",
+                                               ClassAssignment = "factor",
+                                               BatchAssignment = "factor",
                                                MEMB = "numeric",
                                                DISTM = "matrix",
-                                               ConfMatrix = "matrix",
+                                               ConfMatrix = "table",
                                                miscl = "numeric",
                                                GRAO = "igraph",
                                                plotGRAO="igraph")
@@ -40,10 +40,16 @@ GriphResult <- setClass("GriphResult",
 #' @describeIn GriphResult Print a summary of a GriphResult object.
 setMethod("show", "GriphResult", function(object) {
     DMtype <- if(object@is.cor) "correlation coefficients" else "gene counts"
+    nClassKnown <- nlevels(object@ClassAssignment)
+    nClassPred <- nlevels(object@MEMB)
+    nBatch <- nlevels(object@BatchAssignment)
+    objectname <- deparse(substitute(object)) # does not work for automatic printing...
     cat("GriphResult\n", sep="")
     cat("Options   : DM                   : ", nrow(object@DM), "-by-", ncol(object@DM), " matrix of ", DMtype,
-      "\n            known cell types     : ", if (length(unique(object@ClassAssignment)) > 1) "yes" else "no",
-      "\n            known batches        : ", if (!is.null(object@BatchAssignment)) "yes" else "no",
-      "\nResults   : identified cell types: ", length(unique(object@MEMB)),
-      "\n            missclassification   : ", object@miscl, "\n\n", sep="")
+      "\n            known cell types     : ", if (nClassKnown > 1) sprintf("yes (%d)",nClassKnown) else "no",
+      "\n            known batches        : ", if (!is.null(object@BatchAssignment)) sprintf("yes (%d)",nBatch) else "no",
+      "\nResults   : identified cell types: ", nClassPred,
+      "\n            missclassification   : ", if (nClassKnown > 1) object@miscl else "not available", "\n\n", sep="")
+    cat("Slots     : use slot(",objectname,", 'nm') to get the content of slot 'nm'",
+      "\n            use slotNames(",objectname,") to get all available slot names", "\n\n", sep="")
 })

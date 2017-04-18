@@ -1,5 +1,5 @@
 import(igraph)#Various functions for graph creation, manipulation, plotting and analysis
-import(QUIC)  #Faster implementation of the glasso algorithm from Firedman, Tibshirani using Newton's coordinate descent
+import(QUIC)  #Faster implementation of the glasso algorithm from Friedman, Tibshirani using Newton's coordinate descent
 import(doParallel)  #Parallelization
 import(foreach)     #Parallelization
 import(bigmemory)
@@ -13,7 +13,7 @@ importFrom("graphics", "legend", "par", "plot", "symbols")
 importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd")
 importFrom("utils", "flush.console")
 importFrom("Rcpp", "evalCpp")
-importFrom("gtools", "permutations")
+importFrom("gtools", "permutations") # only used in griph::mapLabelsExhaustive
 
 useDynLib(griph)
 

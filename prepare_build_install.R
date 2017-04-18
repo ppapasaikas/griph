@@ -51,6 +51,22 @@ x <- matrix(0:8, nrow = 3)
 format(sum(HellingerMat(x)), digits = 10)
 sum(is.finite(HellingerMat(x - 3)))
 
+# ... GriphResult methods
+M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
+label <- attr(M, "label")
+res <- SC_cluster(M, ClassAssignment = label)
+getClass("GriphResult")
+names(res)
+obj <- new(Class = "GriphResult", DM = M, is.cor = FALSE, ClassAssignment = res$MEMB.true,
+           BatchAssignment = factor(),
+           MEMB = res$MEMB, DISTM = res$DISTM, ConfMatrix = res$ConfMatrix,
+           miscl = res$miscl, GRAO = res$GRAO, plotGRAO = res$plotGRAO)
+obj
+show(obj)
+slotNames(obj)
+slot(obj, "ConfMatrix")
+slot(obj, "ClassAssignment")
+
 # ... test data from pacakge
 list.files(system.file("extdata", package = "griph"))
 
