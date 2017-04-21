@@ -624,14 +624,14 @@ plotGraph <- function(gr, maxG=2500,
     if(group.type == "predicted" || (group.type == "true" && nlevels(class.true) > 1)) { # add group polygons
         for(j in seq_along(groupElements)) {
             xy <- l[groupElements[[j]], , drop = FALSE]
-            off <- par("cxy")[2]*2
+            off <- par("cxy")[2]*1
             pp <- rbind(xy,
                         cbind(xy[, 1] - off, xy[, 2]),
                         cbind(xy[, 1] + off, xy[, 2]),
                         cbind(xy[, 1], xy[, 2] - off), 
                         cbind(xy[, 1], xy[, 2] + off))
             cl <- igraph::convex_hull(pp)
-            graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE, col = paste0(groupColor[j], "66"),
+            graphics::xspline(cl$rescoords, shape = 0.75, open = FALSE, col = paste0(groupColor[j], "66"),
                               border = adjust.color(groupColor[j], 0.5))
             
         }

@@ -98,17 +98,7 @@ It is also possible to draw polygons around cells of each class:
 g <- plotGraph(res, group.type = "predicted")
 ```
 
-```
-## Computing Graph Layout and Rendering...
-```
-
-```
-## using existing plot-optimized graph
-```
-
-```
-## 	displaying 100% of edges
-```
+![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
 
 Alternatively (and preferably for large - typically >1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity
 matrix returned by \code{griph}:  
