@@ -44,6 +44,22 @@ gg_color_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
+#' Darken or lighten colors.
+#' 
+#' @param col Character vector with valid R colors that \code{col2rgb()} accepts.
+#' @param f Factor controlling strength of color change. A value of 1.0 does not
+#'     change the colors, values < 1.0 make them darker, values > 1.0 ligther.
+#'
+#' @return A character vector with altered colors of the same length as \code{col}.
+adjust.color <- function(col, f) {
+    col <- grDevices::col2rgb(col)
+    if (f < 1.0) {        # shade colors (make them darker)
+        col <- round(col*f)
+    } else if (f > 1.0) { # tint colors (make them lighter)
+        col <- round(pmin(col + (255-col)/f, 255))
+    }
+    apply(col, 2, function(x) grDevices::rgb(x[1], x[2], x[3], maxColorValue=255))
+}
 
 #' Generate a random alpha-numeric string
 #' 

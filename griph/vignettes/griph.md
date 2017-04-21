@@ -92,6 +92,23 @@ g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 
 In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
 
+It is also possible to draw polygons around cells of each class:  
+
+```r
+g <- plotGraph(res, group.type = "predicted")
+```
+
+```
+## Computing Graph Layout and Rendering...
+```
+
+```
+## using existing plot-optimized graph
+```
+
+```
+## 	displaying 100% of edges
+```
 
 Alternatively (and preferably for large - typically >1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity
 matrix returned by \code{griph}:  
@@ -355,7 +372,7 @@ Here is the output of sessionInfo() on the system on which this document was com
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-## [1] Rtsne_0.11         griph_0.1.0        igraph_1.0.1      
+## [1] Rtsne_0.13         griph_0.1.0        igraph_1.0.1      
 ## [4] BiocStyle_2.2.1    RColorBrewer_1.1-2
 ## 
 ## loaded via a namespace (and not attached):

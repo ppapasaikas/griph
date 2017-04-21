@@ -56,78 +56,7 @@ Cell types can be identified using \code{\link{SC_cluster}}:
 
 ```r
 library(griph)
-```
-
-```r
 res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')
-```
-
-```
-## Preprocessing...
-```
-
-```
-## done
-```
-
-```
-## Calculating Pairwise and Diffused Similarities: 1 / 1
-```
-
-```
-## Estimating Graph Structure...
-```
-
-```
-## done
-```
-
-```
-## Calculating edge weights and knn-based pruning...
-```
-
-```
-## done
-```
-
-```
-## Pruning based on global node similarity: 1 / 1
-```
-
-```
-## 
-```
-
-```
-## 	keeping 32.6% of edges
-```
-
-```
-## Detecting Graph Communities...
-```
-
-```
-## done
-```
-
-```
-## Computing Graph Layout and Rendering...
-```
-
-```
-## 	Remark: Nodes from communities with <5 members will not be displayed.
-```
-
-```
-## 	displaying 55% of edges
-```
-
-```
-## 	saving graph to graph_buettner.png
-```
-
-```
-## Finished (Elapsed Time: 4.428)
 ```
 
 ```r

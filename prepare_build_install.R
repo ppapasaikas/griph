@@ -76,6 +76,9 @@ label <- attr(M, "label")
 res <- SC_cluster(M, ClassAssignment = label)
 res$miscl # 0.09722222
 g <- plotGraph(res)
+g <- plotGraph(res, group.type = "true")
+g <- plotGraph(res, group.type = "predicted")
+
 par(mfrow = c(1,2)); g.true <- plotGraph(res, fill.type = "true", line.type = "none"); g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 g <- plotGraph(res)
 g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
@@ -88,6 +91,14 @@ M <- readRDS(system.file("extdata", "kolodziejck_top10k.rds", package = "griph")
 label <- attr(M, "label")
 res <- SC_cluster(M, ClassAssignment = label)
 res$miscl # 0
+
+par(mfrow=c(1,2))
+plotGraph(res, fill.type = "true", line.type = "none")
+plotGraph(res, fill.type = "pred", line.type = "none")
+
+wc <- cluster_infomap(res$GRAO)
+wc$membership
+plot(wc, res$GRAO)
 
 # ... ... Usoskin
 M <- readRDS(system.file("extdata", "usoskin_top10k.rds", package = "griph"))

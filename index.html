@@ -96,25 +96,8 @@ table(trueLabel)</code></pre>
 ##  G1 G2M   S 
 ##  96  96  96</code></pre>
 <p>Cell types can be identified using :</p>
-<pre class="r"><code>library(griph)</code></pre>
-<pre class="r"><code>res &lt;- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')</code></pre>
-<pre><code>## Preprocessing...</code></pre>
-<pre><code>## done</code></pre>
-<pre><code>## Calculating Pairwise and Diffused Similarities: 1 / 1</code></pre>
-<pre><code>## Estimating Graph Structure...</code></pre>
-<pre><code>## done</code></pre>
-<pre><code>## Calculating edge weights and knn-based pruning...</code></pre>
-<pre><code>## done</code></pre>
-<pre><code>## Pruning based on global node similarity: 1 / 1</code></pre>
-<pre><code>## </code></pre>
-<pre><code>##  keeping 32.6% of edges</code></pre>
-<pre><code>## Detecting Graph Communities...</code></pre>
-<pre><code>## done</code></pre>
-<pre><code>## Computing Graph Layout and Rendering...</code></pre>
-<pre><code>##  Remark: Nodes from communities with &lt;5 members will not be displayed.</code></pre>
-<pre><code>##  displaying 55% of edges</code></pre>
-<pre><code>##  saving graph to graph_buettner.png</code></pre>
-<pre><code>## Finished (Elapsed Time: 4.428)</code></pre>
+<pre class="r"><code>library(griph)
+res &lt;- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')</code></pre>
 <pre class="r"><code>table(res$MEMB)</code></pre>
 <pre><code>## 
 ##  1  2  3  4  5  6  7  8  9 

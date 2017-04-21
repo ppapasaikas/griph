@@ -389,7 +389,11 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     message("Detecting Graph Communities...", appendLF = FALSE)
     memb=comm.method(GRAO)
     if (!is.null(ncom)) {
-        memb$membership=cut_at(memb,no=ncom)  
+        if(is_hierarchical(memb)) {
+            memb$membership=cut_at(memb,no=ncom)  
+        } else {
+            warning("ignoring 'ncom' when using non-hierachical community detection algorithm")
+        }
     }
     csize=table(memb$membership)
     ConfMatrix <- table(predicted=memb$membership, true=ClassAssignment)
@@ -448,8 +452,13 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 #'     \code{true} (true class labels, if available) or \code{none} (no fill color).
 #' @param line.type Type of line color, one of \code{true} (true class labels, if available, default),
 #'     \code{predicted} (predicted class labels) or \code{none} no fill color.
+#' @param group.type Type of cell group defnition to emphasize using polygons,
+#'     one of \code{none} (no polygons, the default), \code{predicted} (draw
+#'     polygons around cells with the same predicted class label) or \code{true}
+#'     (polygons around cells with the same true class label, if available).
 #' @param fill.col Color vector defining the palette to use for vertex fill coloring.
 #' @param line.col Color vector defining the palette to use for vertex outline coloring.
+#' @param group.col Color vector defining the palette to use for group polygon coloring.
 #' @param seed Random number seed to make graph layout deterministic.
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
@@ -462,9 +471,12 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 #' 
 #' @return The plot-optimized version of the graph as an \code{igraph} object.
 plotGraph <- function(gr, maxG=2500,
-                      fill.type=c("predicted","true","none"), line.type=c("true","predicted","none"),
+                      fill.type=c("predicted","true","none"),
+                      line.type=c("true","predicted","none"),
+                      group.type=c("none","predicted","true"),
                       fill.col=c("#9E0142","#D53E4F","#F46D43","#FDAE61","#FEE08B","#FFFFBF","#E6F598","#ABDDA4","#66C2A5","#3288BD","#5E4FA2"),
                       line.col=c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#D9D9D9","#BC80BD","#CCEBC5","#FFED6F"),
+                      group.col=c("#BE5681","#E37E8A","#F89E82","#FEC996","#FEEAB2","#FFFFD4","#EEF8BA","#C7E8C2","#99D6C3","#76B0D3","#948AC1"),
                       seed=91919,
                       fsuffix=RandString(), image.format=NA,
                       forceRecalculation=FALSE, quiet=FALSE) {
@@ -475,6 +487,7 @@ plotGraph <- function(gr, maxG=2500,
     csize <- table(gr$MEMB)
     fill.type <- match.arg(fill.type)
     line.type <- match.arg(line.type)
+    group.type <- match.arg(group.type)
     pct <- 1
     
     # get plot-optimized graph
@@ -573,7 +586,15 @@ plotGraph <- function(gr, maxG=2500,
                         predicted=lineColorPalette[as.numeric(class.pred)],
                         true=lineColorPalette[as.numeric(class.true)],
                         none=rep("black", length(V(GRAOp))))
-    
+    groupElements <- switch(group.type,
+                            predicted=split(seq_along(class.pred), class.pred),
+                            true=split(seq_along(class.pred), class.true),
+                            none=NA)
+    groupColor <- switch(group.type,
+                         predicted=grDevices::colorRampPalette(group.col)(nlevels(class.pred)),
+                         true=grDevices::colorRampPalette(group.col)(nlevels(class.true)),
+                         none=NA)
+
     # set some more graph attributes
     V(GRAOp)$classcolor <- lineColor
     V(GRAOp)$size <- 10 /(length(V(GRAOp))/60 )^0.3
@@ -599,7 +620,23 @@ plotGraph <- function(gr, maxG=2500,
     }
 
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
-    plot(l[,1], l[,2], col=lineColor, bg=fillColor, pch=21, cex=2.5, lwd=2, axes=FALSE, xlab="", ylab="")
+    plot(l[,1], l[,2], type = "n", axes=FALSE, xlab="", ylab="") # setup axes
+    if(group.type == "predicted" || (group.type == "true" && nlevels(class.true) > 1)) { # add group polygons
+        for(j in seq_along(groupElements)) {
+            xy <- l[groupElements[[j]], , drop = FALSE]
+            off <- par("cxy")[2]*2
+            pp <- rbind(xy,
+                        cbind(xy[, 1] - off, xy[, 2]),
+                        cbind(xy[, 1] + off, xy[, 2]),
+                        cbind(xy[, 1], xy[, 2] - off), 
+                        cbind(xy[, 1], xy[, 2] + off))
+            cl <- igraph::convex_hull(pp)
+            graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE, col = paste0(groupColor[j], "66"),
+                              border = adjust.color(groupColor[j], 0.5))
+            
+        }
+    }
+    points(l[,1], l[,2], col=lineColor, bg=fillColor, pch=21, cex=2.5, lwd=2) # add vertices
     if(fill.type != "none") {
         lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                       pch = 21, cex = 1, pt.cex = 2.5, col = if(line.type=="none") "black" else NA, pt.bg = fillColorPalette,
@@ -611,7 +648,7 @@ plotGraph <- function(gr, maxG=2500,
     }
     if(line.type != "none") {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-               pch = 21, cex = 1, pt.cex = 2.5, col = lineColorPalette, pt.bg = "white",
+               pch = 21, pt.lwd = 2, cex = 1, pt.cex = 2.5, col = lineColorPalette, pt.bg = "white",
                title = line.type, legend = switch(line.type,
                                                   predicted=levels(class.pred),
                                                   true=levels(class.true)))

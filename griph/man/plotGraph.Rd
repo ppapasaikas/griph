@@ -5,12 +5,15 @@
 \title{Visualize griph result as a graph.}
 \usage{
 plotGraph(gr, maxG = 2500, fill.type = c("predicted", "true", "none"),
-  line.type = c("true", "predicted", "none"), fill.col = c("#9E0142",
-  "#D53E4F", "#F46D43", "#FDAE61", "#FEE08B", "#FFFFBF", "#E6F598", "#ABDDA4",
-  "#66C2A5", "#3288BD", "#5E4FA2"), line.col = c("#8DD3C7", "#FFFFB3",
-  "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9",
-  "#BC80BD", "#CCEBC5", "#FFED6F"), seed = 91919, fsuffix = RandString(),
-  image.format = NA, forceRecalculation = FALSE, quiet = FALSE)
+  line.type = c("true", "predicted", "none"), group.type = c("none",
+  "predicted", "true"), fill.col = c("#9E0142", "#D53E4F", "#F46D43",
+  "#FDAE61", "#FEE08B", "#FFFFBF", "#E6F598", "#ABDDA4", "#66C2A5", "#3288BD",
+  "#5E4FA2"), line.col = c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072",
+  "#80B1D3", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5",
+  "#FFED6F"), group.col = c("#BE5681", "#E37E8A", "#F89E82", "#FEC996",
+  "#FEEAB2", "#FFFFD4", "#EEF8BA", "#C7E8C2", "#99D6C3", "#76B0D3", "#948AC1"),
+  seed = 91919, fsuffix = RandString(), image.format = NA,
+  forceRecalculation = FALSE, quiet = FALSE)
 }
 \arguments{
 \item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}}.}
@@ -23,9 +26,16 @@ plotGraph(gr, maxG = 2500, fill.type = c("predicted", "true", "none"),
 \item{line.type}{Type of line color, one of \code{true} (true class labels, if available, default),
 \code{predicted} (predicted class labels) or \code{none} no fill color.}
 
+\item{group.type}{Type of cell group defnition to emphasize using polygons,
+one of \code{none} (no polygons, the default), \code{predicted} (draw
+polygons around cells with the same predicted class label) or \code{true}
+(polygons around cells with the same true class label, if available).}
+
 \item{fill.col}{Color vector defining the palette to use for vertex fill coloring.}
 
 \item{line.col}{Color vector defining the palette to use for vertex outline coloring.}
+
+\item{group.col}{Color vector defining the palette to use for group polygon coloring.}
 
 \item{seed}{Random number seed to make graph layout deterministic.}
 
