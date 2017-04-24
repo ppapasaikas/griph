@@ -95,7 +95,15 @@ In plotGRAO weak edges are pruned, vertex attributes are added for visualization
 It is also possible to draw polygons around cells of each class:  
 
 ```r
-g <- plotGraph(res, group.type = "predicted")
+g <- plotGraph(res, mark.type = "predicted")
+```
+
+![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
+
+... or to collapse all the cells that are of the same class into a single vertex in the graph (maybe useful for large graphs with many predicted classes):  
+
+```r
+g <- plotGraph(res, collapse.type = "predicted")
 ```
 
 ![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
@@ -346,9 +354,13 @@ table(label2)
 Here is the output of sessionInfo() on the system on which this document was compiled:
 
 ```
-## R version 3.3.3 (2017-03-06)
+## R version 3.4.0 (2017-04-21)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
 ## Running under: Ubuntu 16.04.2 LTS
+## 
+## Matrix products: default
+## BLAS: /usr/lib/atlas-base/atlas/libblas.so.3.0
+## LAPACK: /usr/lib/atlas-base/atlas/liblapack.so.3.0
 ## 
 ## locale:
 ##  [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
@@ -369,13 +381,13 @@ Here is the output of sessionInfo() on the system on which this document was com
 ##  [1] Rcpp_0.12.10        bigmemory.sri_0.1.3 knitr_1.15.1       
 ##  [4] magrittr_1.5        nnls_1.4            doParallel_1.0.10  
 ##  [7] lattice_0.20-35     coop_0.6-0          foreach_1.4.3      
-## [10] bigmemory_4.5.19    stringr_1.0.0       tools_3.3.3        
-## [13] QUIC_1.1            grid_3.3.3          parallel_3.3.3     
+## [10] bigmemory_4.5.19    stringr_1.0.0       tools_3.4.0        
+## [13] QUIC_1.1            grid_3.4.0          parallel_3.4.0     
 ## [16] rNMF_0.5.0          corpcor_1.6.9       gtools_3.5.0       
 ## [19] htmltools_0.3.5     iterators_1.0.8     yaml_2.1.14        
 ## [22] rprojroot_1.2       digest_0.6.9        Matrix_1.2-8       
 ## [25] codetools_0.2-15    evaluate_0.10       rmarkdown_1.4      
-## [28] stringi_1.0-1       backports_1.0.4
+## [28] stringi_1.0-1       compiler_3.4.0      backports_1.0.4
 ```
 
 

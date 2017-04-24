@@ -76,8 +76,15 @@ label <- attr(M, "label")
 res <- SC_cluster(M, ClassAssignment = label)
 res$miscl # 0.09722222
 g <- plotGraph(res)
-g <- plotGraph(res, group.type = "true")
-g <- plotGraph(res, group.type = "predicted")
+g <- plotGraph(res, mark.type = "true")
+g <- plotGraph(res, mark.type = "predicted")
+g <- plotGraph(res, fill.type = "predicted", line.type = "none")
+g <- plotGraph(res, collapse.type = "true")
+g <- plotGraph(res, collapse.type = "predicted")
+
+# nice graph visualization examples: https://rpubs.com/kateto/netviz
+g2 <- igraph::simplify( igraph::contract(res$GRAO, res$MEMB) ) # just plot one vertex per cell types
+plot(g2)
 
 par(mfrow = c(1,2)); g.true <- plotGraph(res, fill.type = "true", line.type = "none"); g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 g <- plotGraph(res)
