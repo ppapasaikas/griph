@@ -5,6 +5,10 @@ library(devtools)
 # will re-create griph/src/RcppExports.cpp and griph/R/RcppExports.R
 Rcpp::compileAttributes(pkgdir = "./griph")
 
+# create to for native routine registration (should be put into R_init_griph.c)
+# (might eventually be obsolete, onece Rcpp::compileAttributes does this, see: https://github.com/RcppCore/Rcpp/issues/636)
+tools::package_native_routine_registration_skeleton("./griph")
+
 # re-create documentation using roxygen2::roxygenize
 # see: browseVignettes("roxygen2")
 devtools::document(pkg = "./griph") # will not overwrite existing NAMESPACE

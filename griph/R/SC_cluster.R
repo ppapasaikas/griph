@@ -669,15 +669,16 @@ plotGraph <- function(gr, maxG=2500,
     }
     if(collapse.type != "none") { # add edges
         el <- igraph::as_edgelist(GRAOp, names = FALSE)
-        segments(x0 = l[,1][el[,1]], y0 = l[,2][el[,1]],
-                 x1 = l[,1][el[,2]], y1 = l[,2][el[,2]],
-                 col = edge.col, lwd = E(GRAOp)$weight /max(E(GRAOp)$weight) * edge.lwd.max)
+        graphics::segments(x0 = l[,1][el[,1]], y0 = l[,2][el[,1]],
+                           x1 = l[,1][el[,2]], y1 = l[,2][el[,2]],
+                           col = edge.col, lwd = E(GRAOp)$weight /max(E(GRAOp)$weight) * edge.lwd.max)
     }
     points(l[,1], l[,2], col = lineColor, bg = fillColor, pch = my.pch, lwd = my.pt.lwd,
            cex=my.pt.cex * if(collapse.type == "none") 1.0 else (as.numeric(csize/median(csize)))^0.5) # add vertices
     if(fill.type != "none") {
         lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex, col = if(line.type=="none") "black" else NA, pt.bg = fillColorPalette,
+                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
+                      col = if(line.type=="none") "black" else "white", pt.bg = fillColorPalette,
                       title = fill.type, legend = switch(fill.type,
                                                          predicted=levels(class.pred),
                                                          true=levels(class.true)))
@@ -686,7 +687,8 @@ plotGraph <- function(gr, maxG=2500,
     }
     if(line.type != "none") {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-               pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex, col = lineColorPalette, pt.bg = "white",
+               pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
+               col = lineColorPalette, pt.bg = "white",
                title = line.type, legend = switch(line.type,
                                                   predicted=levels(class.pred),
                                                   true=levels(class.true)))
