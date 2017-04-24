@@ -106,7 +106,7 @@ g <- plotGraph(res, mark.type = "predicted")
 g <- plotGraph(res, collapse.type = "predicted")
 ```
 
-![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
+![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_collapseSameClass-1.png)
 
 Alternatively (and preferably for large - typically >1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity
 matrix returned by \code{griph}:  
