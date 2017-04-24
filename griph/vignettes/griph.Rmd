@@ -98,7 +98,14 @@ In plotGRAO weak edges are pruned, vertex attributes are added for visualization
 
 It is also possible to draw polygons around cells of each class:  
 ```{r buettner_groupPolygons, out.height="600px", out.width="600px", message=FALSE, fig.show='hide'}
-g <- plotGraph(res, group.type = "predicted")
+g <- plotGraph(res, mark.type = "predicted")
+```
+
+![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
+
+... or to collapse all the cells that are of the same class into a single vertex in the graph (maybe useful for large graphs with many predicted classes):  
+```{r buettner_collapseSameClass, out.height="600px", out.width="600px", message=FALSE, fig.show='hide'}
+g <- plotGraph(res, collapse.type = "predicted")
 ```
 
 ![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
