@@ -86,7 +86,7 @@ eg <- eg[!duplicated(eg$ENSEMBL), ]
 M2 <- M2[eg$ENSEMBL,]
 rownames(M2) <- as.character(eg$ENTREZID)
 
-cc <- griph:::predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
+cc <- predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
 table(known=label, predicted=cc)
 griph:::classError(label, cc)
 chisq.test(table(label, cc))
@@ -119,11 +119,35 @@ g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
 # g <- plotGraph(res, image.format = "png")
 # igraph::plot.igraph(g, asp=0, vertex.label=NA, edge.lty=0)
 
+
+
 # ... ... Kolodziejck
 M <- readRDS(system.file("extdata", "kolodziejck_top10k.rds", package = "griph"))
 label <- attr(M, "label")
-res <- SC_cluster(M, ClassAssignment = label)
+
+M <- M[grep("^ENSM",rownames(M)),] # remove diagnostic/ERCC rows
+
+M2 <- M
+library(org.Mm.eg.db)
+eg <- select(x=org.Mm.eg.db, keys=rownames(M2), keytype = "ENSEMBL", columns = "ENTREZID")
+eg <- eg[!duplicated(eg$ENSEMBL), ]
+M2 <- M2[eg$ENSEMBL,]
+rownames(M2) <- as.character(eg$ENTREZID)
+
+cc <- predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
+
+res <- SC_cluster(M2, ClassAssignment = label, plotG = FALSE)
+res2 <- SC_cluster(M2, ClassAssignment = label, BatchAssignment = cc, plotG = FALSE)
+
+g <- plotGraph(res)
+g2 <- plotGraph(res2)
+
+table(res$MEMB, cc)
+table(res2$MEMB, cc)
+table(res$MEMB, res2$MEMB)
+
 res$miscl # 0
+res$ConfMatrix
 
 par(mfrow=c(1,2))
 plotGraph(res, fill.type = "true", line.type = "none")

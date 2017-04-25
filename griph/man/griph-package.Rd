@@ -22,6 +22,7 @@ dataset.
 Authors:
 \itemize{
   \item Michael Stadler \email{michael.stadler@fmi.ch}
+  \item Atul Sethi \email{atul.sethi@fmi.ch}
 }
 
 }
