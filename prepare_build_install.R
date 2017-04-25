@@ -71,13 +71,20 @@ slotNames(obj)
 slot(obj, "ConfMatrix")
 slot(obj, "ClassAssignment")
 
-# ... test data from pacakge
+# ... test data from package
 list.files(system.file("extdata", package = "griph"))
 
 # ... ... Buettner
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 res <- SC_cluster(M, ClassAssignment = label)
+resP <- SC_cluster(M, ClassAssignment = label, use.par = TRUE, ncores = 8)
+for(nm in names(res))
+    cat(nm,":",identical(res[[nm]], resP[[nm]]), "\n")
+all.equal(res$DISTM, resP$DISTM)
+isomorphic(res$GRAO, resP$GRAO)
+isomorphic(res$plotGRAO, resP$plotGRAO)
+
 res$miscl # 0.09722222
 g <- plotGraph(res)
 g <- plotGraph(res, mark.type = "true")
