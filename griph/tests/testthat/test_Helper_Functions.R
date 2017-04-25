@@ -23,6 +23,14 @@ test_that("gg_color_hue works properly", {
     expect_match(gg_color_hue(10), "^#[0-9A-F]{6}$", all = TRUE)
 })
 
+test_that("adjust.color works properly", {
+    cols <- c("red","green","blue","orange")
+    cols2 <- adjust.color(cols, 1.5)
+    expect_is(cols2, "character")
+    expect_length(cols2, 4)
+    expect_identical(cols2, c("#FFAAAA","#AAFFAA","#AAAAFF","#FFE1AA"))
+})
+
 test_that("RandString works properly", {
     expect_is(RandString(n=1, len = 10), "character")
     expect_length(RandString(7), 7)

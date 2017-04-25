@@ -1,4 +1,4 @@
-test_that("classError works properly", {
+test_that("classError and mapLabelsGreedy works properly", {
     a <- rep(1:3, c(10,20,30))
     b <- a
     set.seed(0)
