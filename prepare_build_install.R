@@ -26,7 +26,7 @@ devtools::install(pkg = "./griph", reload = TRUE, quick = TRUE)
 
 # ... directly from github
 devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
-devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph", branch = "Testing")
+#devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph", branch = "Testing")
 
 # setup unit tests with testthat
 # This will create ‘tests/testthat.R’, ‘tests/testthat/’ and add testthat to the suggested packages.
@@ -86,6 +86,7 @@ isomorphic(res$GRAO, resP$GRAO)
 isomorphic(res$plotGRAO, resP$plotGRAO)
 
 res$miscl # 0.09722222
+
 g <- plotGraph(res)
 g <- plotGraph(res, mark.type = "true")
 g <- plotGraph(res, mark.type = "predicted")

@@ -176,214 +176,225 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     }
     
     
-    
-    if(!is.null(BatchAssignment)){
-        if (length(BatchAssignment) != ncol(DM) ) {stop ("!Length of BatchAssignment vector should have length == ncol(DM)")}
-    }
-    
+    if (length(ClassAssignment) != ncol(DM))
+        stop ("length(ClassAssignment) must be equal to ncol(DM)")
+    if(!is.null(BatchAssignment) && length(BatchAssignment) != ncol(DM))
+        stop ("length(BatchAssignment) must be equal to ncol(DM)")
+
     ptm=proc.time()
     
-    
-    if (!isTRUE(is.cor)) {  
-        
-        if (impute==TRUE){
-            message("Imputing...", appendLF = FALSE)
-            DMimp=RNMF(DM,k =6,alpha = 0.15,tol=1e-2,maxit=10,showprogress=FALSE,quiet=TRUE)$fit
-            GF=rowSums(DM)/sum(rowSums(DM))
-            QNT=quantile(GF,probs=seq(0,1,0.1))
-            Low=which(GF <= QNT[qnt]  )  
-            DM[Low,]=DMimp[Low,]
-            DMimp=NULL
+
+    ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised
+    tryCatch({
+
+        if (!isTRUE(is.cor)) {  
+            
+            if (impute==TRUE){
+                message("Imputing...", appendLF = FALSE)
+                DMimp=RNMF(DM,k =6,alpha = 0.15,tol=1e-2,maxit=10,showprogress=FALSE,quiet=TRUE)$fit
+                GF=rowSums(DM)/sum(rowSums(DM))
+                QNT=quantile(GF,probs=seq(0,1,0.1))
+                Low=which(GF <= QNT[qnt]  )  
+                DM[Low,]=DMimp[Low,]
+                DMimp=NULL
+                message("done")
+            }
+            
+            message("Preprocessing...", appendLF = FALSE)
+            
+            AllZeroRows=which  ( rowSums(DM)<1e-9 )
+            if(length(AllZeroRows)>0){
+                DM=DM[-AllZeroRows , ] 
+            }
+            
+            
+            
+            ##########  Remove invariant genes:
+            meanDM=mean(DM)
+            nSD=apply(DM,1,function(x) sd(x)/meanDM)
+            ConstRows=which   ( nSD < 0.25 )
+            if(length(ConstRows)>0){
+                DM=DM[-ConstRows , ]
+            }
+            
+            #############CV=f(mean) -based filtering:
+            CellCounts=colSums(DM)
+            nDM=sweep(DM,2,CellCounts,FUN="/")
+            nDM=DM*10000 #Counts per 10K
+            if(is.null(filter)){
+                medianComplexity=median(apply(DM,2,function(x) sum(x>0))) 
+                filter=ifelse( medianComplexity > 2500,TRUE,FALSE)
+                message("Median Library Complexity: ",medianComplexity," --> Gene Filtering: ", filter ,"\r")
+                
+            }
+            if (filter){
+                X1=log2(rowMeans(nDM+1/ncol(nDM)))
+                Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
+                m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
+                Yhat=predict(m)
+                DM=DM[which(Y1 > Yhat),]
+            }
+            
+            NoData=which(colSums(DM)==0)
+            if (length(NoData>0)){
+                DM=DM[,-NoData]
+                ClassAssignment=ClassAssignment[,-NoData]
+                BatchAssignment=BatchAssignment[,-NoData]
+                CellCounts=CellCounts[-NoData]
+            }
+            #
+            
+            ##### Strip dimnames:
+            CellIds=colnames(DM)
+            dimnames(DM)=NULL
+            
+            C=list()
+            C[[1]]=PearsonCor(log2(DM+1))
+            
             message("done")
         }
         
-        message("Preprocessing...", appendLF = FALSE)
-
-        AllZeroRows=which  ( rowSums(DM)<1e-9 )
-        if(length(AllZeroRows)>0){
-            DM=DM[-AllZeroRows , ] 
+        
+        else {
+            C=list()
+            C[[1]]=DM
+        }
+        
+        averageDist=NULL
+        if(is.null(diffuse.iter)) {
+            diffuse.iter=2  
+            averageDist=TRUE
+        }
+        
+        if (diffuse.iter > 1) {
+            for(order in 2:diffuse.iter){
+                message("Calculating Pairwise and Diffused Similarities: ", order-1, " / ", diffuse.iter-1)
+                C[[order]]=WScor( nDM,C1=C[[1]], CanberraDist=CanberraDist,
+                                  SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor  )
+                
+                if (order >2) {C[[order-1]]=NA}
+            }
+        }
+        nDM<-NULL
+        
+        ####Normalize Initial Correlation matrix:
+        W=pmax(1e-1,colMeans(C[[1]]))/mean(colMeans(C[[1]]))
+        W=sqrt(W) %o% sqrt(W)
+        C[[1]]=( C[[1]] / W )
+        
+        #####Metric by averaging:
+        if(!is.null(averageDist)){
+            Cuse=(C[[1]]+C[[2]])/2
+        }
+        
+        else{  
+            Cuse=as.matrix(C[[diffuse.iter]])
+        }
+        
+        ClassAssignment.numeric <- as.numeric(factor(ClassAssignment, levels=unique(ClassAssignment)))
+        
+        ############### glasso-based graph structure estimation: #####################
+        message("Estimating Graph Structure...", appendLF = FALSE)
+        
+        RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
+        
+        if(!is.null(BatchAssignment)){
+            rL=min(1,rho^(1-batch.penalty))
+            rS=rho^(1+batch.penalty)
+            RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
+            RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
         }
         
         
-        
-        ##########  Remove invariant genes:
-        meanDM=mean(DM)
-        nSD=apply(DM,1,function(x) sd(x)/meanDM)
-        ConstRows=which   ( nSD < 0.25 )
-        if(length(ConstRows)>0){
-            DM=DM[-ConstRows , ]
+        ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
+        kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
+        kN=get.knn(Cuse,k=kvect )
+        for(i in 1:ncol(  RHO  )){
+            RHO[ -kN[,i],i]=min(1,1.5*rho)
+            RHO[i,-kN[,i] ]=min(1,1.5*rho)
         }
         
-        #############CV=f(mean) -based filtering:
-        CellCounts=colSums(DM)
-        nDM=sweep(DM,2,CellCounts,FUN="/")
-        nDM=DM*10000 #Counts per 10K
-        if(is.null(filter)){
-            medianComplexity=median(apply(DM,2,function(x) sum(x>0))) 
-            filter=ifelse( medianComplexity > 2500,TRUE,FALSE)
-            message("Median Library Complexity: ",medianComplexity," --> Gene Filtering: ", filter ,"\r")
-            
-        }
-        if (filter){
-            X1=log2(rowMeans(nDM+1/ncol(nDM)))
-            Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
-            m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
-            Yhat=predict(m)
-            DM=DM[which(Y1 > Yhat),]
-        }
         
-        NoData=which(colSums(DM)==0)
-        if (length(NoData>0)){
-            DM=DM[,-NoData]
-            ClassAssignment=ClassAssignment[,-NoData]
-            BatchAssignment=BatchAssignment[,-NoData]
-            CellCounts=CellCounts[-NoData]
-        }
-        #
-        
-        ##### Strip dimnames:
-        CellIds=colnames(DM)
-        dimnames(DM)=NULL
-        
-        C=list()
-        C[[1]]=PearsonCor(log2(DM+1))
+        C=NULL
+        tol=5e-02
+        maxIter=40
+        if (ncol(Cuse)<200) {tol=1e-02;maxIter=80}
+        if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
+        X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
+        ADJ= -X
+        X<-NULL
         
         message("done")
-    }
-    
-    
-    else {
-        C=list()
-        C[[1]]=DM
-    }
-    
-    averageDist=NULL
-    if(is.null(diffuse.iter)) {
-        diffuse.iter=2  
-        averageDist=TRUE
-    }
-    
-    if (diffuse.iter > 1) {
-        for(order in 2:diffuse.iter){
-            message("Calculating Pairwise and Diffused Similarities: ", order-1, " / ", diffuse.iter-1)
-            C[[order]]=WScor( nDM,C1=C[[1]], CanberraDist=CanberraDist,
-                              SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor  )
-            
-            if (order >2) {C[[order-1]]=NA}
-        }
-    }
-    nDM<-NULL
-    
-    ####Normalize Initial Correlation matrix:
-    W=pmax(1e-1,colMeans(C[[1]]))/mean(colMeans(C[[1]]))
-    W=sqrt(W) %o% sqrt(W)
-    C[[1]]=( C[[1]] / W )
-    
-    #####Metric by averaging:
-    if(!is.null(averageDist)){
-        Cuse=(C[[1]]+C[[2]])/2
-    }
-    
-    else{  
-        Cuse=as.matrix(C[[diffuse.iter]])
-    }
-    
-    ClassAssignment.numeric <- as.numeric(factor(ClassAssignment, levels=unique(ClassAssignment)))
-
-    ############### glasso-based graph structure estimation: #####################
-    message("Estimating Graph Structure...", appendLF = FALSE)
-
-    RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
-    
-    if(!is.null(BatchAssignment)){
-        rL=min(1,rho^(1-batch.penalty))
-        rS=rho^(1+batch.penalty)
-        RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
-        RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
-    }
-    
-    
-    ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-    kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
-    kN=get.knn(Cuse,k=kvect )
-    for(i in 1:ncol(  RHO  )){
-        RHO[ -kN[,i],i]=min(1,1.5*rho)
-        RHO[i,-kN[,i] ]=min(1,1.5*rho)
-    }
-    
-    
-    C=NULL
-    tol=5e-02
-    maxIter=40
-    if (ncol(Cuse)<200) {tol=1e-02;maxIter=80}
-    if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
-    X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
-    ADJ= -X
-    X<-NULL
-    
-    message("done")
-    
-    ######## Graph weights:
-    message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
-    ave=mean(Cuse[which(ADJ>0)])
-    ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
-    ADJ[which(ADJ < 0)]=0
-    diag(ADJ)=1
-    
-    
-    ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-    kvect=rep(  min(max(5*sqrt(ncol(ADJ)),100) ,floor(ncol( ADJ))/1.5)   ,    ncol(ADJ)  )
-    kN=get.knn(ADJ,k=kvect )
-    for(i in 1:ncol(  ADJ  )){
-        ADJ[ -kN[,i],i]=0
-        ADJ[i,-kN[,i] ]=0
-    }
-
-    GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
-    message("done")
-    
-    niter=1
-    for (i in 1:niter){
-        message("Pruning based on global node similarity: ",i," / ",niter, "\r", appendLF = FALSE)
-        flush.console()
-        df=0.75
-        PR=PPRank(GRAO,df=df)
-        ADJ=PR
-        ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
+        
+        ######## Graph weights:
+        message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
+        ave=mean(Cuse[which(ADJ>0)])
+        ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
+        ADJ[which(ADJ < 0)]=0
+        diag(ADJ)=1
+        
+        
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-        kvect=rep( min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)    ,ncol(ADJ)  )
-        kN=get.knn(PR,k=kvect )
-        for(i in 1:ncol(ADJ)){
+        kvect=rep(  min(max(5*sqrt(ncol(ADJ)),100) ,floor(ncol( ADJ))/1.5)   ,    ncol(ADJ)  )
+        kN=get.knn(ADJ,k=kvect )
+        for(i in 1:ncol(  ADJ  )){
             ADJ[ -kN[,i],i]=0
             ADJ[i,-kN[,i] ]=0
         }
         
-        #PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
-        #diag(PR)=1
-        ave=mean(Cuse[which(ADJ>0)])
-        ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
-        #ADJ=(ADJ*(PR))
         GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
-    }
-    message("")
+        message("done")
+        
+        niter=1
+        for (i in 1:niter){
+            message("Pruning based on global node similarity: ",i," / ",niter, "\r", appendLF = FALSE)
+            flush.console()
+            df=0.75
+            PR=PPRank(GRAO,df=df)
+            ADJ=PR
+            ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
+            ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
+            kvect=rep( min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)    ,ncol(ADJ)  )
+            kN=get.knn(PR,k=kvect )
+            for(i in 1:ncol(ADJ)){
+                ADJ[ -kN[,i],i]=0
+                ADJ[i,-kN[,i] ]=0
+            }
+            
+            #PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
+            #diag(PR)=1
+            ave=mean(Cuse[which(ADJ>0)])
+            ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
+            #ADJ=(ADJ*(PR))
+            GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+        }
+        message("")
+        
+        
+        pct <- 1
+        if (median(igraph::degree(GRAO)) > 8) {
+            pct <- min(1,1/(median(igraph::degree(GRAO))^0.25 )  )
+            message("\tkeeping ", round(100*pct,1), "% of edges")
+            ADJtemp <- apply(ADJ,1,function(x) sparsify(x,pct) )
+            GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
+            ADJtemp <- NULL
+        }
+        
+        
+        #GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
+        GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
+        Cuse<-NULL
+        
+    }, # end of tryCatch expression, cluster object cl not needed anymore
     
+    # exception handlers could be defined here
     
-    pct <- 1
-    if (median(igraph::degree(GRAO)) > 8) {
-        pct <- min(1,1/(median(igraph::degree(GRAO))^0.25 )  )
-        message("\tkeeping ", round(100*pct,1), "% of edges")
-        ADJtemp <- apply(ADJ,1,function(x) sparsify(x,pct) )
-        GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
-        ADJtemp <- NULL
-    }
-    
-    
-    #GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
-    GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
-    Cuse<-NULL
-    
-    
-    
+    finally = {
+        ##### Stop registered cluster:
+        if (isTRUE(use.par) & getDoParRegistered())
+            stopCluster(cl)
+    })
+
     
     ######## COMMUNITY DETECTION #########
     message("Detecting Graph Communities...", appendLF = FALSE)
@@ -431,11 +442,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
     Te=signif(Te,digits=6)
     message("Finished (Elapsed Time: ", Te, ")")
 
-    
-    ##### Stop registered cluster:
-    if (isTRUE(use.par) & getDoParRegistered()) {  
-        stopCluster(cl)
-    }
     
     return(ret)
 }
