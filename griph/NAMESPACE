@@ -17,4 +17,4 @@ importFrom("gtools", "permutations") # only used in griph::mapLabelsExhaustive
 
 useDynLib(griph, .registration = TRUE)
 
-export(SC_cluster, plotGraph, HellingerMat, JSDmat)
+export(SC_cluster, plotGraph, predictCellCycle, HellingerMat, JSDmat)

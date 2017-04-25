@@ -77,6 +77,20 @@ list.files(system.file("extdata", package = "griph"))
 # ... ... Buettner
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
+M <- M[grep("^ENSM",rownames(M)),] # remove diagnostic/ERCC rows
+
+M2 <- M
+library(org.Mm.eg.db)
+eg <- select(x=org.Mm.eg.db, keys=rownames(M2), keytype = "ENSEMBL", columns = "ENTREZID")
+eg <- eg[!duplicated(eg$ENSEMBL), ]
+M2 <- M2[eg$ENSEMBL,]
+rownames(M2) <- as.character(eg$ENTREZID)
+
+cc <- griph:::predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
+table(known=label, predicted=cc)
+griph:::classError(label, cc)
+chisq.test(table(label, cc))
+
 res <- SC_cluster(M, ClassAssignment = label)
 resP <- SC_cluster(M, ClassAssignment = label, use.par = TRUE, ncores = 8)
 for(nm in names(res))

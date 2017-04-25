@@ -5,9 +5,12 @@ Version: 0.1.0
 Authors@R: c(person("Panagiotis", "Papasaikas", role = c("aut", "cre"),
                      email = "panagiotis.papasaikas@fmi.ch"),
               person("Michael", "Stadler", role = "aut",
-                     email = "michael.stadler@fmi.ch"))
+                     email = "michael.stadler@fmi.ch"),
+              person("Atul", "Sethi", role = "aut",
+                     email = "atul.sethi@fmi.ch"))
 Author: Panagiotis Papasaikas <panagiotis.papasaikas@fmi.ch>,
-    Michael Stadler <michael.stadler@fmi.ch>
+    Michael Stadler <michael.stadler@fmi.ch>,
+    Atul Sethi <atul.sethi@fmi.ch>
 Maintainer: Panagiotis Papasaikas <panagiotis.papasaikas@fmi.ch>
 Description: Identify cell types from single cell RNA-seq data, allowing to
     control for unwanted sources of variance that may mask the cell type differences.
