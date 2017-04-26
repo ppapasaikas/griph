@@ -25,4 +25,4 @@ library(griph)
 vignette(griph)
 ```
 
-![Buettner](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph_/vignettes/griph_files/figure-html/buettner_groupPolygons-1_example.png)
+![Buettner](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph_example.png)
