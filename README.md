@@ -65,8 +65,8 @@ table(res$MEMB)
 
 ```
 ## 
-##  1  2  3  4  5  6  7  8  9 
-## 94 75 32 31 24  8 12  6  6
+##  1  2  3  4  5  6  7  8  9 10 11 12 
+## 81 70 51 20 14  9 15  9  7  7  3  2
 ```
 
 
@@ -119,7 +119,7 @@ plot(out$Y, xlab="tSNE-1", ylab="tSNE-2", col=res$MEMB, pch=as.numeric(trueLabel
 
 ![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_tsne-1.png)
 
-\code{\link{SC_cluster}} identified 9
+\code{\link{SC_cluster}} identified 12
 cell types in the data, and the confusion matrix returned in the result summarizes
 how they relate to the known cell types or states:  
 
@@ -130,15 +130,18 @@ res$ConfMatrix # confusion matrix
 ```
 ##          true
 ## predicted G1 G2M  S
-##         1 13   5 76
-##         2  2  73  0
-##         3 28   2  2
-##         4 29   0  2
-##         5 24   0  0
-##         6  0   0  8
-##         7  0  10  2
-##         8  0   0  6
-##         9  0   6  0
+##        1   7  74  0
+##        2  31   1 38
+##        3   4   3 44
+##        4  20   0  0
+##        5  14   0  0
+##        6   0   0  9
+##        7  11   4  0
+##        8   9   0  0
+##        9   0   7  0
+##        10  0   7  0
+##        11  0   0  3
+##        12  0   0  2
 ```
 
 ```r
@@ -146,7 +149,7 @@ res$miscl # misclassification error
 ```
 
 ```
-## [1] 0.09722222
+## [1] 0.1736111
 ```
 
 When comparing different classifications with each other, they may differ in granularity,
@@ -193,7 +196,7 @@ table(label)
 ```
 
 
-## Kolodziejck et al., Cell Stem Cell 2015
+## Kolodziejczyk et al., Cell Stem Cell 2015
 Single Cell RNA-Sequencing of Pluripotent States Unlocks Modular Transcriptional Variation. Kolodziejczyk AA, Kim JK, Tsang JC, Ilicic T, Henriksson J, Natarajan KN, Tuck AC, Gao X, Bühler M, Liu P, Marioni JC, Teichmann SA. Cell Stem Cell. 2015 Oct 1;17(4):471-85. doi: 10.1016/j.stem.2015.09.011.
 
 - Description: 704 mouse ES cells (Fluidigm C1), three culture conditions: serum + LIF (lif), 2i + LIF (2i) and alternative 2i + LIF (a2i)
@@ -375,7 +378,7 @@ Here is the output of sessionInfo() on the system on which this document was com
 ## 
 ## other attached packages:
 ## [1] Rtsne_0.13         griph_0.1.0        igraph_1.0.1      
-## [4] BiocStyle_2.2.1    RColorBrewer_1.1-2
+## [4] BiocStyle_2.4.0    RColorBrewer_1.1-2
 ## 
 ## loaded via a namespace (and not attached):
 ##  [1] Rcpp_0.12.10        bigmemory.sri_0.1.3 knitr_1.15.1       
@@ -386,8 +389,8 @@ Here is the output of sessionInfo() on the system on which this document was com
 ## [16] rNMF_0.5.0          corpcor_1.6.9       gtools_3.5.0       
 ## [19] htmltools_0.3.5     iterators_1.0.8     yaml_2.1.14        
 ## [22] rprojroot_1.2       digest_0.6.9        Matrix_1.2-8       
-## [25] codetools_0.2-15    evaluate_0.10       rmarkdown_1.4      
-## [28] stringi_1.0-1       compiler_3.4.0      backports_1.0.4
+## [25] codetools_0.2-15    evaluate_0.10       rmarkdown_1.5      
+## [28] stringi_1.0-1       compiler_3.4.0      backports_1.0.5
 ```
 
 

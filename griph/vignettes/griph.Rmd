@@ -84,7 +84,10 @@ switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an opt
 
 ![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/graph_buettner.png)
 
-This allows you to easily plot the graph again, for example to separately illustrate known and
+# Visualizing \code{griph} results
+\code{SC_cluster} returns an \code{igraph} with the cells represented by graph verteces
+(\code{GRAO} and \code{plotGRAO}, which is a simplified, plotting optimized version of \code{GRAO}).
+This allows to easily plot the graph again, for example to separately illustrate known and
 predicted cell types:  
 ```{r knownVsPred, message=FALSE, fig.show='hide'}
 g.true <- plotGraph(res, fill.type = "true", line.type = "none")

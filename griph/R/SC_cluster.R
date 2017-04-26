@@ -453,11 +453,14 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 #'     apply graph subsampling and control coloring.
 #' 
 #' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
-#' @param maxG Approximate maximal number of vertices to include when plotting the graph.
-#' @param fill.type Type of fill color, one of \code{predicted} (predicted class labels, default),
-#'     \code{true} (true class labels, if available) or \code{none} (no fill color).
-#' @param line.type Type of line color, one of \code{true} (true class labels, if available, default),
-#'     \code{predicted} (predicted class labels) or \code{none} no fill color.
+#' @param maxG Approximate maximal number of vertices to include when plotting
+#'     the graph.
+#' @param fill.type Type of fill color, one of \code{predicted} (predicted class
+#'     labels, default), \code{true} (true class labels, if available), \code{none}
+#'     (no fill color) or \code{custom} (use \code{custom.col}).
+#' @param line.type Type of line color, one of \code{true} (true class labels, if
+#'     available, default), \code{predicted} (predicted class labels), \code{none}
+#'     for no fill color or \code{custom} (use \code{custom.col}).
 #' @param mark.type Type of cell class defnition to mark using polygons,
 #'     one of \code{none} (no polygons, the default), \code{predicted} (draw
 #'     polygons around cells with the same predicted class label) or \code{true}
@@ -469,6 +472,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 #' @param fill.col Color vector defining the palette to use for vertex fill coloring.
 #' @param line.col Color vector defining the palette to use for vertex outline coloring.
 #' @param mark.col Color vector defining the palette to use for cell class polygon marking.
+#' @param custom.class Factor, character or numberic vector of the same length or
+#'     with names corresponding to names(gr$MEMB) to use for custom cell classification
+#'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
 #' @param seed Random number seed to make graph layout deterministic.
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
@@ -481,13 +487,14 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 #' 
 #' @return The plot-optimized version of the graph as an \code{igraph} object.
 plotGraph <- function(gr, maxG=2500,
-                      fill.type=c("predicted","true","none"),
-                      line.type=c("true","predicted","none"),
+                      fill.type=c("predicted","true","none","custom"),
+                      line.type=c("true","predicted","none","custom"),
                       mark.type=c("none","predicted","true"),
                       collapse.type=c("none","predicted","true"),
                       fill.col=c("#9E0142","#D53E4F","#F46D43","#FDAE61","#FEE08B","#FFFFBF","#E6F598","#ABDDA4","#66C2A5","#3288BD","#5E4FA2"),
                       line.col=c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#D9D9D9","#BC80BD","#CCEBC5","#FFED6F"),
                       mark.col=c("#BE5681","#E37E8A","#F89E82","#FEC996","#FEEAB2","#FFFFD4","#EEF8BA","#C7E8C2","#99D6C3","#76B0D3","#948AC1"),
+                      custom.class=factor(rep(1, length(gr$MEMB))),
                       seed=91919,
                       fsuffix=RandString(), image.format=NA,
                       forceRecalculation=FALSE, quiet=FALSE) {
@@ -496,14 +503,21 @@ plotGraph <- function(gr, maxG=2500,
     
     # get varaibles from gr
     GRAO <- gr$GRAO
-    csize <- table(gr$MEMB)
+    MEMB <- gr$MEMB
+    csize <- table(MEMB)
+    
+    # digest arguments
     fill.type <- match.arg(fill.type)
     line.type <- match.arg(line.type)
     mark.type <- match.arg(mark.type)
     collapse.type <- match.arg(collapse.type)
-    pct <- 1
+    if(is.null(names(custom.class))) {
+        stopifnot(length(custom.class)==length(MEMB))
+        names(custom.class) <- names(MEMB)
+    }
     
     # global plotting paramterers
+    pct <- 1
     my.pch <- 21L # should be in 21:25
     my.pt.cex <- 2.5
     my.pt.lwd <- if(line.type == "none" || collapse.type != "none") 1.0 else 2.5
@@ -522,7 +536,7 @@ plotGraph <- function(gr, maxG=2500,
         line.type <- "none"
         mark.type <- "none"
         class.collapse <- switch(collapse.type,
-                                 predicted=factor(V(GRAO)$membership, levels=sort(unique(V(GRAO)$membership))),
+                                 predicted=factor(V(GRAO)$membership, levels=sort(as.numeric(unique(V(GRAO)$membership)))),
                                  true=factor(V(GRAO)$class, levels=unique(V(GRAO)$class)))
         GRAOp <- igraph::simplify( igraph::contract(GRAO, class.collapse) )
         V(GRAOp)$membership <- V(GRAOp)$class <- levels(class.collapse)
@@ -538,7 +552,7 @@ plotGraph <- function(gr, maxG=2500,
             snowball_seeds <- c()
             for (i in 1:length(csize)){
                 if (csize[i]<5) {next}
-                members <- which(gr$MEMB==i)
+                members <- which(MEMB==i)
                 minDegree <- quantile(DEG[members])[2]-1
                 maxDegree <- quantile(DEG[members])[4]+1
                 #seedn <- ceiling(csize[i]/max(csize))
@@ -546,10 +560,10 @@ plotGraph <- function(gr, maxG=2500,
                 seedn <- min(seedn,floor(csize[i]/4) )
                 #message("minD:",minDegree, " maxD:",maxDegree," csize:", csize[i]  ,"\r")
                 if (seedn > 1){
-                    module_seeds <- sample(which(gr$MEMB==i & DEG >= floor(minDegree) &
+                    module_seeds <- sample(which(MEMB==i & DEG >= floor(minDegree) &
                                                  DEG <= ceiling(maxDegree) ), seedn)
                 } else {
-                    module_seeds <- sample(which(gr$MEMB==i & DEG==max(DEG[members])), 1)    
+                    module_seeds <- sample(which(MEMB==i & DEG==max(DEG[members])), 1)    
                 }
         
                 snowball_seeds <- unique(c(snowball_seeds,module_seeds))
@@ -604,25 +618,27 @@ plotGraph <- function(gr, maxG=2500,
         message("\tdisplaying ",round(100*pct,1), "% of edges")
 
     # get colors
-    class.pred <- factor(V(GRAOp)$membership, levels=sort(unique(V(GRAOp)$membership)))
-    class.true <- factor(V(GRAOp)$class, levels=unique(V(GRAOp)$class))
+    class.pred <- factor(V(GRAOp)$membership, levels=sort(as.numeric(unique(V(GRAO)$membership))))
+    class.true <- factor(V(GRAOp)$class, levels=unique(V(GRAO)$class))
+    class.none <- factor(rep(NA, length(V(GRAOp))))
+    class.custom <- factor(custom.class[V(GRAOp)$labels], levels=unique(custom.class))
 
-    fillColorPalette <- switch(fill.type,
-                               predicted=grDevices::colorRampPalette(fill.col)(nlevels(class.pred)),
-                               true=grDevices::colorRampPalette(fill.col)(nlevels(class.true)),
-                               none=NA)
-    fillColor <- switch(fill.type,
-                        predicted=fillColorPalette[as.numeric(class.pred)],
-                        true=fillColorPalette[as.numeric(class.true)],
-                        none=rep(NA, length(V(GRAOp))))
-    lineColorPalette <- switch(line.type,
-                               predicted=grDevices::colorRampPalette(line.col)(nlevels(class.pred)),
-                               true=grDevices::colorRampPalette(line.col)(nlevels(class.true)),
-                               none=NA)
-    lineColor <- switch(line.type,
-                        predicted=lineColorPalette[as.numeric(class.pred)],
-                        true=lineColorPalette[as.numeric(class.true)],
-                        none=rep("black", length(V(GRAOp))))
+    class.fill <- switch(fill.type,
+                         predicted=class.pred,
+                         true=class.true,
+                         none=class.none,
+                         custom=class.custom)
+    fillColorPalette <- if(nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
+    fillColor <- fillColorPalette[as.numeric(class.fill)]
+
+    class.line <- switch(line.type,
+                         predicted=class.pred,
+                         true=class.true,
+                         none=class.none,
+                         custom=class.custom)
+    lineColorPalette <- if(nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
+    lineColor <- lineColorPalette[as.numeric(class.line)]
+
     markElements <- switch(mark.type,
                            predicted=split(seq_along(class.pred), class.pred),
                            true=split(seq_along(class.pred), class.true),
@@ -640,10 +656,12 @@ plotGraph <- function(gr, maxG=2500,
     E(GRAOp)$width <- E(GRAOp)$weight / sqrt((length(V(GRAOp))/60 ))
     V(GRAOp)$color <- fillColor
     
+    # compute graph layout
     set.seed(seed = seed)
     l <- igraph::layout_with_fr(graph = GRAOp)
     # igraph::add.vertex.shape("fcircle", clip=igraph.shape.noclip, plot=mycircle, parameters=list(vertex.frame.color=1, vertex.frame.width=1))
 
+    # open output file
     if(!is.na(image.format)) {
         if(image.format=='pdf') {
             fname <- paste('graph_',fsuffix,'.pdf',sep="")
@@ -656,10 +674,13 @@ plotGraph <- function(gr, maxG=2500,
             message("\tsaving graph to ",fname)
     }
 
+    # setup plot coordinate system
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
-    plot(l[,1], l[,2], type = "n", axes=FALSE, xlab="", ylab="") # setup axes
-    if(mark.type == "predicted" || (mark.type == "true" && nlevels(class.true) > 1)) { # add mark polygons
-        for(j in seq_along(markElements)) {
+    plot(l[,1], l[,2], type = "n", axes=FALSE, xlab="", ylab="")
+    
+    # add mark polygons
+    if(mark.type == "predicted" || (mark.type == "true" && nlevels(class.true) > 1)) {
+        for(j in which(lengths(markElements) > 0)) {
             xy <- l[markElements[[j]], , drop = FALSE]
             off <- par("cxy")[2]*1
             pp <- rbind(xy,
@@ -668,38 +689,43 @@ plotGraph <- function(gr, maxG=2500,
                         cbind(xy[, 1], xy[, 2] - off), 
                         cbind(xy[, 1], xy[, 2] + off))
             cl <- igraph::convex_hull(pp)
-            graphics::xspline(cl$rescoords, shape = 0.75, open = FALSE, col = paste0(markColor[j], "66"),
+            graphics::xspline(cl$rescoords, shape = 0.75, open = FALSE,
+                              col = paste0(markColor[j], "66"),
                               border = adjust.color(markColor[j], 0.5))
             
         }
     }
-    if(collapse.type != "none") { # add edges
+    
+    # add edges (currently only for collapase.type != "none")
+    if(collapse.type != "none") {
         el <- igraph::as_edgelist(GRAOp, names = FALSE)
         graphics::segments(x0 = l[,1][el[,1]], y0 = l[,2][el[,1]],
                            x1 = l[,1][el[,2]], y1 = l[,2][el[,2]],
                            col = edge.col, lwd = E(GRAOp)$weight /max(E(GRAOp)$weight) * edge.lwd.max)
     }
-    points(l[,1], l[,2], col = lineColor, bg = fillColor, pch = my.pch, lwd = my.pt.lwd,
-           cex=my.pt.cex * if(collapse.type == "none") 1.0 else (as.numeric(csize/median(csize)))^0.5) # add vertices
-    if(fill.type != "none") {
+    
+    # add vertices
+    points(l[,1], l[,2], col = if(line.type=="none") "black" else lineColor,
+           bg = fillColor, pch = my.pch, lwd = my.pt.lwd,
+           cex=my.pt.cex * if(collapse.type == "none") 1.0 else (as.numeric(csize/median(csize)))^0.5)
+
+    # add legend(s)
+    if(fill.type != "none" && nlevels(class.fill) > 0) {
         lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                       pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
                       col = if(line.type=="none") "black" else "white", pt.bg = fillColorPalette,
-                      title = fill.type, legend = switch(fill.type,
-                                                         predicted=levels(class.pred),
-                                                         true=levels(class.true)))
+                      title = fill.type, legend = levels(class.fill))
     } else {
         lgd <- list(rect=list(left=par("usr")[2]+12*par("cxy")[1]))
     }
-    if(line.type != "none") {
+    if(line.type != "none" && nlevels(class.line) > 0) {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
                col = lineColorPalette, pt.bg = "white",
-               title = line.type, legend = switch(line.type,
-                                                  predicted=levels(class.pred),
-                                                  true=levels(class.true)))
+               title = line.type, legend = levels(class.line))
     }
 
+    # close output file
     if(!is.na(image.format))
         dev.off()
     

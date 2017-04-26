@@ -77,7 +77,6 @@ list.files(system.file("extdata", package = "griph"))
 # ... ... Buettner
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
-M <- M[grep("^ENSM",rownames(M)),] # remove diagnostic/ERCC rows
 
 M2 <- M
 library(org.Mm.eg.db)
@@ -99,7 +98,12 @@ all.equal(res$DISTM, resP$DISTM)
 isomorphic(res$GRAO, resP$GRAO)
 isomorphic(res$plotGRAO, resP$plotGRAO)
 
-res$miscl # 0.09722222
+res$miscl # 0.1736111
+res$ConfMatrix
+
+griph:::classError(res$MEMB, label)
+griph:::classError(res$MEMB, cc)
+griph:::classError(res$MEMB, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(cc)])
 
 g <- plotGraph(res)
 g <- plotGraph(res, mark.type = "true")
@@ -122,6 +126,7 @@ g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
 
 
 # ... ... Kolodziejck
+library(griph)
 M <- readRDS(system.file("extdata", "kolodziejck_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 
@@ -136,11 +141,20 @@ rownames(M2) <- as.character(eg$ENTREZID)
 
 cc <- predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
 
-res <- SC_cluster(M2, ClassAssignment = label, plotG = FALSE)
-res2 <- SC_cluster(M2, ClassAssignment = label, BatchAssignment = cc, plotG = FALSE)
+res <- SC_cluster(M2, ClassAssignment = label, plotG = FALSE, use.par = TRUE, ncores = 8)
+res2 <- SC_cluster(M2, ClassAssignment = label, BatchAssignment = cc, plotG = FALSE, use.par = TRUE, ncores = 8)
 
+par(mfrow=c(1,2))
 g <- plotGraph(res)
 g2 <- plotGraph(res2)
+
+par(mfrow=c(1,2))
+g <- plotGraph(res, fill.type = "predicted", line.type = "none")
+g <- plotGraph(res, fill.type = "custom",    line.type = "none", fill.col = brewer.pal(5,"Set1"), custom.class = cc)
+
+par(mfrow=c(1,2))
+g3 <- plotGraph(res, collapse.type = "predicted")
+g4 <- plotGraph(res2, collapse.type = "redicted")
 
 table(res$MEMB, cc)
 table(res2$MEMB, cc)

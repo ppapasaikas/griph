@@ -3,7 +3,7 @@ test_that("SC_cluster works properly", {
     lab <- attr(M, "label")
     res1 <- SC_cluster(M, ClassAssignment = lab, plotG = FALSE)
     expect_is(res1, "list")
-    expect_equal(griph:::classError(res1$MEMB, lab), 28/288)
+    expect_equal(griph:::classError(res1$MEMB, lab), 50/288)
     # currently, check does freeze if running with use.par=TRUE
     #res2 <- SC_cluster(M, ClassAssignment = lab, plotG = FALSE, use.par = TRUE, ncores = 4)
     #expect_identical(res1$MEMB, res2$MEMB)
