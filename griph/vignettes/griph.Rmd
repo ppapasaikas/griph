@@ -1,6 +1,12 @@
 ---
 title: "griph: Graph Inference of Population Heterogeneity"
-author: "Panagiotis Papasaikas, Michael Stadler"
+author:
+- name: Panagiotis Papasaikas
+  email: panagiotis.papasaikas@fmi.ch  
+- name: Michael Stadler
+  email: michael.stadler@fmi.ch
+- name: Atul Sethi
+  email: atul.sethi@fmi.ch
 date: "`r BiocStyle::doc_date()`"
 package: "`r BiocStyle::pkg_ver('griph')`"
 abstract: >
@@ -12,9 +18,9 @@ abstract: >
     from griph is SC_cluster. The vignette illustrates its use
     applied to several publicly available datasets.
 output: 
-    BiocStyle::html_document:
-        keep_md: yes
-    github_document: default
+    BiocStyle::html_document2:
+        keep_md: no
+        toc_float: true
 vignette: >
     %\VignetteIndexEntry{griph: Graph Inference of Population Heterogeneity}
     %\VignetteEngine{knitr::rmarkdown}
@@ -63,7 +69,7 @@ trueLabel <- attr(M, "label")
 table(trueLabel)
 ```
 
-Cell types can be identified using \code{\link{SC_cluster}}:  
+Cell types can be identified using *SC_cluster*:  
 ```{r load_griph, message=FALSE}
 library(griph)
 res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')
@@ -71,73 +77,78 @@ res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettne
 ```{r buettner_types}
 table(res$MEMB)
 ```
-```{r movegraph, echo=FALSE, results='hide'}
-  files <- list.files("./")
-  index <- grep(".png", files)
-  file.rename(file.path("./", files[index]),
-              file.path("./griph_files/figure-html", files[index]))
+
+The automatic generation of a graph plot (`plotG` argument) is
+switched on here and will create a png (default) or pdf (`image.format`
+and `fsuffix` arguments)
+file in the current working directory:  
+```{r showfile}
+list.files("./", pattern = ".png")
+```
+
+The image shows a plotting-optimized version of the complete graph. The full graph
+and the plotting-optimized graph (when using `plotG=TRUE` are contained as
+`r CRANpkg("igraph")` objects in the return value of *SC_cluster*:  
+```{r graphreturned}
+res$GRAO # full graph
+res$plotGRAO # simplified graph
 ```
 
 
-The automatic generation of a graph plot (\code{plotG} and \code{plotSP} arguments) is
-switched on here (plotG=TRUE). When plotG is set to TRUE plotGRAO contais an optimized for rendering version of the complete graph and a pdf file of this graph plot is automatically generated:
-
-![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/graph_buettner.png)
-
-# Visualizing \code{griph} results
-\code{SC_cluster} returns an \code{igraph} with the cells represented by graph verteces
-(\code{GRAO} and \code{plotGRAO}, which is a simplified, plotting optimized version of \code{GRAO}).
-This allows to easily plot the graph again, for example to separately illustrate known and
+# Visualizing `r Githubpkg("ppapasaikas/griph")` results
+In the graphs returned by *SC_cluster*, cells are represented by graph verteces.
+All cells are contained in the full graph (`res$GRAO`), and a representatitve subset
+of cells in the simplified graph (`res$plotGRAO`), which will be used for plotting.
+The graph can be easily plotted again, for example to separately illustrate known and
 predicted cell types:  
-```{r knownVsPred, message=FALSE, fig.show='hide'}
+```{r knownVsPred, message=FALSE}
 g.true <- plotGraph(res, fill.type = "true", line.type = "none")
 g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 ```
 
-![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/knownVsPred-1.png)
-![Buettner Graph](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/knownVsPred-2.png)
-
-In plotGRAO weak edges are pruned, vertex attributes are added for visualization of predicted and known class assignments (if given) and a subset of the vertices is sampled if the graph exceeds the maxG argument. When plotG is set to FALSE plotGRAO returns NULL. In both cases the complete graph object (though missing all plotting-related vertex attributes) is returned in the GRAO slot of the results (e.g here in res$GRAO).
+In *plotGRAO*, weak edges are pruned, vertex attributes are added for visualization
+of predicted and known class assignments (if given) and a subset of the vertices is sampled
+if the graph exceeds the `maxG` argument. When `plotG` is set to `FALSE`,
+the *plotGRAO* component in the return value of *SC_cluster* is `NULL` and
+the simplified graph is generated later when necessary by *plotGraph*.
 
 It is also possible to draw polygons around cells of each class:  
-```{r buettner_groupPolygons, out.height="600px", out.width="600px", message=FALSE, fig.show='hide'}
+```{r buettner_groupPolygons, message=FALSE}
 g <- plotGraph(res, mark.type = "predicted")
 ```
 
-![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_groupPolygons-1.png)
-
-... or to collapse all the cells that are of the same class into a single vertex in the graph (maybe useful for large graphs with many predicted classes):  
-```{r buettner_collapseSameClass, out.height="600px", out.width="600px", message=FALSE, fig.show='hide'}
+... or to collapse all the cells that are of the same class into a single vertex in
+the graph (maybe useful for large graphs with many predicted classes):  
+```{r buettner_collapseSameClass, message=FALSE}
 g <- plotGraph(res, collapse.type = "predicted")
 ```
 
-![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_collapseSameClass-1.png)
-
-Alternatively (and preferably for large - typically >1000 - numbers of cells ) results can be visualized by applying a dimensionality reduction/projection technique such as tSNE to the affinity
-matrix returned by \code{griph}:  
-```{r buettner_tsne, out.height="600px", out.width="600px", fig.show='hide'}
+Alternatively (typically for large graph with more than 1000 cells), results can
+be visualized by applying a dimensionality reduction/projection technique such as
+tSNE to the affinity matrix returned by `r Githubpkg("ppapasaikas/griph")`:  
+```{r buettner_tsne}
 library(Rtsne)
 out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5, is_distance = TRUE)
 plot(out$Y, xlab="tSNE-1", ylab="tSNE-2", col=res$MEMB, pch=as.numeric(trueLabel))
 ```
 
-![Buettner tSNE](https://raw.githubusercontent.com/ppapasaikas/griph/master/griph/vignettes/griph_files/figure-html/buettner_tsne-1.png)
-
-\code{\link{SC_cluster}} identified `r length(unique(res$MEMB))`
+# Accessing the cell classification
+*SC_cluster* identified `r length(unique(res$MEMB))`
 cell types in the data, and the confusion matrix returned in the result summarizes
 how they relate to the known cell types or states:  
 ```{r buettner_eval}
-res$ConfMatrix # confusion matrix
 res$miscl # misclassification error
 ```
 
 When comparing different classifications with each other, they may differ in granularity,
 yet be consistent with each other. This can be seen for example in the above confusion
-matrix for predicted classes *3*, *4* and *5* that all contain mostly *G1* cells.
-\code{griph} takes this into account when calculating classification error by assigning
-each identified class to the major known class (*G1* in this example) and only counting
-the 6 cells in *3*, *4* and *5* as wrongly classified that are not *G1*:  
-
+matrix where for example *G1* cells are found in multiple predicted classes. `r Githubpkg("ppapasaikas/griph")`
+calculates the classification error by assigning each identified class to the major known
+class (for example *G2M* for predicted class *1*) and only counting the 7 cells in *1*
+as wrongly classified that are not *G2M*:  
+```{r buettner_eval2}
+res$miscl # misclassification error
+```
 
 
 
@@ -168,6 +179,7 @@ Single Cell RNA-Sequencing of Pluripotent States Unlocks Modular Transcriptional
 - PubMed: https://www.ncbi.nlm.nih.gov/pubmed/26431182  
 - DOI: https://doi.org/10.1016/j.stem.2015.09.011  
 - Data: http://www.ebi.ac.uk/arrayexpress/experiments/E-MTAB-2600/, http://www.ebi.ac.uk/teichmann-srv/espresso  
+- Filtering: all cells, top 10,000 genes
 
 ```{r Kolodziejck}
 fname <- system.file("extdata", "kolodziejck_top10k.rds", package = "griph")
@@ -184,6 +196,7 @@ Unbiased classification of sensory neuron types by large-scale single-cell RNA s
 - PubMed: https://www.ncbi.nlm.nih.gov/pubmed/25420068  
 - DOI: https://doi.org/10.1038/nn.3881  
 - Data: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59739  
+- Filtering: all cells, top 10,000 genes
 
 ```{r Usoskin}
 fname <- system.file("extdata", "usoskin_top10k.rds", package = "griph")
@@ -204,6 +217,7 @@ Brain structure. Cell types in the mouse cortex and hippocampus revealed by sing
 - PubMed: https://www.ncbi.nlm.nih.gov/pubmed/25700174  
 - DOI: https://doi.org/10.1126/science.aaa1934  
 - Data: http://linnarssonlab.org/cortex/, https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE60361  
+- Filtering: all cells, top 10,000 genes
 
 ```{r Zeisel}
 fname <- system.file("extdata", "zeisel_top10k.rds", package = "griph")
@@ -229,6 +243,6 @@ sessionInfo()
 #### Copy the created html to master root as index.html
 #### and the md as README.md
   file.copy("griph.html","../../index.html",overwrite=TRUE)
-  file.copy("griph.md","../../README.md",overwrite=TRUE)
+#  file.copy("griph.md","../../README.md",overwrite=TRUE)
 ```
 

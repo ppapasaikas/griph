@@ -463,8 +463,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 #'     for no fill color or \code{custom} (use \code{custom.col}).
 #' @param mark.type Type of cell class defnition to mark using polygons,
 #'     one of \code{none} (no polygons, the default), \code{predicted} (draw
-#'     polygons around cells with the same predicted class label) or \code{true}
-#'     (polygons around cells with the same true class label, if available).
+#'     polygons around cells with the same predicted class label), \code{true}
+#'     (polygons around cells with the same true class label, if available) or
+#'     \code{custom} (polygons around cells with the same \code{custom.class}).
 #' @param collapse.type Type of cell class to use for graph simplification,
 #'     by combining cells of the same class into a single vertex. If set to a value
 #'     other than \code{"none"}, the same value will also be used for \code{fill.type}
@@ -489,7 +490,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
 plotGraph <- function(gr, maxG=2500,
                       fill.type=c("predicted","true","none","custom"),
                       line.type=c("true","predicted","none","custom"),
-                      mark.type=c("none","predicted","true"),
+                      mark.type=c("none","predicted","true","custom"),
                       collapse.type=c("none","predicted","true"),
                       fill.col=c("#9E0142","#D53E4F","#F46D43","#FDAE61","#FEE08B","#FFFFBF","#E6F598","#ABDDA4","#66C2A5","#3288BD","#5E4FA2"),
                       line.col=c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#D9D9D9","#BC80BD","#CCEBC5","#FFED6F"),
@@ -639,14 +640,13 @@ plotGraph <- function(gr, maxG=2500,
     lineColorPalette <- if(nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
     lineColor <- lineColorPalette[as.numeric(class.line)]
 
-    markElements <- switch(mark.type,
-                           predicted=split(seq_along(class.pred), class.pred),
-                           true=split(seq_along(class.pred), class.true),
-                           none=NA)
-    markColor <- switch(mark.type,
-                        predicted=grDevices::colorRampPalette(mark.col)(nlevels(class.pred)),
-                        true=grDevices::colorRampPalette(mark.col)(nlevels(class.true)),
-                        none=NA)
+    class.mark <- switch(mark.type,
+                         predicted=class.pred,
+                         true=class.true,
+                         none=class.none,
+                         custom=class.custom)
+    markElements <- split(seq_along(class.mark), class.mark)
+    markColor <- if(nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
 
     # set some more graph attributes
     V(GRAOp)$classcolor <- lineColor
@@ -679,17 +679,19 @@ plotGraph <- function(gr, maxG=2500,
     plot(l[,1], l[,2], type = "n", axes=FALSE, xlab="", ylab="")
     
     # add mark polygons
-    if(mark.type == "predicted" || (mark.type == "true" && nlevels(class.true) > 1)) {
+    if(mark.type != "none") {
         for(j in which(lengths(markElements) > 0)) {
             xy <- l[markElements[[j]], , drop = FALSE]
             off <- par("cxy")[2]*1
+            #avg <- matrix(colMeans(xy), ncol = 2, nrow = nrow(xy), byrow = TRUE)
+            #pp <- xy + sign(xy - avg) * off
             pp <- rbind(xy,
                         cbind(xy[, 1] - off, xy[, 2]),
                         cbind(xy[, 1] + off, xy[, 2]),
                         cbind(xy[, 1], xy[, 2] - off), 
                         cbind(xy[, 1], xy[, 2] + off))
             cl <- igraph::convex_hull(pp)
-            graphics::xspline(cl$rescoords, shape = 0.75, open = FALSE,
+            graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
                               col = paste0(markColor[j], "66"),
                               border = adjust.color(markColor[j], 0.5))
             

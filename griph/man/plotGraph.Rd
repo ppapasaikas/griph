@@ -6,16 +6,16 @@
 \usage{
 plotGraph(gr, maxG = 2500, fill.type = c("predicted", "true", "none",
   "custom"), line.type = c("true", "predicted", "none", "custom"),
-  mark.type = c("none", "predicted", "true"), collapse.type = c("none",
-  "predicted", "true"), fill.col = c("#9E0142", "#D53E4F", "#F46D43",
-  "#FDAE61", "#FEE08B", "#FFFFBF", "#E6F598", "#ABDDA4", "#66C2A5", "#3288BD",
-  "#5E4FA2"), line.col = c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072",
-  "#80B1D3", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9", "#BC80BD", "#CCEBC5",
-  "#FFED6F"), mark.col = c("#BE5681", "#E37E8A", "#F89E82", "#FEC996",
-  "#FEEAB2", "#FFFFD4", "#EEF8BA", "#C7E8C2", "#99D6C3", "#76B0D3", "#948AC1"),
-  custom.class = factor(rep(1, length(gr$MEMB))), seed = 91919,
-  fsuffix = RandString(), image.format = NA, forceRecalculation = FALSE,
-  quiet = FALSE)
+  mark.type = c("none", "predicted", "true", "custom"),
+  collapse.type = c("none", "predicted", "true"), fill.col = c("#9E0142",
+  "#D53E4F", "#F46D43", "#FDAE61", "#FEE08B", "#FFFFBF", "#E6F598", "#ABDDA4",
+  "#66C2A5", "#3288BD", "#5E4FA2"), line.col = c("#8DD3C7", "#FFFFB3",
+  "#BEBADA", "#FB8072", "#80B1D3", "#FDB462", "#B3DE69", "#FCCDE5", "#D9D9D9",
+  "#BC80BD", "#CCEBC5", "#FFED6F"), mark.col = c("#BE5681", "#E37E8A",
+  "#F89E82", "#FEC996", "#FEEAB2", "#FFFFD4", "#EEF8BA", "#C7E8C2", "#99D6C3",
+  "#76B0D3", "#948AC1"), custom.class = factor(rep(1, length(gr$MEMB))),
+  seed = 91919, fsuffix = RandString(), image.format = NA,
+  forceRecalculation = FALSE, quiet = FALSE)
 }
 \arguments{
 \item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}}.}
@@ -33,8 +33,9 @@ for no fill color or \code{custom} (use \code{custom.col}).}
 
 \item{mark.type}{Type of cell class defnition to mark using polygons,
 one of \code{none} (no polygons, the default), \code{predicted} (draw
-polygons around cells with the same predicted class label) or \code{true}
-(polygons around cells with the same true class label, if available).}
+polygons around cells with the same predicted class label), \code{true}
+(polygons around cells with the same true class label, if available) or
+\code{custom} (polygons around cells with the same \code{custom.class}).}
 
 \item{collapse.type}{Type of cell class to use for graph simplification,
 by combining cells of the same class into a single vertex. If set to a value
