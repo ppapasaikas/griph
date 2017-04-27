@@ -696,13 +696,17 @@ plotGraph <- function(gr, maxG=2500,
            cex=my.pt.cex * if(collapse.type == "none") 1.0 else (as.numeric(csize/median(csize)))^0.5)
 
     # add legend(s)
-    if(fill.type != "none" && nlevels(class.fill) > 0) {
+    if(mark.type != "none") {
         lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+                      cex = 1, fill = paste0(markColor, "66"), title = mark.type, legend = levels(class.mark))
+    } else {
+        lgd <- list(rect=list(left=par("usr")[2]+12*par("cxy")[1]))
+    }
+    if(fill.type != "none" && nlevels(class.fill) > 0) {
+        lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                       pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
                       col = if(line.type=="none") "black" else "white", pt.bg = fillColorPalette,
                       title = fill.type, legend = levels(class.fill))
-    } else {
-        lgd <- list(rect=list(left=par("usr")[2]+12*par("cxy")[1]))
     }
     if(line.type != "none" && nlevels(class.line) > 0) {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
