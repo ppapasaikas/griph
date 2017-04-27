@@ -4,22 +4,25 @@
 \alias{predictCellCycle}
 \title{Predict (infer) cell cycle stage.}
 \usage{
-predictCellCycle(cnt, org = c("human", "mouse"), cor_thr = 0.3,
-  granularity = c("high", "low"))
+predictCellCycle(cnt, org = c("human.Whitfield", "mouse.Whitfield",
+  "mouse.Ishida"), cor_thr = 0.2, granularity = c("high", "low"))
 }
 \arguments{
 \item{cnt}{gene-by-cell count matrix (raw or normalized counts). Rownames must
 be Entrez Gene identifiers.}
 
-\item{org}{Character scalar specifying the species; one of "human"
-(default) or "mouse".}
+\item{org}{Character scalar specifying the species, which selects a corresponding
+set of known cell cycle associated genes; one of "human.Whitfield" (default, 
+use genes from Whitfield et al., 2002) or "mouse".}
 
 \item{cor_thr}{Numeric scalar value in [0,1] used to filter known cell cycle
-genes (see Details).}
+genes (see Details). Partial matching is accepted if sufficient for unique
+match (e.g. \code{"human"} selects "human.Whitfield").}
 
-\item{granularity}{Character scaler selecting the level of detail for cell
-cycle classification. \code{"high"} (default) will call 10 different cell
-cycle stages, \code{"low"} will call only 5 different stages.}
+\item{granularity}{Character scalar selecting the level of detail for cell
+cycle classification. \code{"high"} (default) will call as many more different
+cell cycle stages, depending on the available training genes; \code{"low"}
+will call fewer different stages (prefered for data with many non-observed genes).}
 }
 \value{
 A factor of length \code{ncol(cnt)} (the number of cells) with
@@ -31,9 +34,11 @@ Predict (infert) cell cycle stage for individual cells using
 }
 \details{
 \code{predictCellCycle} uses genes known to peak in transcription at
-    given cell cycle stages (for human obtained from Whitfield et al., 2002, dowloaded
-    from broadinstitute.org, see references; for mouse 1-to-1 orthologs of the
-    human genes, as defined in Homologene release 68 were used).
+    given cell cycle stages (for \code{org="human.Whitfield"} obtained from
+    Whitfield et al., 2002; for mouse, \code{"mouse.Whitfield"}
+    uses 1-to-1 orthologs of the \code{human.Whitfield} genes, as defined in
+    Homologene release 68, \code{"mouse.Ishida"} uses the genes from Ishida et
+    al., 2001; see references).
     For each cell, five normalized cell cycle stage scores are calculated, and
     the cell is assigned to the one that most closely resembles the expected
     profile based on correlation.
@@ -41,10 +46,11 @@ Predict (infert) cell cycle stage for individual cells using
 \references{
 Whitfield et al., "Identification of genes periodically expressed
     in the human cell cycle and their expression in tumors.", Mol Bio Cell, 2002,
-    \url{http://www.ncbi.nlm.nih.gov/pubmed/12058064},
-    G1_S genes: \url{http://software.broadinstitute.org/gsea/msigdb/geneset_page.jsp?geneSetName=WHITFIELD_CELL_CYCLE_G1_S},
-    G2 genes: \url{http://software.broadinstitute.org/gsea/msigdb/geneset_page.jsp?geneSetName=WHITFIELD_CELL_CYCLE_G2},
-    G2_M genes: \url{http://software.broadinstitute.org/gsea/msigdb/geneset_page.jsp?geneSetName=WHITFIELD_CELL_CYCLE_G2_M},
-    M_G1 genes: \url{http://software.broadinstitute.org/gsea/msigdb/geneset_page.jsp?geneSetName=WHITFIELD_CELL_CYCLE_M_G1},
-    S genes: \url{http://software.broadinstitute.org/gsea/msigdb/geneset_page.jsp?geneSetName=WHITFIELD_CELL_CYCLE_S}
+    \url{http://www.ncbi.nlm.nih.gov/pubmed/12058064}, gene sets WHITFIELD_CELL_CYCLE_G1_S,
+    WHITFIELD_CELL_CYCLE_G2, WHITFIELD_CELL_CYCLE_G2_M, WHITFIELD_CELL_CYCLE_M_G1 and
+    WHITFIELD_CELL_CYCLE_S downloaded e.g. from \url{http://software.broadinstitute.org/gsea/msigdb/geneset_page.jsp?geneSetName=WHITFIELD_CELL_CYCLE_G1_S}
+    
+    Ishida et al., "Role for E2F in control of both DNA replication and mitotic
+    functions as revealed from DNA microarray analysis.", Mol Cell Biol, 2001,
+    \url{https://www.ncbi.nlm.nih.gov/pubmed/11416145}
 }

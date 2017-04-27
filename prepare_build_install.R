@@ -74,7 +74,7 @@ slot(obj, "ClassAssignment")
 # ... test data from package
 list.files(system.file("extdata", package = "griph"))
 
-# ... ... Buettner
+########## ... ... Buettner
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 
@@ -85,9 +85,12 @@ eg <- eg[!duplicated(eg$ENSEMBL), ]
 M2 <- M2[eg$ENSEMBL,]
 rownames(M2) <- as.character(eg$ENTREZID)
 
-cc <- predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
+cc  <- predictCellCycle(M2, org="mouse.Whitfield", cor_thr = 0.2, granularity = "low")
+cc2 <- predictCellCycle(M2, org="mouse.Ishida",    cor_thr = 0.2, granularity = "low")
 table(known=label, predicted=cc)
+table(known=label, predicted=cc2)
 griph:::classError(label, cc)
+griph:::classError(label, cc2)
 griph:::classError(label, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(cc)])
 chisq.test(table(label, cc))
 
@@ -127,7 +130,7 @@ g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
 
 
 
-# ... ... Kolodziejck
+########## ... ... Kolodziejck
 library(griph)
 M <- readRDS(system.file("extdata", "kolodziejck_top10k.rds", package = "griph"))
 label <- attr(M, "label")
@@ -173,7 +176,10 @@ wc <- cluster_infomap(res$GRAO)
 wc$membership
 plot(wc, res$GRAO)
 
-# ... ... Usoskin
+
+
+
+########## ... ... Usoskin
 M <- readRDS(system.file("extdata", "usoskin_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 #label <- attr(M, "label2")
