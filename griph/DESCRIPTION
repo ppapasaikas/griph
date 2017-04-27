@@ -18,7 +18,8 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends: igraph
-Imports: Rcpp (>= 0.12.9), methods, QUIC, coop, corpcor, rNMF, foreach, doParallel, parallel, gtools, bigmemory
+Imports: Rcpp (>= 0.12.9), methods, QUIC, coop, corpcor, rNMF, foreach,
+    doParallel, parallel, gtools, bigmemory, RColorBrewer
 LinkingTo: Rcpp
 Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne
 VignetteBuilder: knitr

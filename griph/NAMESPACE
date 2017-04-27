@@ -14,6 +14,7 @@ importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile"
 importFrom("utils", "flush.console")
 importFrom("Rcpp", "evalCpp")
 importFrom("gtools", "permutations") # only used in griph::mapLabelsExhaustive
+import(RColorBrewer)
 
 useDynLib(griph, .registration = TRUE)
 

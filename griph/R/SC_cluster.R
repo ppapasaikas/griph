@@ -454,9 +454,12 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
 #'     by combining cells of the same class into a single vertex. If set to a value
 #'     other than \code{"none"}, the same value will also be used for \code{fill.type}
 #'     and \code{line.type} is ignored.
-#' @param fill.col Color vector defining the palette to use for vertex fill coloring.
-#' @param line.col Color vector defining the palette to use for vertex outline coloring.
-#' @param mark.col Color vector defining the palette to use for cell class polygon marking.
+#' @param fill.col Character scalar with a \code{\link{RColorBrewer}} color palette name
+#'     or color vector defining the palette to use for vertex fill coloring.
+#' @param line.col Character scalar with a \code{\link{RColorBrewer}} color palette name
+#'     or color vector defining the palette to use for vertex outline coloring.
+#' @param mark.col Character scalar with a \code{\link{RColorBrewer}} color palette name
+#'     or color vector defining the palette to use for cell class polygon marking.
 #' @param custom.class Factor, character or numberic vector of the same length or
 #'     with names corresponding to names(gr$MEMB) to use for custom cell classification
 #'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
@@ -476,9 +479,9 @@ plotGraph <- function(gr, maxG=2500,
                       line.type=c("true","predicted","none","custom"),
                       mark.type=c("none","predicted","true","custom"),
                       collapse.type=c("none","predicted","true"),
-                      fill.col=c("#9E0142","#D53E4F","#F46D43","#FDAE61","#FEE08B","#FFFFBF","#E6F598","#ABDDA4","#66C2A5","#3288BD","#5E4FA2"),
-                      line.col=c("#8DD3C7","#FFFFB3","#BEBADA","#FB8072","#80B1D3","#FDB462","#B3DE69","#FCCDE5","#D9D9D9","#BC80BD","#CCEBC5","#FFED6F"),
-                      mark.col=c("#BE5681","#E37E8A","#F89E82","#FEC996","#FEEAB2","#FFFFD4","#EEF8BA","#C7E8C2","#99D6C3","#76B0D3","#948AC1"),
+                      fill.col="Spectral",
+                      line.col="Dark2",
+                      mark.col="Pastel1",
                       custom.class=factor(rep(1, length(gr$MEMB))),
                       seed=91919,
                       fsuffix=RandString(), image.format=NA,
@@ -500,7 +503,19 @@ plotGraph <- function(gr, maxG=2500,
         stopifnot(length(custom.class)==length(MEMB))
         names(custom.class) <- names(MEMB)
     }
-    
+    if(length(fill.col)==1) {
+        stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
+        fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
+    }
+    if(length(line.col)==1) {
+        stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
+        line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
+    }
+    if(length(mark.col)==1) {
+        stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
+        mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
+    }
+
     # global plotting paramterers
     pct <- 1
     my.pch <- 21L # should be in 21:25

@@ -159,7 +159,7 @@ g2 <- plotGraph(res2)
 
 par(mfrow=c(1,2))
 g <- plotGraph(res, fill.type = "predicted", line.type = "none", mark.type = "true")
-g <- plotGraph(res, fill.type = "custom",    line.type = "none", fill.col = brewer.pal(5,"Set1"), custom.class = cc)
+g <- plotGraph(res, fill.type = "custom",    line.type = "none", fill.col = "Set1", custom.class = cc)
 
 par(mfrow=c(1,2))
 g3 <- plotGraph(res, collapse.type = "predicted")
