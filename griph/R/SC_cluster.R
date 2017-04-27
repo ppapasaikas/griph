@@ -111,11 +111,13 @@ PPR <- function (G,df=0.75){
 #'     matrix, and a correlation matrix will be computed.
 #' @param impute Perform imputation prior to clustering. Default: \code{FALSE}.
 #' @param filter T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
-#' @param diffuse.iter Number of similarity difusion iterations -> [2,5]/ Default=2.
 #' @param rho Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 #'     Default=0.25.  The parameter is then automatically scaled to account for
 #'     number of variables or converted into a matrix and adjusted according to
 #'     the batch.penalty factor to account for BatchAssignment (if given).
+#' @param pr.iter A numberic scalar defining the number of iterations to use for
+#'     re-weighting the graph edges using personalized PageRank node similarity score.
+#'     Set to zero to deactivate.
 #' @param batch.penalty [0,1] rho scaling factor for enforcing topological constraints
 #'     variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 #'     rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}. 
@@ -132,8 +134,8 @@ PPR <- function (G,df=0.75){
 #' 
 #' @return Currently a list with the clustering results.
 
-SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = FALSE, filter = FALSE, rho = 0.25,
-                       diffuse.iter = 2, batch.penalty = 0.5,
+SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
+                       impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                        plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png' ){
     
@@ -242,8 +244,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
                 BatchAssignment=BatchAssignment[,-NoData]
                 CellCounts=CellCounts[-NoData]
             }
-            #
-            
+
+            message("done")
+
             ##### Strip dimnames:
             CellIds=colnames(DM)
             dimnames(DM)=NULL
@@ -251,46 +254,26 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
             C=list()
             C[[1]]=PearsonCor(log2(DM+1))
             
+            message("Calculating Pairwise and Diffused Similarities...", appendLF = FALSE)
+            C[[2]]=WScor(nDM,C1=C[[1]], CanberraDist=CanberraDist,
+                         SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor)
+            nDM<-NULL
+            
             message("done")
         }
         
         
         else {
             C=list()
-            C[[1]]=DM
+            ####Normalize Initial Correlation matrix:
+            cmDM <- colMeans(DM)
+            W <- pmax(1e-1, cmDM) / mean(cmDM)
+            W <- sqrt(W) %o% sqrt(W)
+            C[[2]]=( DM / W )
         }
         
-        averageDist=NULL
-        if(is.null(diffuse.iter)) {
-            diffuse.iter=2  
-            averageDist=TRUE
-        }
-        
-        if (diffuse.iter > 1) {
-            for(order in 2:diffuse.iter){
-                message("Calculating Pairwise and Diffused Similarities: ", order-1, " / ", diffuse.iter-1)
-                C[[order]]=WScor( nDM,C1=C[[1]], CanberraDist=CanberraDist,
-                                  SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor  )
-                
-                if (order >2) {C[[order-1]]=NA}
-            }
-        }
-        nDM<-NULL
-        
-        ####Normalize Initial Correlation matrix:
-        W=pmax(1e-1,colMeans(C[[1]]))/mean(colMeans(C[[1]]))
-        W=sqrt(W) %o% sqrt(W)
-        C[[1]]=( C[[1]] / W )
-        
-        #####Metric by averaging:
-        if(!is.null(averageDist)){
-            Cuse=(C[[1]]+C[[2]])/2
-        }
-        
-        else{  
-            Cuse=as.matrix(C[[diffuse.iter]])
-        }
-        
+        Cuse=as.matrix(C[[2]])
+
         ClassAssignment.numeric <- as.numeric(factor(ClassAssignment, levels=unique(ClassAssignment)))
         
         ############### glasso-based graph structure estimation: #####################
@@ -345,28 +328,29 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE, impute = F
         GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
         message("done")
         
-        niter=1
-        for (i in 1:niter){
-            message("Pruning based on global node similarity: ",i," / ",niter, "\r", appendLF = FALSE)
-            flush.console()
-            df=0.75
-            PR=PPRank(GRAO,df=df)
-            ADJ=PR
-            ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
-            ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-            kvect=rep( min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)    ,ncol(ADJ)  )
-            kN=get.knn(PR,k=kvect )
-            for(i in 1:ncol(ADJ)){
-                ADJ[ -kN[,i],i]=0
-                ADJ[i,-kN[,i] ]=0
-            }
+        if(pr.iter > 0) {
+            for (i in 1:pr.iter){
+                message("Pruning based on global node similarity: ",i," / ",pr.iter, "\r", appendLF = FALSE)
+                flush.console()
+                df=0.75
+                PR=PPRank(GRAO,df=df)
+                ADJ=PR
+                ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
+                ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
+                kvect=rep( min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)    ,ncol(ADJ)  )
+                kN=get.knn(PR,k=kvect )
+                for(i in 1:ncol(ADJ)){
+                    ADJ[ -kN[,i],i]=0
+                    ADJ[i,-kN[,i] ]=0
+                }
             
-            #PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
-            #diag(PR)=1
-            ave=mean(Cuse[which(ADJ>0)])
-            ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
-            #ADJ=(ADJ*(PR))
-            GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+                #PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
+                #diag(PR)=1
+                ave=mean(Cuse[which(ADJ>0)])
+                ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
+                #ADJ=(ADJ*(PR))
+                GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+            }
         }
         message("")
         

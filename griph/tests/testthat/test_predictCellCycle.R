@@ -1,5 +1,5 @@
 test_that("predictCellCycle works properly", {
-    ccgenes <- unique(unlist(readRDS(system.file("extdata", "CellCycleGenesets_Human.rds", package = "griph"))))
+    ccgenes <- unique(unlist(readRDS(system.file("extdata", "CellCycleGenesets_Human_Whitfield2002.rds", package = "griph"))))
     set.seed(928374)
     M <- matrix(stats::rpois(n = 500*5, lambda = 2^stats::rnorm(500, 3)), ncol = 5)
     rownames(M) <- sample(ccgenes, size = 500)

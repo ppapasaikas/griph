@@ -144,7 +144,11 @@ eg <- eg[!duplicated(eg$ENSEMBL), ]
 M2 <- M2[eg$ENSEMBL,]
 rownames(M2) <- as.character(eg$ENTREZID)
 
-cc <- predictCellCycle(M2, org="mouse", cor_thr = 0.3, granularity = "low")
+cc1 <- predictCellCycle(M2, org="mouse.Whitfield", cor_thr = 0.3, granularity = "low")
+cc2 <- predictCellCycle(M2, org="mouse.Ishida", cor_thr = 0.3, granularity = "low")
+table(cc1, cc2)
+griph:::classError(cc1, cc2)
+cc <- cc2
 
 res <- SC_cluster(M2, ClassAssignment = label, plotG = FALSE, use.par = TRUE, ncores = 8)
 res2 <- SC_cluster(M2, ClassAssignment = label, BatchAssignment = cc, plotG = FALSE, use.par = TRUE, ncores = 8)
@@ -154,12 +158,12 @@ g <- plotGraph(res)
 g2 <- plotGraph(res2)
 
 par(mfrow=c(1,2))
-g <- plotGraph(res, fill.type = "predicted", line.type = "none")
+g <- plotGraph(res, fill.type = "predicted", line.type = "none", mark.type = "true")
 g <- plotGraph(res, fill.type = "custom",    line.type = "none", fill.col = brewer.pal(5,"Set1"), custom.class = cc)
 
 par(mfrow=c(1,2))
 g3 <- plotGraph(res, collapse.type = "predicted")
-g4 <- plotGraph(res2, collapse.type = "redicted")
+g4 <- plotGraph(res2, collapse.type = "predicted")
 
 table(res$MEMB, cc)
 table(res2$MEMB, cc)

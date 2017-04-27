@@ -5,7 +5,7 @@
 \title{Unsupervised graph-based clustering of single cell RNA-seq data.}
 \usage{
 SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
-  impute = FALSE, filter = FALSE, rho = 0.25, diffuse.iter = 2,
+  impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1,
   batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
   BatchAssignment = NULL, plotG = TRUE, maxG = 2500,
   fsuffix = RandString(), image.format = "png")
@@ -34,7 +34,9 @@ Default=0.25.  The parameter is then automatically scaled to account for
 number of variables or converted into a matrix and adjusted according to
 the batch.penalty factor to account for BatchAssignment (if given).}
 
-\item{diffuse.iter}{Number of similarity difusion iterations -> [2,5]/ Default=2.}
+\item{pr.iter}{A numberic scalar defining the number of iterations to use for
+re-weighting the graph edges using personalized PageRank node similarity score.
+Set to zero to deactivate.}
 
 \item{batch.penalty}{[0,1] rho scaling factor for enforcing topological constraints
 variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
