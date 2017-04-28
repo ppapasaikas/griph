@@ -137,7 +137,7 @@ PPR <- function (G,df=0.75){
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                        impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png' ){
+                       plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png',... ){
     
     #######Internal parameters for testing puproses only:  
     comm.method=igraph::cluster_infomap  # Community detection algorithm. See igraph "communities" 
@@ -166,32 +166,12 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         Glasso=FlashGlasso
         RNMF=FlashRNMF
         PPRank=FlashPPR 
-        #####Register cluster here, then stop cluster at the end of processing
-        if(ncores=="all"){
-            ncores = parallel::detectCores()
-            ncores=min(48,floor(0.9*ncores),ceiling(ncol(DM)/200))
-        } else{
-            ncores=min(48,ncores,floor(0.9*parallel::detectCores()),ceiling(ncol(DM)/200))
-        }
-        cl<-parallel::makeCluster(ncores)
-        doParallel::registerDoParallel(cl)
     }
-    
-    
-    if (length(ClassAssignment) != ncol(DM))
-        stop ("length(ClassAssignment) must be equal to ncol(DM)")
-    if(!is.null(BatchAssignment) && length(BatchAssignment) != ncol(DM))
-        stop ("length(BatchAssignment) must be equal to ncol(DM)")
-    
-    ptm=proc.time()
     
     
     ##### Strip dimnames:
     CellIds=colnames(DM)
     dimnames(DM)=NULL
-    
-    ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised
-    tryCatch({
         
         if (!isTRUE(is.cor)) {  
             
@@ -213,8 +193,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                 DM=DM[-AllZeroRows , ] 
             }
             
-            
-            
+
             ##########  Remove invariant genes:
             meanDM=mean(DM)
             nSD=apply(DM,1,function(x) sd(x)/meanDM)
@@ -248,10 +227,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                 BatchAssignment=BatchAssignment[,-NoData]
                 CellCounts=CellCounts[-NoData]
             }
-            
             message("done")
 
-            
             C=list()
             C[[1]]=PearsonCor(log2(DM+1))
             
@@ -369,16 +346,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         #GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
         GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
         Cuse<-NULL
-        
-    }, # end of tryCatch expression, cluster object cl not needed anymore
-    
-    # exception handlers could be defined here
-    
-    finally = {
-        ##### Stop registered cluster:
-        if (isTRUE(use.par) & foreach::getDoParRegistered())
-            parallel::stopCluster(getDoParName())
-    })
+
     
     
     ######## COMMUNITY DETECTION #########
@@ -422,12 +390,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                                        image.format = image.format, quiet = FALSE)
     
     
-    #########################################
-    Te=(proc.time() - ptm)[3]
-    Te=signif(Te,digits=6)
-    message("Finished (Elapsed Time: ", Te, ")")
-    
-    
+
     return(ret)
 }
 

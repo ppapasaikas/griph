@@ -1,5 +1,3 @@
-
-
 #' @title Wrapper function for SC_cluster
 #' 
 #' @description \code{griph_cluster} takes a gene-by-cell matrix with read counts as
@@ -11,14 +9,15 @@
 #' 
 #' @param DM Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 #'     Required argument.
+#' @param is.cor If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
+#'     Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
+#'     matrix, and a correlation matrix will be computed.
+#' @param niter Number of clustering refinement iterations.  
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
 #'     functions based on \code{\link[foreach]{foreach}} (see details).
 #' @param ncores a numeric(1) or character(1), either specifying the number of
 #'     parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 #'     the available cores. Ignored if \code{use.par==FALSE}.
-#' @param is.cor If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
-#'     Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
-#'     matrix, and a correlation matrix will be computed.
 #' @param impute Perform imputation prior to clustering. Default: \code{FALSE}.
 #' @param filter T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
 #' @param rho Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
@@ -40,39 +39,56 @@
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
-
 #' 
 #' @return Currently a list with the clustering results.
 #' 
-#' 
-#' 
-#' 
 
-griph_cluster <- function(DM,niter=1,...){
-    # Placeholder:
+
+
+griph_cluster <- function(DM, is.cor = FALSE,niter=1,use.par=FALSE,ncores="all",
+                          impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
+                          ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
+                          plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
+    
+    ptm=proc.time() #Start clock
+    
+    if (length(ClassAssignment) != ncol(DM))
+        stop ("length(ClassAssignment) must be equal to ncol(DM)")
+    if(!is.null(BatchAssignment) && length(BatchAssignment) != ncol(DM))
+        stop ("length(BatchAssignment) must be equal to ncol(DM)")
+    
     # Register cluster here, remove regiastation block from SC_cluster
-    
-    params <-list(...)
-    
-    for (i in 1:niter) { 
-        if (i==niter){
-            params$plotG=TRUE   
+    if (isTRUE(use.par)) { 
+        if(ncores=="all"){
+            ncores = parallel::detectCores()
+            ncores=min(48,floor(0.9*ncores),ceiling(ncol(DM)/200))
+        } else{
+            ncores=min(48,ncores,floor(0.9*parallel::detectCores()),ceiling(ncol(DM)/200))
         }
-        else{
-            params$plotG=FALSE    
-        } 
-        
+        cl<-parallel::makeCluster(ncores)
+        doParallel::registerDoParallel(cl)
+    }
+    
+    params <-as.list(environment())
+
+### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
+    tryCatch({    
+    for (i in 1:niter) { 
+        if (i<niter){
+            params$plotG=FALSE   
+        }
+        else {params$plotG=plotG}
+
         if (i==1) {
             params$DM=DM
             params$pr.iter=1
-            cat(names(params))
-            cat(params$ClassAssignment)
             cluster.res <- do.call("SC_cluster",params)
         }
         else {
+            message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
             params$is.cor=TRUE
             params$pr.iter=0
-            #construct cell2cell correlation matrix using the current cluster.res
+            ####### construct cell2cell correlation matrix using the current cluster.res: ########
             memb=cluster.res$MEMB
             min.csize <-max(2, ceiling(0.25*sqrt(length(memb)) ) )
             nclust=length(unique(memb) )
@@ -83,9 +99,23 @@ griph_cluster <- function(DM,niter=1,...){
                 FakeBulk[,c]=rowSums(DM[,memb==clust])
             }
             params$DM=cor(cor(log2(FakeBulk+1),log2(DM+1)   ))
-            cat("\n",dim(params$DM),"\n")
             cluster.res <- do.call("SC_cluster",params)
         }
     }
+
+    }, # end of tryCatch expression, cluster object cl not needed anymore    
+    finally = { 
+    ##### Stop registered cluster:
+        if (isTRUE(use.par) & foreach::getDoParRegistered())
+        parallel::stopCluster(getDoParName())
+    })
+
+    
+################## Stop the clock #######################
+Te=(proc.time() - ptm)[3]
+Te=signif(Te,digits=6)
+message("Finished (Elapsed Time: ", Te, ")")
+
+return(cluster.res)    
 }
 
