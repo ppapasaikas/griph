@@ -101,13 +101,14 @@ griph_cluster <- function(DM, is.cor = FALSE,niter=1,use.par=FALSE,ncores="all",
             params$DM=cor(cor(log2(FakeBulk+1),log2(DM+1)   ))
             cluster.res <- do.call("SC_cluster",params)
         }
+    gc() #Call garbage collector
     }
 
     }, # end of tryCatch expression, cluster object cl not needed anymore    
     finally = { 
     ##### Stop registered cluster:
         if (isTRUE(use.par) & foreach::getDoParRegistered())
-        parallel::stopCluster(getDoParName())
+        parallel::stopCluster(cl)
     })
 
     
