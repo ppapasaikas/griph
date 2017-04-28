@@ -147,7 +147,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
     rho=min(0.9,rho)
     
-    
     #######Switch to parallelized functions if use.par=TRUE
     PearsonCor=coop::pcor
     SpearmanCor=Spcor

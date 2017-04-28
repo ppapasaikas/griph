@@ -94,7 +94,7 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
                 if (length(good.clust)<3){
-                message("\nToo few clusters (3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
+                message("\nToo few clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
                 break  
                 }
                 else {
@@ -105,7 +105,9 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                     clust=good.clust[c]
                     FakeBulk[,c]=rowSums(DM[,memb==clust])
                 }
-                params$DM=(cluster.res$CORM+cor(cor(log2(FakeBulk+1),log2(DM+1)   ),method="spearman"))/2
+                learnStep=1-(1/sqrt(length(good.clust)))
+                
+                params$DM=((1-learnStep)*cluster.res$CORM+learnStep*cor(cor(log2(FakeBulk+1),log2(DM+1)   ),method="spearman"))
                 cluster.res <- do.call("SC_cluster",c(params,list(comm.method=igraph::cluster_louvain) ) )
             }
         gc() #Call garbage collector
