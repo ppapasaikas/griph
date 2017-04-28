@@ -83,7 +83,7 @@ res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
 ss <- structureScore(M, label, score.type = "calinhara")
 plot(density(ss$score.rand), lwd=2, xlim=c(0.22, 0.34))
 abline(v=ss$score.obs, col="red")
-ss2 <- structureScore(M, res$MEMB)
+ss2 <- structureScore(M, res$MEMB, score.type = "calinhara")
 lines(density(ss2$score.rand), col="gray")
 ss$score.norm
 ss2$score.norm

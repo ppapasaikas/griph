@@ -260,6 +260,7 @@ classError <- function(a, b, map=NULL, exhaustive=FALSE) {
 structureScore <- function(DM, classification, score.type = c("calinhara","sdLogFC"), R = 100) {
     # digest arguments
     stopifnot(is.matrix(DM))
+    classification <- as.numeric(factor(classification))
     stopifnot(length(classification)==ncol(DM))
     score.type <- match.arg(score.type)
     
