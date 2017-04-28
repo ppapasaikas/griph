@@ -114,7 +114,7 @@ the simplified graph is generated later when necessary by *plotGraph*.
 
 It is also possible to draw polygons around cells of each class:  
 ```{r buettner_groupPolygons, message=FALSE}
-g <- plotGraph(res, mark.type = "predicted")
+g <- plotGraph(res, line.type = "none", mark.type = "true")
 ```
 
 ... or to collapse all the cells that are of the same class into a single vertex in
@@ -128,8 +128,16 @@ be visualized by applying a dimensionality reduction/projection technique such a
 tSNE to the affinity matrix returned by `r Githubpkg("ppapasaikas/griph")`:  
 ```{r buettner_tsne}
 library(Rtsne)
-out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE, perplexity = 5, is_distance = TRUE)
-plot(out$Y, xlab="tSNE-1", ylab="tSNE-2", col=res$MEMB, pch=as.numeric(trueLabel))
+out <- Rtsne(as.dist(1-res$DISTM), pca = FALSE,
+             perplexity = 5, is_distance = TRUE)
+plot(out$Y, xlab="tSNE-1", ylab="tSNE-2", col=res$MEMB,
+     pch=as.numeric(trueLabel))
+```
+
+or more conveniently using the wrapper function provided by `griph`:  
+```{r buettner_tsne2, message=FALSE}
+plotTsne(res, fill.type = "predicted", line.type = "none", mark.type = "true",
+         perplexity = 5)
 ```
 
 # Accessing the cell classification

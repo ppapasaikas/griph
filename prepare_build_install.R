@@ -74,7 +74,7 @@ slot(obj, "ClassAssignment")
 # ... test data from package
 list.files(system.file("extdata", package = "griph"))
 
-########## ... ... Buettner
+##### ... ... Buettner #####
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 
@@ -130,7 +130,7 @@ g <- plotGraph(res, forceRecalculation = TRUE, maxG = 50)
 
 
 
-########## ... ... Kolodziejck
+##### ... ... Kolodziejck #####
 library(griph)
 M <- readRDS(system.file("extdata", "kolodziejck_top10k.rds", package = "griph"))
 label <- attr(M, "label")
@@ -159,11 +159,15 @@ g2 <- plotGraph(res2)
 
 par(mfrow=c(1,2))
 g <- plotGraph(res, fill.type = "predicted", line.type = "none", mark.type = "true")
-g <- plotGraph(res, fill.type = "custom",    line.type = "none", fill.col = brewer.pal(5,"Set1"), custom.class = cc)
+g <- plotGraph(res, fill.type = "custom",    line.type = "none", fill.col = "Set1", custom.class = cc)
 
 par(mfrow=c(1,2))
 g3 <- plotGraph(res, collapse.type = "predicted")
 g4 <- plotGraph(res2, collapse.type = "predicted")
+
+par(mfrow=c(1,2))
+t1 <- plotTsne(res, fill.type = "predicted", line.type = "none", mark.type = "true")
+t2 <- plotTsne(res, fill.type = "custom",    line.type = "none", fill.col = "Set1", custom.class = cc)
 
 table(res$MEMB, cc)
 table(res2$MEMB, cc)
@@ -183,7 +187,7 @@ plot(wc, res$GRAO)
 
 
 
-########## ... ... Usoskin
+##### ... ... Usoskin #####
 M <- readRDS(system.file("extdata", "usoskin_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 #label <- attr(M, "label2")
@@ -194,7 +198,10 @@ griph:::classError(res$MEMB, attr(M, "label"))  # 0.1451815
 griph:::classError(res$MEMB, attr(M, "label2")) # 0.2941176
 griph:::classError(res$MEMB, attr(M, "label3")) # 0.3128911
 
-# ... ... Zeisel
+
+
+
+##### ... ... Zeisel #####
 M <- readRDS(system.file("extdata", "zeisel_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 #label <- attr(M, "label2")
