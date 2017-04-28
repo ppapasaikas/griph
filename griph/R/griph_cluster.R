@@ -93,8 +93,8 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 min.csize <-max(4, ceiling(0.5*sqrt(length(memb)) ) )
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
-                if (length(good.clust)<3){
-                message("\nToo few clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
+                if (length(good.clust)<4){
+                message("\nToo few clusters (<4). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
                 break  
                 }
                 else {
