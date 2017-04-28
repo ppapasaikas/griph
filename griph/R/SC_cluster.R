@@ -146,7 +146,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
     rho=min(0.9,rho)
     
-
+    
     #######Switch to parallelized functions if use.par=TRUE
     PearsonCor=coop::pcor
     SpearmanCor=Spcor
@@ -182,13 +182,17 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         stop ("length(ClassAssignment) must be equal to ncol(DM)")
     if(!is.null(BatchAssignment) && length(BatchAssignment) != ncol(DM))
         stop ("length(BatchAssignment) must be equal to ncol(DM)")
-
+    
     ptm=proc.time()
     
-
+    
+    ##### Strip dimnames:
+    CellIds=colnames(DM)
+    dimnames(DM)=NULL
+    
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised
     tryCatch({
-
+        
         if (!isTRUE(is.cor)) {  
             
             if (impute==TRUE){
@@ -244,12 +248,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                 BatchAssignment=BatchAssignment[,-NoData]
                 CellCounts=CellCounts[-NoData]
             }
-
+            
             message("done")
 
-            ##### Strip dimnames:
-            CellIds=colnames(DM)
-            dimnames(DM)=NULL
             
             C=list()
             C[[1]]=PearsonCor(log2(DM+1))
@@ -273,7 +274,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         }
         
         Cuse=as.matrix(C[[2]])
-
+        
         ClassAssignment.numeric <- as.numeric(factor(ClassAssignment, levels=unique(ClassAssignment)))
         
         ############### glasso-based graph structure estimation: #####################
@@ -343,7 +344,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                     ADJ[ -kN[,i],i]=0
                     ADJ[i,-kN[,i] ]=0
                 }
-            
+                
                 #PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
                 #diag(PR)=1
                 ave=mean(Cuse[which(ADJ>0)])
@@ -375,10 +376,10 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     finally = {
         ##### Stop registered cluster:
-        if (isTRUE(use.par) & getDoParRegistered())
-            stopCluster(cl)
+        if (isTRUE(use.par) & foreach::getDoParRegistered())
+            parallel::stopCluster(getDoParName())
     })
-
+    
     
     ######## COMMUNITY DETECTION #########
     message("Detecting Graph Communities...", appendLF = FALSE)
@@ -393,7 +394,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     csize=table(memb$membership)
     ConfMatrix <- table(predicted=memb$membership, true=ClassAssignment)
     message("done")
-
+    
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
     E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within=2, weight.between=0.5)
@@ -413,19 +414,19 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
-
-        
+    
+    
     ######### graph visualization
     if (plotG)
         ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,
                                        image.format = image.format, quiet = FALSE)
-
-
+    
+    
     #########################################
     Te=(proc.time() - ptm)[3]
     Te=signif(Te,digits=6)
     message("Finished (Elapsed Time: ", Te, ")")
-
+    
     
     return(ret)
 }
@@ -531,7 +532,7 @@ plotGraph <- function(gr, maxG=2500,
         if (length(V(GRAO) ) > 1.25*maxG ) {
             if(!quiet)
                 message("\tRemark: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted")
-
+            
             ###### Sample well-connected seeds from the members of each community 
             DEG <- igraph::degree(GRAO)
             snowball_seeds <- c()
@@ -546,14 +547,14 @@ plotGraph <- function(gr, maxG=2500,
                 #message("minD:",minDegree, " maxD:",maxDegree," csize:", csize[i]  ,"\r")
                 if (seedn > 1){
                     module_seeds <- sample(which(MEMB==i & DEG >= floor(minDegree) &
-                                                 DEG <= ceiling(maxDegree) ), seedn)
+                                                     DEG <= ceiling(maxDegree) ), seedn)
                 } else {
                     module_seeds <- sample(which(MEMB==i & DEG==max(DEG[members])), 1)    
                 }
-        
+                
                 snowball_seeds <- unique(c(snowball_seeds,module_seeds))
             }
-    
+            
             snowball <- c()
             seed.ego_size <- 0
             while (length(snowball) < maxG/2){
@@ -564,16 +565,16 @@ plotGraph <- function(gr, maxG=2500,
                 seed.ego_size <- seed.ego_size-1
                 snowball <- unique(unlist(igraph::ego(GRAO,seed.ego_size,snowball_seeds))) 
             }
-    
+            
             GRAOp <- igraph::induced.subgraph(GRAO,sort(snowball) )
-    
+            
             if(!quiet)
                 message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size)
-    
+            
         } else {
             GRAOp <- GRAO
         }
-
+        
         ######## Prune graph for better plot output
         if (median(igraph::degree(GRAOp)) > 4 ) {
             pct <- min(1,1/sqrt(0.1*median(igraph::degree(GRAOp)) ) )
@@ -585,15 +586,15 @@ plotGraph <- function(gr, maxG=2500,
             GRAOtemp <- NULL
             ADJp <- NULL
         }
-
+        
         GRAOp <- igraph::delete_vertices(GRAOp,which(igraph::ego_size(GRAOp,3) < 6))
         ###Delete Vertices from communites with few members:
         min.csize <- ceiling(0.25*sqrt(length(V(GRAO))))
         GRAOp <- igraph::delete_vertices(GRAOp,which( V(GRAOp)$community.size < min.csize ))  
-
+        
         if(!quiet)
             message("\tRemark: Nodes from communities with <",min.csize, " members will not be displayed.")
-
+        
     } else {
         if(!quiet)
             message("using existing plot-optimized graph")
@@ -601,13 +602,13 @@ plotGraph <- function(gr, maxG=2500,
     }
     if(!quiet)
         message("\tdisplaying ",round(100*pct,1), "% of edges")
-
+    
     # get colors
     class.pred <- factor(V(GRAOp)$membership, levels=sort(as.numeric(unique(V(GRAO)$membership))))
     class.true <- factor(V(GRAOp)$class, levels=unique(V(GRAO)$class))
     class.none <- factor(rep(NA, length(V(GRAOp))))
     class.custom <- factor(custom.class[V(GRAOp)$labels], levels=unique(custom.class))
-
+    
     class.fill <- switch(fill.type,
                          predicted=class.pred,
                          true=class.true,
@@ -615,7 +616,7 @@ plotGraph <- function(gr, maxG=2500,
                          custom=class.custom)
     fillColorPalette <- if(nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
     fillColor <- fillColorPalette[as.numeric(class.fill)]
-
+    
     class.line <- switch(line.type,
                          predicted=class.pred,
                          true=class.true,
@@ -623,7 +624,7 @@ plotGraph <- function(gr, maxG=2500,
                          custom=class.custom)
     lineColorPalette <- if(nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
     lineColor <- lineColorPalette[as.numeric(class.line)]
-
+    
     class.mark <- switch(mark.type,
                          predicted=class.pred,
                          true=class.true,
@@ -631,7 +632,7 @@ plotGraph <- function(gr, maxG=2500,
                          custom=class.custom)
     markElements <- split(seq_along(class.mark), class.mark)
     markColor <- if(nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
-
+    
     # set some more graph attributes
     V(GRAOp)$classcolor <- lineColor
     V(GRAOp)$size <- if(collapse.type == "none") 10 /(length(V(GRAOp))/60 )^0.3 else V(GRAOp)$size
@@ -644,7 +645,7 @@ plotGraph <- function(gr, maxG=2500,
     set.seed(seed = seed)
     l <- igraph::layout_with_fr(graph = GRAOp)
     # igraph::add.vertex.shape("fcircle", clip=igraph.shape.noclip, plot=mycircle, parameters=list(vertex.frame.color=1, vertex.frame.width=1))
-
+    
     # open output file
     if(!is.na(image.format)) {
         if(image.format=='pdf') {
@@ -657,7 +658,7 @@ plotGraph <- function(gr, maxG=2500,
         if(!quiet)
             message("\tsaving graph to ",fname)
     }
-
+    
     # setup plot coordinate system
     par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
     plot(l[,1], l[,2], type = "n", axes=FALSE, xlab="", ylab="")
@@ -694,7 +695,7 @@ plotGraph <- function(gr, maxG=2500,
     points(l[,1], l[,2], col = if(line.type=="none") "black" else lineColor,
            bg = fillColor, pch = my.pch, lwd = my.pt.lwd,
            cex=my.pt.cex * if(collapse.type == "none") 1.0 else (as.numeric(csize/median(csize)))^0.5)
-
+    
     # add legend(s)
     if(fill.type != "none" && nlevels(class.fill) > 0) {
         lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
@@ -710,7 +711,7 @@ plotGraph <- function(gr, maxG=2500,
                col = lineColorPalette, pt.bg = "white",
                title = line.type, legend = levels(class.line))
     }
-
+    
     # close output file
     if(!is.na(image.format))
         dev.off()
