@@ -237,6 +237,59 @@ classError <- function(a, b, map=NULL, exhaustive=FALSE) {
 }
 
 
+#' @title Structuredness of a classification.
+#' 
+#' @description Calculate a score that measures the structuredness of a classification.
+#' 
+#' @details The score is the value of a statistic (e.g. the standard deviation of log2
+#'     fold-change of average gene expression levels within a class over the mean
+#'     of all classes) using the raw data and a given classification, relative to
+#'     the same statistic obtained from the raw data and permuted classifications.
+#' 
+#' @param DM Gene-by-cell expression matrix (raw counts).
+#' @param classification Factor, numerical or character vector with class labels.
+#' @param score.type Statistical measure used to calculate the score. One of "calinhara",
+#'     sdLogFC".
+#' @param R Integer scalar defining the number of permutations on the classification
+#'     to perform for normalization of the statistical measure.
+#' 
+#' @return A list with components "score.type" (the selected measurement statistic),
+#'     "score.obs" (value of the measurment statistic), "score.rand" (values for
+#'     randomized classifications) and "score.norm" (the
+#'     normalized value of the measurment statistic).
+structureScore <- function(DM, classification, score.type = c("calinhara","sdLogFC"), R = 100) {
+    # digest arguments
+    stopifnot(is.matrix(DM))
+    stopifnot(length(classification)==ncol(DM))
+    score.type <- match.arg(score.type)
+    
+    # calculate measurment for real classification
+    calcStat <- switch(score.type,
+                       calinhara=fpc::calinhara,
+                       sdLogFC=function(x, cl) {
+                           # create "fake" bulk profiles
+                           jByClass <- split(seq.int(ncol(x)), cl)
+                           xc <- do.call(cbind, lapply(jByClass, function(j) rowSums(x[,j,drop=FALSE])))
+                           # normalize
+                           xl <- log2(t(t(xc) /colSums(xc)) *1e6 +1.0) # log2(cpm+pseudocount)
+                           xr <- xl - rowMeans(xl) # relative to the mean
+                           # score
+                           sd(xr)
+                       })
+    message("calculating score for real classification...", appendLF = FALSE)
+    val.obs <- calcStat(DM, classification)
+    message("done")
+    
+    # calculate measurment for randomized classifications
+    message("calculating scores for ",R," randomized classifications...", appendLF = FALSE)
+    val.rand <- unlist(lapply(seq.int(R), function(i) calcStat(DM, sample(classification))))
+    message("done")
+    
+    # return results
+    list(score.type=score.type, score.obs=val.obs, score.rand=val.rand,
+         score.norm=(val.obs - mean(val.rand))/sd(val.rand))
+}
+
 
 
 
