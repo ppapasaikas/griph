@@ -121,6 +121,9 @@ PPR <- function (G,df=0.75){
 #' @param batch.penalty [0,1] rho scaling factor for enforcing topological constraints
 #'     variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 #'     rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}. 
+#' @param comm.method  Community detection algorithm. See igraph "communities" 
+#' @param ncom Forces the community detection algorithm to a fixed number of communities. Only possible with hierarchical methods (like fast_greedy).
+#'      If \code{NULL} (default) then the optimal determined number of clusters of the used  community detection algorithm.
 #' @param ClassAssignment If available a numeric vector of length \code{k} with numeric
 #'     class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
 #' @param BatchAssignment If available a numeric vector of length \code{k} with numeric
@@ -136,12 +139,10 @@ PPR <- function (G,df=0.75){
 
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                        impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
-                       ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png',... ){
+                       comm.method=igraph::cluster_infomap,ncom=NULL,ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
+                       plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png',...){
     
     #######Internal parameters for testing puproses only:  
-    comm.method=igraph::cluster_infomap  # Community detection algorithm. See igraph "communities" 
-    ncom=NULL  #Forces the community detection algorithm to a fixed number of communities. Only possible with hierarchical methods (like fast_greedy),
     qnt=8 #Max gene expression decile for imputation (e.g 8->bottom 70% of the genes are imputed) 
     rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
     rho=min(0.9,rho)
@@ -248,6 +249,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             W <- pmax(1e-1, cmDM) / mean(cmDM)
             W <- sqrt(W) %o% sqrt(W)
             C[[2]]=( DM / W )
+            C[[2]]=DM
         }
         
         Cuse=as.matrix(C[[2]])
@@ -345,7 +347,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         
         #GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=ClassAssignment.numeric)
         GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
-        Cuse<-NULL
+        #Cuse<-NULL
 
     
     
@@ -380,7 +382,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     dimnames(ADJ) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
-                DISTM=ADJ, ConfMatrix=ConfMatrix,
+                DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
     
     

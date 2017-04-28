@@ -12,7 +12,7 @@
 #' @param is.cor If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
 #'     Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
 #'     matrix, and a correlation matrix will be computed.
-#' @param niter Number of clustering refinement iterations.  
+#' @param ref.iter Number of clustering refinement iterations.  
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
 #'     functions based on \code{\link[foreach]{foreach}} (see details).
 #' @param ncores a numeric(1) or character(1), either specifying the number of
@@ -45,7 +45,7 @@
 
 
 
-griph_cluster <- function(DM, is.cor = FALSE,niter=1,use.par=FALSE,ncores="all",
+griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="all",
                           impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
@@ -70,53 +70,60 @@ griph_cluster <- function(DM, is.cor = FALSE,niter=1,use.par=FALSE,ncores="all",
     }
     
     params <-as.list(environment())
-
-### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
+    
+    ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
     tryCatch({    
-    for (i in 1:niter) { 
-        if (i<niter){
-            params$plotG=FALSE   
-        }
-        else {params$plotG=plotG}
-
-        if (i==1) {
-            params$DM=DM
-            params$pr.iter=1
-            cluster.res <- do.call("SC_cluster",params)
-        }
-        else {
-            message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
-            params$is.cor=TRUE
-            params$pr.iter=0
-            ####### construct cell2cell correlation matrix using the current cluster.res: ########
-            memb=cluster.res$MEMB
-            min.csize <-max(2, ceiling(0.25*sqrt(length(memb)) ) )
-            nclust=length(unique(memb) )
-            good.clust=as.vector(which(table(memb)>=min.csize) )
-            FakeBulk=matrix(0,nrow(DM),length(good.clust))
-            for (c in 1:length(good.clust)) {
-                clust=good.clust[c]
-                FakeBulk[,c]=rowSums(DM[,memb==clust])
+        for (i in 0:ref.iter) { 
+            if (i<ref.iter){
+                params$plotG=FALSE   
             }
-            params$DM=cor(cor(log2(FakeBulk+1),log2(DM+1)   ))
-            cluster.res <- do.call("SC_cluster",params)
+            else {params$plotG=plotG}
+            
+            if (i==0) {
+                params$DM=DM
+                params$pr.iter=1
+                cluster.res <- do.call("SC_cluster",params)
+            }
+            else {
+                message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
+                params$is.cor=TRUE
+                params$pr.iter=0
+                ####### construct cell2cell correlation matrix using the current cluster.res: ########
+                memb=cluster.res$MEMB
+                min.csize <-max(4, ceiling(0.5*sqrt(length(memb)) ) )
+                nclust=length(unique(memb) )
+                good.clust=as.vector(which(table(memb)>=min.csize) )
+                if (length(good.clust)<3){
+                message("\nToo few clusters (3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
+                break  
+                }
+                else {
+                message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
+                }
+                FakeBulk=matrix(0,nrow(DM),length(good.clust))
+                for (c in 1:length(good.clust)) {
+                    clust=good.clust[c]
+                    FakeBulk[,c]=rowSums(DM[,memb==clust])
+                }
+                params$DM=(cluster.res$CORM+cor(cor(log2(FakeBulk+1),log2(DM+1)   ),method="spearman"))/2
+                cluster.res <- do.call("SC_cluster",c(params,list(comm.method=igraph::cluster_louvain) ) )
+            }
+        gc() #Call garbage collector
         }
-    gc() #Call garbage collector
-    }
-
+        
     }, # end of tryCatch expression, cluster object cl not needed anymore    
     finally = { 
-    ##### Stop registered cluster:
+        ##### Stop registered cluster:
         if (isTRUE(use.par) & foreach::getDoParRegistered())
-        parallel::stopCluster(cl)
+            parallel::stopCluster(cl)
     })
-
     
-################## Stop the clock #######################
-Te=(proc.time() - ptm)[3]
-Te=signif(Te,digits=6)
-message("Finished (Elapsed Time: ", Te, ")")
-
-return(cluster.res)    
+    
+    ################## Stop the clock #######################
+    Te=(proc.time() - ptm)[3]
+    Te=signif(Te,digits=6)
+    message("Finished (Elapsed Time: ", Te, ")")
+    cluster.res$CORM=NULL
+    return(cluster.res)    
 }
 
