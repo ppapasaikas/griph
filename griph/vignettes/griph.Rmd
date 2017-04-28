@@ -135,9 +135,9 @@ plot(out$Y, xlab="tSNE-1", ylab="tSNE-2", col=res$MEMB,
 ```
 
 or more conveniently using the wrapper function provided by `griph`:  
-```{r buettner_tsne2, message=FALSE}
+```{r buettner_tsne2, message=FALSE, echo=TRUE, results='hide'}
 plotTsne(res, fill.type = "predicted", line.type = "none", mark.type = "true",
-         perplexity = 5)
+         perplexity = 7)
 ```
 
 # Accessing the cell classification
