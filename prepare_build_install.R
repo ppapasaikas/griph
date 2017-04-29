@@ -44,7 +44,7 @@ devtools::run_examples(pkg = "./griph")
 
 # play with griph
 library(griph)
-vignette(package="griph")
+vignette(package = "griph")
 help(package = "griph")
 package?griph
 ?HellingerMat
@@ -80,13 +80,17 @@ M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
 res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
 
-ss <- structureScore(M, label, score.type = "calinhara")
-plot(density(ss$score.rand), lwd=2, xlim=c(0.22, 0.34))
-abline(v=ss$score.obs, col="red")
-ss2 <- structureScore(M, res$MEMB, score.type = "calinhara")
-lines(density(ss2$score.rand), col="gray")
+ss <- clusteringScore(M, label, score.type = "sdLogFC") # published labels
+ss2 <- clusteringScore(M, res$MEMB, score.type = "sdLogFC") # griph labels
+ss3 <- clusteringScore(M, seq.int(ncol(M)), score.type = "sdLogFC") # each cell it's own label
+ss4 <- clusteringScore(M, sample(5,ncol(M),replace=TRUE), score.type = "sdLogFC") # random labels (k=5)
 ss$score.norm
 ss2$score.norm
+ss3$score.norm
+ss4$score.norm
+#plot(density(ss$score.rand), lwd = 2, xlim = c(0.22, 0.34))
+#abline(v = ss$score.obs, col = "red")
+#lines(density(ss2$score.rand), col="gray")
 
 ##### ... ... Buettner #####
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))

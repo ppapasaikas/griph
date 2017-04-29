@@ -252,8 +252,7 @@ classError <- function(a, b, map=NULL, exhaustive=FALSE) {
 #' 
 #' @param DM Gene-by-cell expression matrix (raw counts).
 #' @param classification Factor, numerical or character vector with class labels.
-#' @param score.type Statistical measure used to calculate the score. One of "calinhara",
-#'     sdLogFC".
+#' @param score.type Statistical measure used to calculate the score. One of sdLogFC".
 #' @param R Integer scalar defining the number of permutations on the classification
 #'     to perform for normalization of the statistical measure.
 #' 
@@ -261,7 +260,7 @@ classError <- function(a, b, map=NULL, exhaustive=FALSE) {
 #'     "score.obs" (value of the measurment statistic), "score.rand" (values for
 #'     randomized classifications) and "score.norm" (the
 #'     normalized value of the measurment statistic).
-structureScore <- function(DM, classification, score.type = c("calinhara","sdLogFC"), R = 100) {
+clusteringScore <- function(DM, classification, score.type = c("sdLogFC"), R = 20) {
     # digest arguments
     stopifnot(is.matrix(DM))
     classification <- as.numeric(factor(classification))
@@ -270,7 +269,6 @@ structureScore <- function(DM, classification, score.type = c("calinhara","sdLog
     
     # calculate measurment for real classification
     calcStat <- switch(score.type,
-                       calinhara = fpc::calinhara,
                        sdLogFC = function(x, cl) {
                            # create "fake" bulk profiles
                            jByClass <- split(seq.int(ncol(x)), cl)
@@ -292,7 +290,7 @@ structureScore <- function(DM, classification, score.type = c("calinhara","sdLog
     
     # return results
     list(score.type = score.type, score.obs = val.obs, score.rand = val.rand,
-         score.norm = log2(val.obs / median(val.rand)))
+         score.norm = val.obs / median(val.rand))
 }
 
 
