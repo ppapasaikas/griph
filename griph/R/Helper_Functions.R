@@ -7,9 +7,9 @@
 #' 
 #' @return If all elements of \code{k} have the same value, a \code{k} by \code{ncol(S)}
 #'     matrix, else a \code{ncol(S)}-element \code{list}.
-get.knn <- function (S, k = rep(round(sqrt(nrow(S))),nrow(S)) ) {
-  diag(S)=0
-  kN=sapply(1:nrow(S),function(x) bigmemory::tail(order(S[,x]),k[x]))
+get.knn <- function(S, k = rep(round(sqrt(nrow(S))), nrow(S))) {
+  diag(S) <- 0
+  kN <- sapply(1:nrow(S), function(x) bigmemory::tail(order(S[,x]),k[x]))
   return(kN)
 }
 
@@ -20,15 +20,15 @@ get.knn <- function (S, k = rep(round(sqrt(nrow(S))),nrow(S)) ) {
 #' @param pct fraction of edges to keep.
 #' 
 #' @return a matrix with the same dimensions as \code{x}, with only \code{pct} fraction of non-zero values.
-sparsify <- function (x,pct=0.1){
-  L=length(x)
-  P=sum(x>0)
-  if (P<3 ){return (x)}
+sparsify <- function(x, pct = 0.1) {
+  L <- length(x)
+  P <- sum(x > 0)
+  if (P < 3) { return(x) }
   else {
-    k=max(3,floor(pct * P)) 
-    k=min(100,k) 
-    cutoff=sort(x[which(x>0)],decreasing=TRUE)[ k  ]
-    x[which(x<cutoff)]=0  
+    k <- max(3, floor(pct * P)) 
+    k <- min(100, k) 
+    cutoff <- sort(x[which(x > 0)], decreasing = TRUE)[k]
+    x[which(x < cutoff)] <- 0  
     return(x)
   }
 }
@@ -56,9 +56,9 @@ adjust.color <- function(col, f) {
     if (f < 1.0) {        # shade colors (make them darker)
         col <- round(col*f)
     } else if (f > 1.0) { # tint colors (make them lighter)
-        col <- round(pmin(col + (255-col)/f, 255))
+        col <- round(pmin(col + (255 - col) / f, 255))
     }
-    apply(col, 2, function(x) grDevices::rgb(x[1], x[2], x[3], maxColorValue=255))
+    apply(col, 2, function(x) grDevices::rgb(x[1], x[2], x[3], maxColorValue = 255))
 }
 
 #' Generate a random alpha-numeric string
@@ -76,7 +76,7 @@ RandString <- function(n=1, len=5){
   randomString <- c(1:n)  # initialize vector
   for (i in 1:n)  {
     randomString[i] <- paste(sample(c(0:9, letters, LETTERS),
-                                    len, replace=TRUE),collapse="")
+                                    len, replace = TRUE), collapse = "")
   }
   return(randomString)
 }
@@ -114,9 +114,9 @@ mycircle <- function(coords, v=NULL, params) {
   }
   mapply(coords[,1], coords[,2], vertex.color, vertex.frame.color,
          vertex.size, vertex.frame.width,
-         FUN=function(x, y, bg, fg, size, lwd) {
-           symbols(x=x, y=y, bg=bg, fg=fg, lwd=lwd,
-                   circles=size, add=TRUE, inches=FALSE)
+         FUN = function(x, y, bg, fg, size, lwd) {
+           symbols(x = x, y = y, bg = bg, fg = fg, lwd = lwd,
+                   circles = size, add = TRUE, inches = FALSE)
          })
 }
 
@@ -145,7 +145,7 @@ mycircle <- function(coords, v=NULL, params) {
 #'     guaranteed to return the optimal mapping that minimizes the classification
 #'     error. \code{\link{classError}} to calculate classification error. 
 mapLabelsGreedy <- function(a, b=NULL) {
-    if(is.null(b)) {
+    if (is.null(b)) {
         cm <- a # assume a to be a confusion matrix
     } else {
         stopifnot(length(a) == length(b))
@@ -156,7 +156,7 @@ mapLabelsGreedy <- function(a, b=NULL) {
     map <- rownames(cm)
     names(map) <- map
     ub <- colnames(cm)
-    for(i in seq_along(map))
+    for (i in seq_along(map))
         map[i] <- ub[which.max(cm[i,])]
     return(map)
 }
@@ -189,8 +189,12 @@ mapLabelsExhaustive <- function(a, b=NULL) {
     #        return(prefix)
     #    do.call(rbind, sapply(1:length(x), FUN = function(idx) .permutations( x[-idx], c( prefix, x[idx])), simplify = FALSE))
     #}
+
+    if (!is.element("gtools", utils::installed.packages()[,1]))
+        stop('"mapLabelsExhaustive" requires the "gtools" package. Please install it with:\n\t',
+             'install.packages("gtools")')
     
-    if(is.null(b)) {
+    if (is.null(b)) {
         cm <- a # assume a to be a confusion matrix
     } else {
         stopifnot(length(a) == length(b))
@@ -230,8 +234,8 @@ mapLabelsExhaustive <- function(a, b=NULL) {
 #' @seealso \code{\link{mapLabelsExhaustive}} and \code{\link{mapLabelsGreedy}} for
 #'     calculation of a mapping between \code{a} and \code{b} labels.
 classError <- function(a, b, map=NULL, exhaustive=FALSE) {
-    if(is.null(map))
-        map <- if(exhaustive) mapLabelsExhaustive(a, b) else mapLabelsGreedy(a, b)
+    if (is.null(map))
+        map <- if (exhaustive) mapLabelsExhaustive(a, b) else mapLabelsGreedy(a, b)
     am <- map[as.character(a)]
     mean(am != as.character(b))
 }
@@ -261,18 +265,18 @@ structureScore <- function(DM, classification, score.type = c("calinhara","sdLog
     # digest arguments
     stopifnot(is.matrix(DM))
     classification <- as.numeric(factor(classification))
-    stopifnot(length(classification)==ncol(DM))
+    stopifnot(length(classification) == ncol(DM))
     score.type <- match.arg(score.type)
     
     # calculate measurment for real classification
     calcStat <- switch(score.type,
-                       calinhara=fpc::calinhara,
-                       sdLogFC=function(x, cl) {
+                       calinhara = fpc::calinhara,
+                       sdLogFC = function(x, cl) {
                            # create "fake" bulk profiles
                            jByClass <- split(seq.int(ncol(x)), cl)
-                           xc <- do.call(cbind, lapply(jByClass, function(j) rowSums(x[,j,drop=FALSE])))
+                           xc <- do.call(cbind, lapply(jByClass, function(j) rowSums(x[, j, drop = FALSE])))
                            # normalize
-                           xl <- log2(t(t(xc) /colSums(xc)) *1e6 +1.0) # log2(cpm+pseudocount)
+                           xl <- log2(t(t(xc) / colSums(xc)) * 1e6 + 1.0) # log2(cpm+pseudocount)
                            xr <- xl - rowMeans(xl) # relative to the mean
                            # score
                            sd(xr)
@@ -287,8 +291,8 @@ structureScore <- function(DM, classification, score.type = c("calinhara","sdLog
     message("done")
     
     # return results
-    list(score.type=score.type, score.obs=val.obs, score.rand=val.rand,
-         score.norm=(val.obs - mean(val.rand))/sd(val.rand))
+    list(score.type = score.type, score.obs = val.obs, score.rand = val.rand,
+         score.norm = log2(val.obs / median(val.rand)))
 }
 
 
@@ -317,7 +321,7 @@ structureScore <- function(DM, classification, score.type = c("calinhara","sdLog
 edge.weights <- function(community, network, weight.within = 10, weight.between = 1) {
     bridges <- crossing(communities = community, graph = network)
     weights <- ifelse(test = bridges, yes = weight.between, no = weight.within)
-    weights=weights*E(network)$weight
+    weights = weights*E(network)$weight
     return(weights) 
 }
 
