@@ -30,6 +30,8 @@
 #' @param custom.class Factor, character or numberic vector of the same length or
 #'     with names corresponding to names(gr$MEMB) to use for custom cell classification
 #'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
+#' @param draw.edges If \code{NULL} (default), draw edges if \code{collapse.type != "none"}.
+#'     \code{TRUE} or \code{FALSE} can be used to override the default.
 #' @param seed Random number seed to make graph layout deterministic.
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
@@ -50,6 +52,7 @@ plotGraph <- function(gr, maxG=2500,
                       line.col="Dark2",
                       mark.col="Pastel1",
                       custom.class=factor(rep(1, length(gr$MEMB))),
+                      draw.edges=NULL,
                       seed=91919,
                       fsuffix=RandString(), image.format=NA,
                       forceRecalculation=FALSE, quiet=FALSE) {
@@ -114,7 +117,7 @@ plotGraph <- function(gr, maxG=2500,
     } else if (is.null(gr$plotGRAO) || forceRecalculation) {
         if (length(V(GRAO) ) > 1.25*maxG ) {
             if (!quiet)
-                message("\tRemark: Graph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted")
+                message("\tGraph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted", appendLF = FALSE)
             
             ###### Sample well-connected seeds from the members of each community 
             DEG <- igraph::degree(GRAO)
@@ -152,9 +155,11 @@ plotGraph <- function(gr, maxG=2500,
             GRAOp <- igraph::induced.subgraph(GRAO,sort(snowball) )
             
             if (!quiet)
-                message("\tUsed vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size)
+                message(" (used vertices: ", length(V(GRAOp)),"  seed_size: ",seed.ego_size,")")
             
         } else {
+            if (!quiet)
+                message("\tusing full graph for plotting")
             GRAOp <- GRAO
         }
         
@@ -177,15 +182,18 @@ plotGraph <- function(gr, maxG=2500,
         GRAOp <- igraph::delete_vertices(GRAOp, which( V(GRAOp)$community.size < min.csize ))  
         
         if (!quiet)
-            message("\tRemark: Nodes from communities with <",min.csize, " members will not be displayed.")
+            message("\tnodes from communities with <",min.csize, " members will not be displayed.")
         
     } else {
         if (!quiet)
-            message("using existing plot-optimized graph")
+            message("\tusing existing plot-optimized graph")
         GRAOp <- gr$plotGRAO
     }
     if (!quiet)
-        message("\tdisplaying ",round(100*pct,1), "% of edges")
+        message("\tdisplaying graph with ",length(V(GRAOp))," (",
+                round(100 * length(V(GRAOp)) / length(V(GRAO)), 1), "%) vertices and ",
+                length(E(GRAOp)), " (", round(100 * length(E(GRAOp)) / length(E(GRAO)), 1),
+                "%) edges")
     
     # get colors
     class.pred <- factor(V(GRAOp)$membership, levels = sort(as.numeric(unique(V(GRAO)$membership))))
@@ -267,8 +275,8 @@ plotGraph <- function(gr, maxG=2500,
         }
     }
     
-    # add edges (currently only for collapase.type != "none")
-    if (collapse.type != "none") {
+    # add edges (by default only for collapase.type != "none")
+    if (isTRUE(draw.edges) || (is.null(draw.edges) && collapse.type != "none")) {
         el <- igraph::as_edgelist(GRAOp, names = FALSE)
         graphics::segments(x0 = l[,1][el[,1]], y0 = l[,2][el[,1]],
                            x1 = l[,1][el[,2]], y1 = l[,2][el[,2]],

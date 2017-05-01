@@ -83,7 +83,7 @@ res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
 ss <- clusteringScore(M, label, score.type = "sdLogFC") # published labels
 ss2 <- clusteringScore(M, res$MEMB, score.type = "sdLogFC") # griph labels
 ss3 <- clusteringScore(M, seq.int(ncol(M)), score.type = "sdLogFC") # each cell it's own label
-ss4 <- clusteringScore(M, sample(5,ncol(M),replace=TRUE), score.type = "sdLogFC") # random labels (k=5)
+ss4 <- clusteringScore(M, sample(5, ncol(M), replace = TRUE), score.type = "sdLogFC") # random labels (k=5)
 ss$score.norm
 ss2$score.norm
 ss3$score.norm
@@ -98,19 +98,24 @@ label <- attr(M, "label")
 
 M2 <- M
 library(org.Mm.eg.db)
-eg <- select(x=org.Mm.eg.db, keys=rownames(M2), keytype = "ENSEMBL", columns = "ENTREZID")
+eg <- select(x = org.Mm.eg.db, keys = rownames(M2), keytype = "ENSEMBL", columns = "ENTREZID")
 eg <- eg[!duplicated(eg$ENSEMBL), ]
 M2 <- M2[eg$ENSEMBL,]
 rownames(M2) <- as.character(eg$ENTREZID)
 
-cc  <- predictCellCycle(M2, org="mouse.Whitfield", cor_thr = 0.2, granularity = "low")
-cc2 <- predictCellCycle(M2, org="mouse.Ishida",    cor_thr = 0.2, granularity = "low")
-table(known=label, predicted=cc)
-table(known=label, predicted=cc2)
+cc  <- predictCellCycle(M2, org = "mouse.Whitfield", cor_thr = 0.2, granularity = "low")
+cc2 <- predictCellCycle(M2, org = "mouse.Ishida",    cor_thr = 0.2, granularity = "low")
+table(known = label, predicted = cc)
+table(known = label, predicted = cc2)
 griph:::classError(label, cc)
 griph:::classError(label, cc2)
 griph:::classError(label, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(cc)])
 chisq.test(table(label, cc))
+
+clusteringScore(M, label)$score.norm
+clusteringScore(M, res$MEMB)$score.norm
+clusteringScore(M, cc)$score.norm
+clusteringScore(M, cc2)$score.norm
 
 res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
 resP <- SC_cluster(M, ClassAssignment = label, plotG = FALSE, use.par = TRUE, ncores = 8)
@@ -125,7 +130,8 @@ res$ConfMatrix
 
 griph:::classError(res$MEMB, label)
 griph:::classError(res$MEMB, cc)
-griph:::classError(res$MEMB, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(cc)])
+griph:::classError(res$MEMB, c("G1.S" = "G1", "S" = "S", "G2" = "G2M",
+                               "G2.M" = "G2M", "M.G1" = "G1")[as.character(cc)])
 
 g <- plotGraph(res)
 g <- plotGraph(res, mark.type = "true")
@@ -134,6 +140,11 @@ g <- plotGraph(res, mark.type = "custom", custom.class = cc)
 g <- plotGraph(res, fill.type = "predicted", line.type = "none")
 g <- plotGraph(res, collapse.type = "true")
 g <- plotGraph(res, collapse.type = "predicted")
+
+res2 <- griph_cluster(M, ref.iter = 1, ClassAssignment = label, plotG = FALSE)
+g2 <- plotGraph(res2)
+g2 <- plotGraph(res2, line.type = "true", fill.type = "custom", fill.col = "Set1",
+                custom.class = cc, draw.edges = TRUE)
 
 # nice graph visualization examples: https://rpubs.com/kateto/netviz
 g2 <- igraph::simplify( igraph::contract(res$GRAO, res$MEMB) ) # just plot one vertex per cell types
