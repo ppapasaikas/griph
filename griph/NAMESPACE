@@ -19,5 +19,5 @@ import(RColorBrewer)
 useDynLib(griph, .registration = TRUE)
 
 
-export(SC_cluster, griph_cluster, plotGraph, predictCellCycle, HellingerMat, JSDmat)
+export(SC_cluster, SC_cluster2, griph_cluster, plotGraph, predictCellCycle, HellingerMat, PHellingerMat, PCanberraMat, JSDmat)
 
