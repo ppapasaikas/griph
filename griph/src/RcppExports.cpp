@@ -27,3 +27,27 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// PCanberraMat
+NumericMatrix PCanberraMat(NumericMatrix A, NumericMatrix B);
+RcppExport SEXP griph_PCanberraMat(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(PCanberraMat(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PHellingerMat
+NumericMatrix PHellingerMat(NumericMatrix A, NumericMatrix B);
+RcppExport SEXP griph_PHellingerMat(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(PHellingerMat(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}

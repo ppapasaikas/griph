@@ -18,7 +18,6 @@ WScor <- function (M, C1=matrix(1,ncol(M),ncol(M) ),
     R=vapply(c(1:ncol(C1)),function (x) rank(C1[,x]),FUN.VALUE=double(length=nrow(C1) ) )  #pearson's cor
     
     Dt=CanberraDist(log2(M+1)) #
-    #Dt=as.matrix(dist(t(log2(M+1)),method="canberra" )) #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
@@ -60,6 +59,7 @@ canberra <- function (M) {
     D=as.matrix(dist(t(M),method="canberra" )) #
     return(D)
 }
+
 
 
 Qglasso <- function (C,rho=0.5,tol=1e-3,maxIter=100,msg=0) {
@@ -379,7 +379,10 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
     dimnames(ADJ) <- list(CellIds,CellIds)
+    dimnames(Cuse) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
+    V(GRAO)$labels=CellIds
+    
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)

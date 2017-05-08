@@ -2,8 +2,16 @@
 % Please edit documentation in R/plotting.R
 \name{plotTsne}
 \alias{plotTsne}
+\alias{plotTsne}
 \title{Visualize griph result as a tSNE projection.}
 \usage{
+plotTsne(gr, fill.type = c("predicted", "true", "none", "custom"),
+  line.type = c("true", "predicted", "none", "custom"),
+  mark.type = c("none", "predicted", "true", "custom"),
+  fill.col = "Spectral", line.col = "Dark2", mark.col = "Pastel1",
+  custom.class = factor(rep(1, length(gr$MEMB))), seed = 91919,
+  fsuffix = RandString(), image.format = NA, quiet = FALSE, ...)
+
 plotTsne(gr, fill.type = c("predicted", "true", "none", "custom"),
   line.type = c("true", "predicted", "none", "custom"),
   mark.type = c("none", "predicted", "true", "custom"),
@@ -53,14 +61,63 @@ is rendered on the currently opened plotting device.}
 \item{quiet}{If \code{TRUE}, do not report on progress.}
 
 \item{...}{additional arguments passed to \code{Rtsne}}
+
+\item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}}.}
+
+\item{fill.type}{Type of fill color, one of \code{predicted} (predicted class
+labels, default), \code{true} (true class labels, if available), \code{none}
+(no fill color) or \code{custom} (use \code{custom.col}).}
+
+\item{line.type}{Type of line color, one of \code{true} (true class labels, if
+available, default), \code{predicted} (predicted class labels), \code{none}
+for no fill color or \code{custom} (use \code{custom.col}).}
+
+\item{mark.type}{Type of cell class defnition to mark using polygons,
+one of \code{none} (no polygons, the default), \code{predicted} (draw
+polygons around cells with the same predicted class label), \code{true}
+(polygons around cells with the same true class label, if available) or
+\code{custom} (polygons around cells with the same \code{custom.class}).}
+
+\item{fill.col}{Character scalar with a \code{\link{RColorBrewer}} color palette name
+or color vector defining the palette to use for vertex fill coloring.}
+
+\item{line.col}{Character scalar with a \code{\link{RColorBrewer}} color palette name
+or color vector defining the palette to use for vertex outline coloring.}
+
+\item{mark.col}{Character scalar with a \code{\link{RColorBrewer}} color palette name
+or color vector defining the palette to use for cell class polygon marking.}
+
+\item{custom.class}{Factor, character or numberic vector of the same length or
+with names corresponding to names(gr$MEMB) to use for custom cell classification
+(used if \code{fill.type} and/or \code{line.type} is set to "custom").}
+
+\item{seed}{Random number seed to make t-SNE projection deterministic.}
+
+\item{fsuffix}{A suffix added to the file names of output plots. If not given
+it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.}
+
+\item{image.format}{Specifies the format of the created image. Currently supported are
+\code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
+is rendered on the currently opened plotting device.}
+
+\item{quiet}{If \code{TRUE}, do not report on progress.}
+
+\item{...}{additional arguments passed to \code{Rtsne}}
 }
 \value{
+Invisible the results of the t-SNE projection.
+
 Invisible the results of the t-SNE projection.
 }
 \description{
 Plot a t-SNE projection of the affinity matrix obtained from
     \code{\link{SC_cluster}}, allowing to control coloring.
+
+Plot a t-SNE projection of the affinity matrix obtained from
+    \code{\link{SC_cluster}}, allowing to control coloring.
 }
 \seealso{
+\code{Rtsne} used to calculate the t-SNE projection.
+
 \code{Rtsne} used to calculate the t-SNE projection.
 }

@@ -18,10 +18,14 @@
 /* .Call calls */
 extern SEXP griph_HellingerMat(SEXP);
 extern SEXP griph_JSDmat(SEXP);
+extern SEXP griph_PCanberraMat(SEXP, SEXP);
+extern SEXP griph_PHellingerMat(SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"griph_HellingerMat", (DL_FUNC) &griph_HellingerMat, 1},
-    {"griph_JSDmat",       (DL_FUNC) &griph_JSDmat,       1},
+    {"griph_HellingerMat",  (DL_FUNC) &griph_HellingerMat,  1},
+    {"griph_JSDmat",        (DL_FUNC) &griph_JSDmat,        1},
+    {"griph_PCanberraMat",  (DL_FUNC) &griph_PCanberraMat,  2},
+    {"griph_PHellingerMat", (DL_FUNC) &griph_PHellingerMat, 2},
     {NULL, NULL, 0}
 };
 
