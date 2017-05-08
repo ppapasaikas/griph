@@ -62,6 +62,11 @@ canberra <- function (M) {
 }
 
 
+pcanberra <- function (p,q) {
+    dist(rbind(p,q),method="canberra" )
+}
+
+
 Qglasso <- function (C,rho=0.5,tol=1e-3,maxIter=100,msg=0) {
     X<-QUIC::QUIC(C,rho=rho,tol=tol,maxIter=maxIter,msg=msg)$X 
     return(X)
