@@ -11,7 +11,7 @@
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' 
 #' @return cell-by-cell distance matrix.
-WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) {
+WScor2 <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     
     nBulks=min(1000, 3*ncol(M) )
     #FBsize=min(100,ceiling(2*sqrt(ncol(M))) )
@@ -29,7 +29,7 @@ WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) {
     else {FB=M[,SMPL[1:nBulks]]}
     ###FB=M
     
-    cFB=coop::pcor(log2(FB+1))
+    cFB=PearsonCor(log2(FB+1))
     cFB[!lower.tri(cFB)] <- 0
     Q=quantile(cFB[lower.tri(cFB)],0.995)
     FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
@@ -37,7 +37,7 @@ WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) {
 
     message("Number of Fake Bulks Kept: ", ncol(FB),"\n")
 
-    message("1","\n")
+    #message("1","\n")
     D=cor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
@@ -51,17 +51,16 @@ WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) {
     M=sweep(M,2,CellCounts,FUN="/")
     M=M*10000 
     
-    message("2","\n")
-    #Dt=outer(as.data.frame(log2(FB+1)),as.data.frame(log2(M+1)),Vectorize(pcanberra)) #
+    #message("2","\n")
     Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
-    message("3","\n")
+    #message("3","\n")
     Dt=cor(FB,M,method="spearman")
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
-    message("4","\n")
+    #message("4","\n")
     Dt=PHellingerMat(FB,M)
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
@@ -97,11 +96,6 @@ Spcor <- function (M) { #Spearman's correlation using coop
 canberra <- function (M) {
     D=as.matrix(dist(t(M),method="canberra" )) #
     return(D)
-}
-
-
-pcanberra <- function (p,q) {
-    dist(rbind(p,q),method="canberra" )
 }
 
 
@@ -279,7 +273,7 @@ SC_cluster2 <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         #C[[2]]=WScor(nDM,C1=C[[1]], CanberraDist=CanberraDist,
         #             SpearmanCor=SpearmanCor, HellingerDist=HellingerDist, ShrinkCor=ShrinkCor)
         
-        C[[2]]=WScor2(DM, pcanberra=pcanberra, ShrinkCor = ShrinkCor )
+        C[[2]]=WScor2(DM, PearsonCor=PearsonCor, ShrinkCor = ShrinkCor )
         nDM<-NULL
         
         message("done")
@@ -414,8 +408,7 @@ SC_cluster2 <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within=2, weight.between=0.5)
     
     GRAO<-igraph::set.vertex.attribute(GRAO, "labels", value=CellIds)
-    GRAOp<-NULL
-    
+
     
     ######### Optimal Mapping between true and estimated class assignments: ##########
     mapping <- mapLabelsGreedy(memb$membership, ClassAssignment)
@@ -425,6 +418,7 @@ SC_cluster2 <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
     dimnames(ADJ) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
+    V(GRAO)$labels=CellIds
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
@@ -470,7 +464,7 @@ SC_cluster2 <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
 #'     or color vector defining the palette to use for vertex outline coloring.
 #' @param mark.col Character scalar with a \code{\link{RColorBrewer}} color palette name
 #'     or color vector defining the palette to use for cell class polygon marking.
-#' @param custom.class Factor, character or numberic vector of the same length or
+#' @param custom.class Factor, character or numeric vector of the same length or
 #'     with names corresponding to names(gr$MEMB) to use for custom cell classification
 #'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
 #' @param seed Random number seed to make graph layout deterministic.
