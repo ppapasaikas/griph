@@ -49,3 +49,55 @@ JSDmat <- function(A) {
     .Call('griph_JSDmat', PACKAGE = 'griph', A)
 }
 
+#' @title Canberra distance between columns of two matrices.
+#'
+#' @description
+#' \code{CanberraMat} returns a matrix of Canberra distances between
+#' the columns of the matrix passed as argument.
+#'
+#' @details
+#' This function calculates the Canberra distances between the columns of two matrices
+#' given as argument. It is implemented in C++ for efficiency. For two argument
+#' matrices with the same number of r rows and c1 , c2 columns, the return value is an c1-by-c2 matrix with
+#' the pairwise c1i c2j distances.
+#'
+#' @param A  Numeric matrix (variables by features)
+#' @param B  Numeric matrix (variables by features)
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(1:12, nrow=3, ncol=4)
+#' y <- matrix(1:12, nrow=3, ncol=5)
+#' PHellingerMat(x, y)
+#'
+PCanberraMat <- function(A, B) {
+    .Call('griph_PCanberraMat', PACKAGE = 'griph', A, B)
+}
+
+#' @title Hellinger distance between columns of two matrices.
+#'
+#' @description
+#' \code{HellingerMat} returns a matrix of Hellinger distances between
+#' the columns of the matrix passed as argument.
+#'
+#' @details
+#' This function calculates the Hellinger distances between the columns of two matrices
+#' given as argument. It is implemented in C++ for efficiency. For two argument
+#' matrices with the same number of r rows and c1 , c2 columns, the return value is an c1-by-c2 matrix with
+#' the pairwise c1i c2j distances.
+#'
+#' @param A  Numeric matrix (variables by features)
+#' @param B  Numeric matrix (variables by features)
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(1:12, nrow=3, ncol=4)
+#' y <- matrix(1:12, nrow=3, ncol=5)
+#' PHellingerMat(x, y)
+#'
+PHellingerMat <- function(A, B) {
+    .Call('griph_PHellingerMat', PACKAGE = 'griph', A, B)
+}
+

@@ -25,7 +25,7 @@ using namespace Rcpp;
 //'
 // [[Rcpp::export]]
 NumericMatrix HellingerMat(NumericMatrix A) {
-    NumericMatrix A2 = A; // don't overwrite inputs
+    NumericMatrix A2=clone(A); // don't overwrite inputs
 
     unsigned int rows = A2.nrow();
     unsigned int cols = A2.ncol();
