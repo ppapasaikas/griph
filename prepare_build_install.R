@@ -146,6 +146,14 @@ g2 <- plotGraph(res2)
 g2 <- plotGraph(res2, line.type = "true", fill.type = "custom", fill.col = "Set1",
                 custom.class = cc, draw.edges = TRUE)
 
+library(largeVis)
+res3 <- largeVis(res$DISTM, dim = 2, K = 20, save_edges = FALSE)
+plot(t(res3$coords), col = RColorBrewer::brewer.pal(length(unique(res$MEMB)), "Set1")[res$MEMB])
+str(res3$coords)
+
+res4 <- projectKNNs(Matrix(res$DISTM), dim = 2, verbose = TRUE, gamma = 10, alpha = 0.02, rho = 0.5)
+plot(t(res4), col = RColorBrewer::brewer.pal(length(unique(res$MEMB)), "Set1")[res$MEMB])
+
 # nice graph visualization examples: https://rpubs.com/kateto/netviz
 g2 <- igraph::simplify( igraph::contract(res$GRAO, res$MEMB) ) # just plot one vertex per cell types
 plot(g2)
