@@ -13,11 +13,11 @@ importFrom("graphics", "legend", "par", "plot", "symbols", "points")
 importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd")
 importFrom("utils", "flush.console")
 importFrom("Rcpp", "evalCpp")
-importFrom("gtools", "permutations") # only used in griph::mapLabelsExhaustive
 import(RColorBrewer)
 
 useDynLib(griph, .registration = TRUE)
 
 
-export(SC_cluster, SC_cluster2, griph_cluster, plotGraph, predictCellCycle, HellingerMat, PHellingerMat, PCanberraMat, JSDmat)
+export(SC_cluster, SC_cluster2, griph_cluster, plotGraph, predictCellCycle, clusteringScore, HellingerMat, PHellingerMat, PCanberraMat, JSDmat)
+
 
