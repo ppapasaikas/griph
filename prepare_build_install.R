@@ -128,6 +128,7 @@ griph:::classError(res$MEMB, cc)
 griph:::classError(res$MEMB, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(cc)])
 
 g <- plotGraph(res)
+g <- plotGraph(res, fill.type = "custom", custom.class = cc, fill.col = "Set1")
 g <- plotGraph(res, mark.type = "true")
 g <- plotGraph(res, mark.type = "predicted")
 g <- plotGraph(res, mark.type = "custom", custom.class = cc)

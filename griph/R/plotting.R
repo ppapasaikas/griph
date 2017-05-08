@@ -27,7 +27,7 @@
 #'     or color vector defining the palette to use for vertex outline coloring.
 #' @param mark.col Character scalar with a \code{\link{RColorBrewer}} color palette name
 #'     or color vector defining the palette to use for cell class polygon marking.
-#' @param custom.class Factor, character or numberic vector of the same length or
+#' @param custom.class Factor, character or numeric vector of the same length or
 #'     with names corresponding to names(gr$MEMB) to use for custom cell classification
 #'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
 #' @param seed Random number seed to make graph layout deterministic.
