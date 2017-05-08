@@ -6,9 +6,10 @@
 \usage{
 SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1,
-  batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
-  BatchAssignment = NULL, plotG = TRUE, maxG = 2500,
-  fsuffix = RandString(), image.format = "png")
+  batch.penalty = 0.5, comm.method = igraph::cluster_infomap, ncom = NULL,
+  ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL,
+  plotG = TRUE, maxG = 2500, fsuffix = RandString(),
+  image.format = "png", ...)
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -41,6 +42,11 @@ Set to zero to deactivate.}
 \item{batch.penalty}{[0,1] rho scaling factor for enforcing topological constraints
 variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}.}
+
+\item{comm.method}{Community detection algorithm. See igraph "communities"}
+
+\item{ncom}{Forces the community detection algorithm to a fixed number of communities. Only possible with hierarchical methods (like fast_greedy).
+If \code{NULL} (default) then the optimal determined number of clusters of the used  community detection algorithm.}
 
 \item{ClassAssignment}{If available a numeric vector of length \code{k} with numeric
 class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
