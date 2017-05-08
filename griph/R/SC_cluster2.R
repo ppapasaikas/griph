@@ -35,7 +35,7 @@ WScor2 <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
     cFB=NULL
 
-    message("Number of Fake Bulks Kept: ", ncol(FB),"\n")
+    #message("Number of Fake Bulks Kept: ", ncol(FB),"\n")
 
     #message("1","\n")
     D=cor(log2(FB+1),log2(M+1))
@@ -406,23 +406,20 @@ SC_cluster2 <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
     E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within=2, weight.between=0.5)
-    
-    GRAO<-igraph::set.vertex.attribute(GRAO, "labels", value=CellIds)
 
-    
     ######### Optimal Mapping between true and estimated class assignments: ##########
     mapping <- mapLabelsGreedy(memb$membership, ClassAssignment)
     misclErr <- classError(memb$membership, ClassAssignment, mapping)
-    
-    
+
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
     dimnames(ADJ) <- list(CellIds,CellIds)
+    dimnames(Cuse) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
     V(GRAO)$labels=CellIds
+
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
-    
     
     ######### graph visualization
     if (plotG)

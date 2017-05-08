@@ -379,7 +379,10 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
     dimnames(ADJ) <- list(CellIds,CellIds)
+    dimnames(Cuse) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
+    V(GRAO)$labels=CellIds
+    
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
