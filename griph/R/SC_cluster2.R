@@ -11,11 +11,11 @@
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' 
 #' @return cell-by-cell distance matrix.
-WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) { #Spearman's weighted correlation using cor.shrink
+WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) {
     
-    nBulks=min(800, 4*ncol(M) )
+    nBulks=min(1000, 3*ncol(M) )
     #FBsize=min(100,ceiling(2*sqrt(ncol(M))) )
-    FBsize=1
+    FBsize=3
     
     rep.ind=rep(1:ncol(M),ceiling(nBulks*FBsize/ncol(M))   )
     SMPL=sample(rep.ind,(nBulks*FBsize),replace=FALSE    )
@@ -27,15 +27,21 @@ WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) { #Spearman'
         }
     }
     else {FB=M[,SMPL[1:nBulks]]}
-    FB=M
+    ###FB=M
     
-    #cFB=coop::pcor(log2(FB+1))
-    #cFB[!lower.tri(cFB)] <- 0
-    #Q=quantile(cFB[lower.tri(cFB)],0.9999)
-    #FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
-    #cFB=NULL
-    
+    cFB=coop::pcor(log2(FB+1))
+    cFB[!lower.tri(cFB)] <- 0
+    Q=quantile(cFB[lower.tri(cFB)],0.995)
+    FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
+    cFB=NULL
+
     message("Number of Fake Bulks Kept: ", ncol(FB),"\n")
+
+    message("1","\n")
+    D=cor(log2(FB+1),log2(M+1))
+    R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
+
+    
     ######## Counts per 10K:
     CellCounts=colSums(FB)
     FB=sweep(FB,2,CellCounts,FUN="/")
@@ -45,12 +51,9 @@ WScor2 <- function (M, pcanberra=pcanberra, ShrinkCor=ShrinkCor   ) { #Spearman'
     M=sweep(M,2,CellCounts,FUN="/")
     M=M*10000 
     
-    message("1","\n")
-    D=cor(log2(FB+1),log2(M+1))
-    R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor
     message("2","\n")
-    Dt=outer(as.data.frame(log2(FB+1)),as.data.frame(log2(M+1)),Vectorize(pcanberra)) #
-    #Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
+    #Dt=outer(as.data.frame(log2(FB+1)),as.data.frame(log2(M+1)),Vectorize(pcanberra)) #
+    Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra

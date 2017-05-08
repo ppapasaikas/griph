@@ -18,7 +18,6 @@ WScor <- function (M, C1=matrix(1,ncol(M),ncol(M) ),
     R=vapply(c(1:ncol(C1)),function (x) rank(C1[,x]),FUN.VALUE=double(length=nrow(C1) ) )  #pearson's cor
     
     Dt=CanberraDist(log2(M+1)) #
-    #Dt=as.matrix(dist(t(log2(M+1)),method="canberra" )) #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra

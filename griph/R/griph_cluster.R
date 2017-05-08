@@ -87,7 +87,7 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
             if (i==0) {
                 params$DM=DM
                 params$pr.iter=1
-                cluster.res <- do.call("SC_cluster",params)
+                cluster.res <- do.call("SC_cluster2",params)
             }
             else {
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
@@ -98,8 +98,8 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 min.csize <-max(4, ceiling(0.25*sqrt(length(memb)) ) )
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
-                if (length(good.clust)<4){
-                message("\nToo few substantial clusters (<4). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
+                if (length(good.clust)<3){
+                message("\nToo few substantial clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
                 plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
                 break  
                 }
@@ -114,7 +114,7 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 learnStep=1-(1/sqrt(length(good.clust)))
                 
                 params$DM=((1-learnStep)*cluster.res$CORM+learnStep*SpearmanCor(cor(log2(FakeBulk+1),log2(DM+1)   )))
-                cluster.res <- do.call("SC_cluster",c(params,list(comm.method=igraph::cluster_louvain) ) )
+                cluster.res <- do.call("SC_cluster2",c(params,list(comm.method=igraph::cluster_louvain) ) )
             }
         gc() #Call garbage collector
         }
