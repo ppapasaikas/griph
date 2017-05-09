@@ -15,6 +15,7 @@
 #'     cycle classification. \code{"high"} (default) will call as many more different
 #'     cell cycle stages, depending on the available training genes; \code{"low"}
 #'     will call fewer different stages (prefered for data with many non-observed genes). 
+#' @param refine_iter Numberic scalar giving the maximum number of refinement iterations.
 #' 
 #' @details \code{predictCellCycle} uses genes known to peak in transcription at
 #'     given cell cycle stages (for \code{org="human.Whitfield"} obtained from
@@ -24,7 +25,10 @@
 #'     al., 2001; see references).
 #'     For each cell, five normalized cell cycle stage scores are calculated, and
 #'     the cell is assigned to the one that most closely resembles the expected
-#'     profile based on correlation.
+#'     profile based on correlation. Optionally, labels are further refined
+#'     (\code{refine_iter} parameter) by iteratively estimating new cell cycle
+#'     score profiles based on estimated cell labels, and re-assigning cells to
+#'     the profile with the highest correlation.
 #' 
 #' @references Whitfield et al., "Identification of genes periodically expressed
 #'     in the human cell cycle and their expression in tumors.", Mol Bio Cell, 2002,
@@ -39,7 +43,8 @@
 #' @return A factor of length \code{ncol(cnt)} (the number of cells) with
 #'     predicted cell cycle stages.
 predictCellCycle <- function(cnt, org = c("human.Whitfield", "mouse.Whitfield", "mouse.Ishida"),
-                             cor_thr = 0.2, granularity = c("high", "low")) {
+                             cor_thr = 0.2, granularity = c("high", "low"),
+                             refine_iter = 0) {
     
     # load gene sets
     org <- match.arg(org)
@@ -129,6 +134,30 @@ predictCellCycle <- function(cnt, org = c("human.Whitfield", "mouse.Whitfield", 
     # Assigning cells to different cell cycle patterns
     patCor <- cor(phaseSpecificScoreNorm2, phasePatterns)
     patCells <- colnames(phasePatterns)[unlist(apply(patCor,1,which.max))]
+    
+    # optional iterative refinement of cell labels
+    refine_rate <- 0.5
+    while (refine_iter > 0) {
+        #message("refining ",refine_iter)
+        #message("\t: ",paste(table(patCells),collapse = ", "))
+        patnms <- colnames(phasePatterns)
+        phasePatterns <- (1 - refine_rate) * phasePatterns +
+            refine_rate * do.call(cbind,
+                                  lapply(patnms,
+                                         function(patnm) {
+                                             rowMeans(phaseSpecificScoreNorm2[, patCells == patnm, drop = FALSE])
+                                         })
+                                  )
+        patCor <- cor(phaseSpecificScoreNorm2, phasePatterns)
+        patCellsNew <- patnms[unlist(apply(patCor,1,which.max))]
+        #message("\t: ",paste(table(patCellsNew),collapse = ", "))
+        if (all(patCells == patCellsNew)) {
+            break
+        } else {
+            refine_iter <- refine_iter - 1
+            patCells <- patCellsNew
+        }
+    }
   
     return(factor(unname(pat2cc[patCells]), levels = unname(pat2cc)))
 }
