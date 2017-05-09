@@ -103,19 +103,31 @@ eg <- eg[!duplicated(eg$ENSEMBL), ]
 M2 <- M2[eg$ENSEMBL,]
 rownames(M2) <- as.character(eg$ENTREZID)
 
-cc  <- predictCellCycle(M2, org = "mouse.Whitfield", cor_thr = 0.2, granularity = "low")
-cc2 <- predictCellCycle(M2, org = "mouse.Ishida",    cor_thr = 0.2, granularity = "low")
+cc   <- predictCellCycle(M2, org = "mouse.Whitfield", cor_thr = 0.2, granularity = "low")
+ccr  <- predictCellCycle(M2, org = "mouse.Whitfield", cor_thr = 0.2, granularity = "low", refine_iter = 50)
+cc2  <- predictCellCycle(M2, org = "mouse.Ishida",    cor_thr = 0.2, granularity = "low")
+cc2r <- predictCellCycle(M2, org = "mouse.Ishida",    cor_thr = 0.2, granularity = "low", refine_iter = 50)
 table(known = label, predicted = cc)
+table(known = label, predicted = ccr)
 table(known = label, predicted = cc2)
+table(known = label, predicted = cc2r)
 griph:::classError(label, cc)
+griph:::classError(label, ccr)
 griph:::classError(label, cc2)
+griph:::classError(label, cc2r)
 griph:::classError(label, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(cc)])
+griph:::classError(label, c("G1.S"="G1", "S"="S", "G2"="G2M", "G2.M"="G2M", "M.G1"="G1")[as.character(ccr)])
 chisq.test(table(label, cc))
+chisq.test(table(label, ccr))
+chisq.test(table(label, cc2))
+chisq.test(table(label, cc2r))
 
 clusteringScore(M, label)$score.norm
 clusteringScore(M, res$MEMB)$score.norm
 clusteringScore(M, cc)$score.norm
+clusteringScore(M, ccr)$score.norm
 clusteringScore(M, cc2)$score.norm
+clusteringScore(M, cc2r)$score.norm
 
 res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
 resP <- SC_cluster(M, ClassAssignment = label, plotG = FALSE, use.par = TRUE, ncores = 8)
