@@ -78,7 +78,23 @@ WScor2 <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     minW=quantile(W,probs=seq(0,1,0.1))[[2]]
     W=((minW)/(W+1*minW))  #
     W=W/max(W)
-    R=ShrinkCor( R^2 ,verbose=FALSE,lambda=0, w=W ) 
+    R=R^2
+    
+
+    if(is.element("largeVis", utils::installed.packages()[,1]) & ncol(R) > 2e5){
+    R=sweep(R,2,colMeans(R),"-")
+    R=R*(W^0.41)
+    R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
+    R=1-as.matrix(as.dist(R))/2
+    R[is.na(R)]=0
+    }
+    #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
+    #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
+    #largeVis is O(MNlog(N)) (M is number of features, N number of cells )
+    #cor.shrink is O(MN^2)
+    else{
+    R=ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
+    }
     return(as(R,"matrix"))
 }
 
@@ -1019,7 +1035,7 @@ plotLVis <- function(gr,
     if(!quiet)
         message("Computing largeVis projection...")
     set.seed(seed = seed)
-    res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.1, M=3, gamma=32, alpha=0.25, useDegree=TRUE, ...)
+    res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=100, alpha=0.25, useDegree=TRUE, seed=seed, ...)
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
