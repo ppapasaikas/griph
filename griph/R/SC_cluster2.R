@@ -1035,7 +1035,7 @@ plotLVis <- function(gr,
     if(!quiet)
         message("Computing largeVis projection...")
     set.seed(seed = seed)
-    res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=100, alpha=0.25, useDegree=TRUE, seed=seed, ...)
+    res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
