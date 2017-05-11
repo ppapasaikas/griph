@@ -75,15 +75,10 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
     }
     
     params <-as.list(environment())
-    
+    params$plotG=FALSE  
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
     tryCatch({    
         for (i in 0:ref.iter) { 
-            if (i<ref.iter){
-                params$plotG=FALSE   
-            }
-            else {params$plotG=plotG}
-            
             if (i==0) {
                 params$DM=DM
                 params$pr.iter=1
