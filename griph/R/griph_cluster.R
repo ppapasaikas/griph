@@ -100,12 +100,11 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 good.clust=as.vector(which(table(memb)>=min.csize) )
                 if (length(good.clust)<3){
                 message("\nToo few substantial clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
-                plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
                 break  
                 }
-                else {
+
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
-                }
+ 
                 FakeBulk=matrix(0,nrow(DM),length(good.clust))
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
@@ -118,7 +117,11 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
             }
         gc() #Call garbage collector
         }
-        
+    
+    if (plotG==TRUE){    
+    plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
+    }
+           
     }, # end of tryCatch expression, cluster object cl not needed anymore    
     finally = { 
         ##### Stop registered cluster:
