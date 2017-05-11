@@ -75,15 +75,10 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
     }
     
     params <-as.list(environment())
-    
+    params$plotG=FALSE  
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
     tryCatch({    
         for (i in 0:ref.iter) { 
-            if (i<ref.iter){
-                params$plotG=FALSE   
-            }
-            else {params$plotG=plotG}
-            
             if (i==0) {
                 params$DM=DM
                 params$pr.iter=1
@@ -99,13 +94,12 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
                 if (length(good.clust)<3){
-                message("\nToo few substantial clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
-                plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
-                break  
+                    message("\nToo few substantial clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
+                    break  
                 }
-                else {
+                
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
-                }
+                
                 FakeBulk=matrix(0,nrow(DM),length(good.clust))
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
@@ -116,7 +110,11 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
                 params$DM=((1-learnStep)*cluster.res$CORM+learnStep*SpearmanCor(cor(log2(FakeBulk+1),log2(DM+1)   )))
                 cluster.res <- do.call("SC_cluster2",c(params,list(comm.method=igraph::cluster_louvain) ) )
             }
-        gc() #Call garbage collector
+            gc() #Call garbage collector
+        }
+        
+        if (plotG==TRUE){    
+            plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
         }
         
     }, # end of tryCatch expression, cluster object cl not needed anymore    
