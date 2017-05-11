@@ -442,7 +442,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     #apply simple k-means on the largeVis projection
     
     
-    
     csize=table(memb$membership)
     ConfMatrix <- table(predicted=memb$membership, true=ClassAssignment)
     message("done")
@@ -450,21 +449,27 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
     E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within=2, weight.between=0.5)
-
+    
     ######### Optimal Mapping between true and estimated class assignments: ##########
     mapping <- mapLabelsGreedy(memb$membership, ClassAssignment)
     misclErr <- classError(memb$membership, ClassAssignment, mapping)
-
+    
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
+    
     dimnames(ADJ) <- list(CellIds,CellIds)
     dimnames(Cuse) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
+    
+    message(length(V(GRAO)),"\r")
+    message(length(CellIds),"\r")
+    
     V(GRAO)$labels=CellIds
 
+    
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
-    
+
     ######### graph visualization
     if (plotG)
         ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,

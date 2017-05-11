@@ -12,6 +12,8 @@
 #' 
 #' @return cell-by-cell distance matrix.
 WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
+    CellIds=colnames(M)
+    dimnames(M)=NULL
     message("1","\n")
     D=cor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
@@ -56,11 +58,16 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
     if(is.element("largeVis", utils::installed.packages()[,1])){
         R=sweep(R,2,colMeans(R),"-")
         R=R*(W^0.41)
-        R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
+        R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine"  )
+        #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine",K=min(max(10*sqrt(ncol(R)),100) ,floor(ncol( R))/1.25)  )
+        
+        R=sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
         message("6","\n")
-        R=1-as.matrix(as.dist(R))/2
-        message("7","\n")
-        R[is.na(R)]=0
+        #R=1-(R/2)
+        #R=1-as.matrix(as.dist(R))/2
+        #message("7","\n")
+        #R[is.na(R)]=0
+        dimnames(R)=list(CellIds,CellIds)
     }
     #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
     #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
