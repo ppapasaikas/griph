@@ -1,3 +1,98 @@
+#' Combined distance calculations.
+#' 
+#' @description Calculate and combine several between-cell distance measures to
+#'     obtain robust cell-to-cell distances.
+#' 
+#' @param M gene-by-cell count matrix.
+#' @param C1 cell-by-cell (correlation?) matrix.
+#' @param CanberraDist Function to calculate Canberra distance.
+#' @param SpearmanCor Function to calculate Spearman rank correlation.
+#' @param HellingerDist Function to calculate Hellinger distance.
+#' @param ShrinkCor Function to calculate shrinkage correlation.
+#' 
+#' @return cell-by-cell distance matrix.
+WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
+    message("1","\n")
+    D=cor(log2(FB+1),log2(M+1))
+    R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
+    
+    ######## Counts per 10K:
+    CellCounts=colSums(FB)
+    FB=sweep(FB,2,CellCounts,FUN="/")
+    FB=FB*10000
+    CellCounts=colSums(M)
+    M=sweep(M,2,CellCounts,FUN="/")
+    M=M*10000 
+    
+    message("2","\n")
+    Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
+    Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
+    D=D+Dt
+    R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
+    message("3","\n")
+    Dt=cor(FB,M,method="spearman")
+    D=D+Dt
+    R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
+    message("4","\n")
+    Dt=PHellingerMat(FB,M)
+    Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
+    D=D+Dt
+    R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
+    
+    R=R/4
+    WM=D/4
+    
+    ##### Kernelize average distance
+    ave=mean(WM[which(WM>0)])
+    GK=exp(- ( ((1-WM)^2) / ((1-ave)^2) ) ) 
+    
+    ##### Compute weights of Fake bulks based on local density
+    W=apply(GK ,1,sum )^(3) #
+    minW=quantile(W,probs=seq(0,1,0.1))[[2]]
+    W=((minW)/(W+1*minW))  #
+    W=W/max(W)
+    R=R^2
+    message("5","\n")
+    if(is.element("largeVis", utils::installed.packages()[,1])){
+        R=sweep(R,2,colMeans(R),"-")
+        R=R*(W^0.41)
+        R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
+        message("6","\n")
+        R=1-as.matrix(as.dist(R))/2
+        message("7","\n")
+        R[is.na(R)]=0
+    }
+    #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
+    #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
+    #largeVis is O(MNlog(N)) (M is number of features, N number of cells )
+    #cor.shrink is O(MN^2)
+    #else{
+    #    R=ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
+    #}
+    else{
+    message("!!!! largeVis Not Installed !!!! \r"   )
+    }
+    return(as(R,"matrix"))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #' @title Wrapper function for SC_cluster
 #' 
 #' @description \code{griph_cluster} takes a gene-by-cell matrix with read counts as
@@ -45,14 +140,16 @@
 
 
 
-griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="all",
-                          impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
+griph_cluster <- function(DM, SamplingSize=750,ref.iter=0,use.par=FALSE,ncores="all",
+                          impute = FALSE, filter = FALSE, rho = 0.25, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
     
     ptm=proc.time() #Start clock
     
+    #######Define functions if use.par=FALSE
     SpearmanCor=Spcor
+    ShrinkCor=corpcor::cor.shrink
     
     if (length(ClassAssignment) != ncol(DM))
         stop ("length(ClassAssignment) must be equal to ncol(DM)")
@@ -63,6 +160,7 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
         SpearmanCor=FlashSpearmanCor
+        ShrinkCor=FlashShrinkCor
         
         if(ncores=="all"){
             ncores = parallel::detectCores()
@@ -80,35 +178,53 @@ griph_cluster <- function(DM, is.cor = FALSE,ref.iter=0,use.par=FALSE,ncores="al
     tryCatch({    
         for (i in 0:ref.iter) { 
             if (i==0) {
+                
+                if (ncol(DM)>SamplingSize){
+                SMPL=sample(1:ncol(DM),SamplingSize)
+                params$DM=DM[,SMPL]    
+                params$ClassAssignment=ClassAssignment[SMPL]
+                    if (!is.null(BatchAssignment)){
+                    params$BatchAssignment=BatchAssignment[SMPL]   
+                    }
+                }
+                
+                else{
                 params$DM=DM
-                params$pr.iter=1
-                cluster.res <- do.call("SC_cluster2",params)
+                }
+                
+                cluster.res <- do.call(    "SC_cluster", c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1,ncom=20 ) )     )
             }
             else {
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
                 params$is.cor=TRUE
-                params$pr.iter=0
+                params$ClassAssignment=ClassAssignment
+                params$BatchAssignment=BatchAssignment  
+                
                 ####### construct cell2cell correlation matrix using the current cluster.res: ########
                 memb=cluster.res$MEMB
-                min.csize <-max(4, ceiling(0.25*sqrt(length(memb)) ) )
+                min.csize <-max(4, ceiling(0.2*sqrt(length(memb)) ) )
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
                 if (length(good.clust)<3){
-                    message("\nToo few substantial clusters (<3). Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
+                    message("\nToo few (<3) substantial clusters. Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
                     break  
                 }
                 
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
                 
-                FakeBulk=matrix(0,nrow(DM),length(good.clust))
+                FakeBulk=matrix(0,nrow(params$DM),length(good.clust))
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
-                    FakeBulk[,c]=rowSums(DM[,memb==clust])
+                    FakeBulk[,c]=rowSums(params$DM[,names(memb)][,memb==clust])
                 }
-                learnStep=1-(1/sqrt(length(good.clust)))
                 
-                params$DM=((1-learnStep)*cluster.res$CORM+learnStep*SpearmanCor(cor(log2(FakeBulk+1),log2(DM+1)   )))
-                cluster.res <- do.call("SC_cluster2",c(params,list(comm.method=igraph::cluster_louvain) ) )
+                ###### Calculate distances of all the cells to the FakeBulks:
+                message(nrow(FakeBulk),"\t",nrow(DM),"\t",ncol(FakeBulk),"\t",ncol(DM))
+                message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
+                params$DM=WScorFB(DM,FakeBulk,ShrinkCor=ShrinkCor)
+                message("done")
+                
+                cluster.res <- do.call("SC_cluster",c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
             }
             gc() #Call garbage collector
         }
