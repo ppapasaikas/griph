@@ -2,10 +2,31 @@
 % Please edit documentation in R/RcppExports.R
 \name{PCanberraMat}
 \alias{PCanberraMat}
-\title{PHellingerMat(x, y)}
+\title{Canberra distance between columns of two matrices.}
 \usage{
 PCanberraMat(A, B)
 }
+\arguments{
+\item{A}{Numeric matrix (variables by features)}
+
+\item{B}{Numeric matrix (variables by features)}
+}
+\value{
+A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+}
 \description{
+\code{CanberraMat} returns a matrix of Canberra distances between
+the columns of the matrix passed as argument.
+}
+\details{
+This function calculates the Canberra distances between the columns of two matrices
+given as argument. It is implemented in C++ for efficiency. For two argument
+matrices with the same number of r rows and c1 , c2 columns, the return value is an c1-by-c2 matrix with
+the pairwise c1i c2j distances.
+}
+\examples{
+x <- matrix(1:12, nrow=3, ncol=4)
+y <- matrix(1:12, nrow=3, ncol=5)
 PHellingerMat(x, y)
+
 }

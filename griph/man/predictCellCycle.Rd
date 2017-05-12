@@ -5,7 +5,8 @@
 \title{Predict (infer) cell cycle stage.}
 \usage{
 predictCellCycle(cnt, org = c("human.Whitfield", "mouse.Whitfield",
-  "mouse.Ishida"), cor_thr = 0.2, granularity = c("high", "low"))
+  "mouse.Ishida"), cor_thr = 0.2, granularity = c("high", "low"),
+  refine_iter = 0)
 }
 \arguments{
 \item{cnt}{gene-by-cell count matrix (raw or normalized counts). Rownames must
@@ -23,6 +24,8 @@ match (e.g. \code{"human"} selects "human.Whitfield").}
 cycle classification. \code{"high"} (default) will call as many more different
 cell cycle stages, depending on the available training genes; \code{"low"}
 will call fewer different stages (prefered for data with many non-observed genes).}
+
+\item{refine_iter}{Numberic scalar giving the maximum number of refinement iterations.}
 }
 \value{
 A factor of length \code{ncol(cnt)} (the number of cells) with
@@ -41,7 +44,10 @@ Predict (infert) cell cycle stage for individual cells using
     al., 2001; see references).
     For each cell, five normalized cell cycle stage scores are calculated, and
     the cell is assigned to the one that most closely resembles the expected
-    profile based on correlation.
+    profile based on correlation. Optionally, labels are further refined
+    (\code{refine_iter} parameter) by iteratively estimating new cell cycle
+    score profiles based on estimated cell labels, and re-assigning cells to
+    the profile with the highest correlation.
 }
 \references{
 Whitfield et al., "Identification of genes periodically expressed

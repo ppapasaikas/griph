@@ -4,7 +4,7 @@
 \alias{WScor2}
 \title{Combined distance calculations.}
 \usage{
-WScor2(M, pcanberra = pcanberra, ShrinkCor = ShrinkCor)
+WScor2(M, PearsonCor = PearsonCor, ShrinkCor = ShrinkCor)
 }
 \arguments{
 \item{M}{gene-by-cell count matrix.}
