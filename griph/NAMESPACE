@@ -6,11 +6,10 @@ import(bigmemory)
 importFrom(parallel, detectCores, makeCluster, stopCluster)
 importFrom(corpcor, cor.shrink) #Fast pearson's correlation using BLAS, incorporating weights and shrinkage
 importFrom(coop, pcor)  #Fast pearson's correlation implementation using BLAS
-importFrom(rNMF, rnmf)  #Non-negative matrix factorization
 importFrom("methods", "new", "as")
 importFrom("grDevices", "dev.off", "hcl", "pdf", "png", "colorRampPalette", "rgb")
 importFrom("graphics", "legend", "par", "plot", "symbols", "points")
-importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd")
+importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd", "kmeans")
 importFrom("utils", "flush.console")
 importFrom("Rcpp", "evalCpp")
 import(RColorBrewer)

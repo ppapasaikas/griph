@@ -120,7 +120,6 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 #' @param ncores a numeric(1) or character(1), either specifying the number of
 #'     parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 #'     the available cores. Ignored if \code{use.par==FALSE}.
-#' @param impute Perform imputation prior to clustering. Default: \code{FALSE}.
 #' @param filter T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
 #' @param rho Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 #'     Default=0.25.  The parameter is then automatically scaled to account for

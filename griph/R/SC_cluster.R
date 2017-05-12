@@ -162,7 +162,6 @@ PPR <- function (G,df=0.75){
 #' @param is.cor If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
 #'     Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
 #'     matrix, and a correlation matrix will be computed.
-#' @param impute Perform imputation prior to clustering. Default: \code{FALSE}.
 #' @param filter T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
 #' @param do.glasso T/F  Sparsify cell correlation matrix using graphical lasso. Default: \code{TRUE}.
 #' @param rho Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
@@ -192,7 +191,7 @@ PPR <- function (G,df=0.75){
 #' @return Currently a list with the clustering results.
 
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
-                        impute = FALSE, filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
+                        filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
                         comm.method=igraph::cluster_infomap,ncom=NULL,ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                         plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png',...){
     
@@ -227,17 +226,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     dimnames(DM)=NULL
     
     if (!isTRUE(is.cor)) {  
-        
-        if (impute==TRUE){
-            message("Imputing...", appendLF = FALSE)
-            DMimp=RNMF(DM,k =6,alpha = 0.15,tol=1e-2,maxit=10,showprogress=FALSE,quiet=TRUE)$fit
-            GF=rowSums(DM)/sum(rowSums(DM))
-            QNT=quantile(GF,probs=seq(0,1,0.1))
-            Low=which(GF <= QNT[qnt]  )  
-            DM[Low,]=DMimp[Low,]
-            DMimp=NULL
-            message("done")
-        }
         
         message("Preprocessing...", appendLF = FALSE)
         
