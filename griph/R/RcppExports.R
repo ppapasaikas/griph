@@ -101,3 +101,15 @@ PHellingerMat <- function(A, B) {
     .Call('griph_PHellingerMat', PACKAGE = 'griph', A, B)
 }
 
+checkBits <- function() {
+    .Call('griph_checkBits', PACKAGE = 'griph')
+}
+
+checkOpenMP <- function() {
+    .Call('griph_checkOpenMP', PACKAGE = 'griph')
+}
+
+sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose) {
+    .Call('griph_sgd', PACKAGE = 'griph', coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
+}
+

@@ -1,3 +1,4 @@
+import(Matrix)
 import(igraph)#Various functions for graph creation, manipulation, plotting and analysis
 import(QUIC)  #Faster implementation of the glasso algorithm from Friedman, Tibshirani using Newton's coordinate descent
 import(doParallel)  #Parallelization
@@ -18,6 +19,7 @@ import(RColorBrewer)
 useDynLib(griph, .registration = TRUE)
 
 
-export(SC_cluster, SC_cluster2, griph_cluster, plotGraph, predictCellCycle, clusteringScore, HellingerMat, PHellingerMat, PCanberraMat, JSDmat)
+export(SC_cluster, SC_cluster2, griph_cluster, plotGraph, predictCellCycle,
+       clusteringScore, HellingerMat, PHellingerMat, PCanberraMat, JSDmat, sgd)
 
 

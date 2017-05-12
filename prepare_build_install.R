@@ -42,6 +42,32 @@ devtools::check(pkg = "./griph")
 # run examples
 devtools::run_examples(pkg = "./griph")
 
+
+
+
+
+
+# get largeVis code into griph
+devtools::test("../largeVis/")
+devtools::install("../largeVis/")
+
+library(griph)
+library(Matrix)
+set.seed(8926493)
+w <- matrix(rpois(900, lambda=10), ncol=30)
+w <- cor(w)
+w[abs(w) < 0.3] <- 0
+w <- as(w, "sparseMatrix")
+
+library(largeVis)
+res2 <- largeVis::projectKNNs(w, seed = 1)
+
+res1 <- griph:::projectKNNs(w, seed = 1)
+
+identical(res1, res2)
+
+
+
 # play with griph
 library(griph)
 vignette(package = "griph")
