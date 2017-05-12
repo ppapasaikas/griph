@@ -3,6 +3,7 @@ import(QUIC)  #Faster implementation of the glasso algorithm from Friedman, Tibs
 import(doParallel)  #Parallelization
 import(foreach)     #Parallelization
 import(bigmemory)
+import(Matrix)      #Sparse Matrices
 importFrom(parallel, detectCores, makeCluster, stopCluster)
 importFrom(corpcor, cor.shrink) #Fast pearson's correlation using BLAS, incorporating weights and shrinkage
 importFrom(coop, pcor)  #Fast pearson's correlation implementation using BLAS
@@ -12,6 +13,7 @@ importFrom("graphics", "legend", "par", "plot", "symbols", "points")
 importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd", "kmeans")
 importFrom("utils", "flush.console")
 importFrom("Rcpp", "evalCpp")
+importFrom("largeVis","buildEdgeMatrix","projectKNNs")
 import(RColorBrewer)
 
 useDynLib(griph, .registration = TRUE)

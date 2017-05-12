@@ -55,12 +55,10 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
     W=W/max(W)
     R=R^2
     message("5","\n")
-    if(is.element("largeVis", utils::installed.packages()[,1])){
         R=sweep(R,2,colMeans(R),"-")
         R=R*(W^0.41)
         R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine"  )
         #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine",K=min(max(10*sqrt(ncol(R)),100) ,floor(ncol( R))/1.25)  )
-        
         R=sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
         message("6","\n")
         #R=1-(R/2)
@@ -68,17 +66,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
         #message("7","\n")
         #R[is.na(R)]=0
         dimnames(R)=list(CellIds,CellIds)
-    }
-    #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
-    #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
-    #largeVis is O(MNlog(N)) (M is number of features, N number of cells )
-    #cor.shrink is O(MN^2)
-    #else{
-    #    R=ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
-    #}
-    else{
-    message("!!!! largeVis Not Installed !!!! \r"   )
-    }
+
     return(as(R,"matrix"))
 }
 

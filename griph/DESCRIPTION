@@ -18,9 +18,9 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends: igraph
-Imports: Rcpp (>= 0.12.9), methods, QUIC, coop, corpcor, rNMF, foreach,
-    doParallel, parallel, bigmemory, RColorBrewer
+Imports: Rcpp (>= 0.12.9), methods, QUIC, coop, corpcor, Matrix, foreach,
+    doParallel, parallel, bigmemory, RColorBrewer, largeVis
 LinkingTo: Rcpp
-Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne, gtools,largeVis, Matrix
+Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne, gtools
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
