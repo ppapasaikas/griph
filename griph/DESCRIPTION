@@ -17,10 +17,9 @@ Description: Identify cell types from single cell RNA-seq data, allowing to
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Depends: igraph
-Imports: Rcpp (>= 0.12.9), methods, QUIC, coop, corpcor, Matrix, foreach,
-    doParallel, parallel, bigmemory, RColorBrewer, largeVis
-LinkingTo: Rcpp
+Imports: Matrix, methods, igraph, QUIC, coop, corpcor, foreach, doParallel,
+    parallel, bigmemory, RColorBrewer
+LinkingTo: Rcpp (>= 0.12.9), RcppProgress (>= 0.2.1), RcppArmadillo (>= 0.7.200.2.0)
 Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne, gtools
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
