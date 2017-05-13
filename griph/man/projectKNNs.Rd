@@ -72,6 +72,9 @@ The original paper called for weights in negative sampling to be calculated acco
 connecting to the vertex. The reference implementation, however, uses the sum of the weights of the edges to each vertex. In experiments, the
 difference was imperceptible with small (MNIST-size) datasets, but the results seems aesthetically preferrable using degree. The default
 is to use the edge weights, consistent with the reference implementation.
+
+This function and additional code called by it were imported from the \code{largeVis}
+    package (see \url{https://github.com/elbamos/largeVis}).
 }
 \examples{
 \dontrun{

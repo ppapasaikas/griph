@@ -28,6 +28,15 @@ devtools::install(pkg = "./griph", reload = TRUE, quick = TRUE)
 devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
 #devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph", branch = "Testing")
 
+# ... from the command line, open R on xenon2 using new tool chain
+# scl enable devtoolset-6 R
+
+# reload installed package
+devtools::reload("griph")
+
+
+
+
 # setup unit tests with testthat
 # This will create ‘tests/testthat.R’, ‘tests/testthat/’ and add testthat to the suggested packages.
 if (!file.exists("./griph/tests"))
@@ -60,12 +69,15 @@ w[abs(w) < 0.3] <- 0
 w <- as(w, "sparseMatrix")
 
 library(largeVis)
-res2 <- largeVis::projectKNNs(w, seed = 1)
+set.seed(123) # need to seed both R and C RNGs
+res2 <- largeVis::projectKNNs(w, seed = 123)
+set.seed(123)
+res1 <- griph:::projectKNNs(w, seed = 123)
+identical(res1, res2) # TRUE
 
-res1 <- griph:::projectKNNs(w, seed = 1)
-
-identical(res1, res2)
-
+plot(t(cbind(res1,res2)), pch=20, type="n")
+text(t(res1), labels=1:ncol(w), col="blue")
+text(t(res2), labels=1:ncol(w), col="red")
 
 
 # play with griph

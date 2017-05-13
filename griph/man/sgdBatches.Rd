@@ -20,6 +20,10 @@ Calculate the default number of batches for a given number of vertices and edges
 \details{
 The formula used is the one used by the \code{LargeVis} reference implementation.  This is substantially less than the recommendation \eqn{E * 10000} in the original paper.
 }
+\note{
+This function and additional code called by it were imported from the \code{largeVis}
+    package (see \url{https://github.com/elbamos/largeVis}).
+}
 \examples{
 # Observe that increasing K has no effect on processing time
 N <- 70000 # MNIST

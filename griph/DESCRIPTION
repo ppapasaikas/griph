@@ -21,6 +21,6 @@ Depends: igraph
 Imports: Matrix, methods, QUIC, coop, corpcor, rNMF, foreach, doParallel,
     parallel, bigmemory, RColorBrewer
 LinkingTo: Rcpp (>= 0.12.9), RcppProgress (>= 0.2.1), RcppArmadillo (>= 0.7.200.2.0)
-Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne, gtools,largeVis, Matrix
+Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne, gtools, Matrix
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1

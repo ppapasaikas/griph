@@ -2,7 +2,7 @@
 % Please edit documentation in R/SC_cluster2.R
 \name{plotLVis}
 \alias{plotLVis}
-\title{Visualize griph result using a LargeVis (Tang et al 2016 ) projection.}
+\title{Visualize griph result using a k nearest neighbor (largeVis, Tang et al. 2016) projection.}
 \usage{
 plotLVis(gr, fill.type = c("predicted", "true", "none", "custom"),
   line.type = c("true", "predicted", "none", "custom"),
@@ -61,6 +61,11 @@ Invisible the results of the largeVis projection.
 Plot a largeVis projection of the affinity matrix obtained from
     \code{\link{SC_cluster}}, allowing to control coloring.
 }
+\references{
+Jian Tang, Jingzhou Liu, Ming Zhang, Qiaozhu Mei (2016).
+   Visualizing Large-scale and High-dimensional Data.
+   \url{https://arxiv.org/abs/1602.00370}
+}
 \seealso{
-\code{largeVis} used to calculate the largeVis projection.
+\code{projectKNN} in package \code{largeVis} used to calculate the projection.
 }

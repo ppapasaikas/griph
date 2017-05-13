@@ -44,6 +44,9 @@
 #' connecting to the vertex. The reference implementation, however, uses the sum of the weights of the edges to each vertex. In experiments, the
 #' difference was imperceptible with small (MNIST-size) datasets, but the results seems aesthetically preferrable using degree. The default
 #' is to use the edge weights, consistent with the reference implementation.
+#' 
+#' @note This function and additional code called by it were imported from the \code{largeVis}
+#'     package (see \url{https://github.com/elbamos/largeVis}).
 #'
 #' @return A dense [N,D] matrix of the coordinates projecting the w_ij matrix into the lower-dimensional space.
 #' @export
@@ -129,6 +132,9 @@ projectKNNs <- function(wij, # symmetric sparse matrix
 #'
 #' @return The recommended number of sgd batches.
 #' @export
+#' 
+#' @note This function and additional code called by it were imported from the \code{largeVis}
+#'     package (see \url{https://github.com/elbamos/largeVis}).
 #'
 #' @examples
 #' # Observe that increasing K has no effect on processing time

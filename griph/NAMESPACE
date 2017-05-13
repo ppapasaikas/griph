@@ -1,3 +1,18 @@
+# methods from classes originating from largeVis code
+S3method(as.dist,edgematrix)
+S3method(buildWijMatrix,CsparseMatrix)
+S3method(buildWijMatrix,TsparseMatrix)
+S3method(buildWijMatrix,edgematrix)
+S3method(distance,CsparseMatrix)
+S3method(distance,TsparseMatrix)
+S3method(distance,matrix)
+S3method(randomProjectionTreeSearch,CsparseMatrix)
+S3method(randomProjectionTreeSearch,TsparseMatrix)
+S3method(randomProjectionTreeSearch,matrix)
+export(buildEdgeMatrix)
+export(buildWijMatrix)
+export(distance)
+
 import(Matrix)
 import(igraph)#Various functions for graph creation, manipulation, plotting and analysis
 import(QUIC)  #Faster implementation of the glasso algorithm from Friedman, Tibshirani using Newton's coordinate descent

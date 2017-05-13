@@ -109,7 +109,31 @@ checkOpenMP <- function() {
     .Call('griph_checkOpenMP', PACKAGE = 'griph')
 }
 
+searchTrees <- function(threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose) {
+    .Call('griph_searchTrees', PACKAGE = 'griph', threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
+}
+
+fastDistance <- function(is, js, data, distMethod, threads, verbose) {
+    .Call('griph_fastDistance', PACKAGE = 'griph', is, js, data, distMethod, threads, verbose)
+}
+
+fastCDistance <- function(is, js, i_locations, p_locations, x, distMethod, threads, verbose) {
+    .Call('griph_fastCDistance', PACKAGE = 'griph', is, js, i_locations, p_locations, x, distMethod, threads, verbose)
+}
+
+fastSDistance <- function(is, js, i_locations, j_locations, x, distMethod, threads, verbose) {
+    .Call('griph_fastSDistance', PACKAGE = 'griph', is, js, i_locations, j_locations, x, distMethod, threads, verbose)
+}
+
 sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose) {
     .Call('griph_sgd', PACKAGE = 'griph', coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
+}
+
+searchTreesCSparse <- function(threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose) {
+    .Call('griph_searchTreesCSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
+}
+
+searchTreesTSparse <- function(threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose) {
+    .Call('griph_searchTreesTSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
 }
 

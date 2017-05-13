@@ -81,19 +81,19 @@ WScor2 <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     R=R^2
     
 
-    if(is.element("largeVis", utils::installed.packages()[,1]) & ncol(R) > 2e5){
-    R=sweep(R,2,colMeans(R),"-")
-    R=R*(W^0.41)
-    R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
-    R=1-as.matrix(as.dist(R))/2
-    R[is.na(R)]=0
+    if (ncol(R) > 2e5) {
+        R <- sweep(R, 2, colMeans(R), "-")
+        R <- R*(W^0.41)
+        R <- griph:::buildEdgeMatrix(R, distance_method = "Cosine")
+        suppressMessages( R <- 1-as.matrix(as.dist(R)) / 2 ) # would say: <sparse>[ <logic> ] : .M.sub.i.logical() maybe inefficient
+        R[is.na(R)] <- 0
     }
-    #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
-    #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
-    #largeVis is O(MNlog(N)) (M is number of features, N number of cells )
+    #Linear cor.shrink is faster than Largevis::buildEdgeMatrix for n < 500x25K (~150seconds)
+    #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis::buildEdgeMatrix for n < 500x200K 
+    #largeVis::buildEdgeMatrix is O(MNlog(N)) (M is number of features, N number of cells )
     #cor.shrink is O(MN^2)
-    else{
-    R=ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
+    else {
+        R <- ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
     }
     return(as(R,"matrix"))
 }
@@ -937,16 +937,16 @@ plotTsne <- function(gr,
     if(!is.na(image.format))
         dev.off()
     
-    return(res)
+    return(invisible(res))
 }
 
 
 
 
 
-#' @title Visualize griph result using a LargeVis (Tang et al 2016 ) projection.
+#' @title Visualize griph result using a k nearest neighbor (largeVis, Tang et al. 2016) projection.
 #' 
-#' @description Plot a largeVis projection of the affinity matrix obtained from
+#' @description Plot a k nearest neighbor (KNN) projection of the affinity matrix obtained from
 #'     \code{\link{SC_cluster}}, allowing to control coloring.
 #' 
 #' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
@@ -970,7 +970,8 @@ plotTsne <- function(gr,
 #' @param custom.class Factor, character or numberic vector of the same length or
 #'     with names corresponding to names(gr$MEMB) to use for custom cell classification
 #'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
-#' @param seed Random number seed to make largeVis projection deterministic.
+#' @param seed Random number seed to make KNN projection deterministic (used inside
+#'     \code{plotLVis} to see both R's and C's random number generators.
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
 #' @param image.format Specifies the format of the created image. Currently supported are
@@ -981,7 +982,11 @@ plotTsne <- function(gr,
 #' 
 #' @return Invisible the results of the largeVis projection.
 #' 
-#' @seealso \code{largeVis} used to calculate the largeVis projection.
+#' @references Jian Tang, Jingzhou Liu, Ming Zhang, Qiaozhu Mei (2016).
+#'    Visualizing Large-scale and High-dimensional Data.
+#'    \url{https://arxiv.org/abs/1602.00370}
+#' 
+#' @seealso \code{projectKNN} in package \code{largeVis} used to calculate the projection.
 plotLVis <- function(gr,
                      fill.type=c("predicted","true","none","custom"),
                      line.type=c("true","predicted","none","custom"),
@@ -993,11 +998,8 @@ plotLVis <- function(gr,
                      seed=91919,
                      fsuffix=RandString(), image.format=NA,
                      quiet=FALSE, ...) {
-    if(! is.element("largeVis", utils::installed.packages()[,1]))
-        stop('"plotLvis" requires the "largeVis" package. Please install it with:\n\t',
-             'install.packages("largeVis")')
     if(! is.element("Matrix", utils::installed.packages()[,1]))
-        stop('"plotLvis" requires the "Matrix" package. Please install it with:\n\t',
+        stop('"plotLVis" requires the "Matrix" package. Please install it with:\n\t',
              'install.packages("Matrix")')
     
     # get varaibles from gr
@@ -1031,11 +1033,11 @@ plotLVis <- function(gr,
     my.pt.cex <- 2.5
     my.pt.lwd <- if(line.type == "none") 1.0 else 2.5
     
-    # get largeVis projection
+    # get KNN projection
     if(!quiet)
-        message("Computing largeVis projection...")
+        message("Computing KNN projection...")
     set.seed(seed = seed)
-    res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
+    res <- griph:::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
@@ -1130,7 +1132,7 @@ plotLVis <- function(gr,
     if(!is.na(image.format))
         dev.off()
     
-    return(res)
+    return(invisible(res))
 }
 
 
