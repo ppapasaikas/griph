@@ -207,10 +207,10 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
                 
-                FakeBulk=matrix(0,nrow(params$DM),length(good.clust))
+                FakeBulk=matrix(0,nrow(DM),length(good.clust))
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
-                    FakeBulk[,c]=rowSums(params$DM[,names(memb)][,memb==clust])
+                    FakeBulk[,c]=rowSums(DM[,names(memb)][,memb==clust])
                 }
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
