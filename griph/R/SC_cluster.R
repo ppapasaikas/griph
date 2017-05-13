@@ -1015,12 +1015,6 @@ plotLVis <- function(gr,
                      seed=91919,
                      fsuffix=RandString(), image.format=NA,
                      quiet=FALSE, ...) {
-    if(! is.element("largeVis", utils::installed.packages()[,1]))
-        stop('"plotLvis" requires the "largeVis" package. Please install it with:\n\t',
-             'install.packages("largeVis")')
-    if(! is.element("Matrix", utils::installed.packages()[,1]))
-        stop('"plotLvis" requires the "Matrix" package. Please install it with:\n\t',
-             'install.packages("Matrix")')
     
     # get varaibles from gr
     MEMB <- gr$MEMB
