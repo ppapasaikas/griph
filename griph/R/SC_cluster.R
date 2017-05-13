@@ -79,22 +79,19 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     W=((minW)/(W+1*minW))  #
     W=W/max(W)
     R=R^2
-    
 
-    if(is.element("largeVis", utils::installed.packages()[,1]) & ncol(R) > 2e5){
-    R=sweep(R,2,colMeans(R),"-")
-    R=R*(W^0.41)
-    R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
-    R=1-as.matrix(as.dist(R))/2
-    R[is.na(R)]=0
-    }
+    #if(is.element("largeVis", utils::installed.packages()[,1]) & ncol(R) > 2e5){
+    #R=sweep(R,2,colMeans(R),"-")
+    #R=R*(W^0.41)
+    #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
+    #R=1-as.matrix(as.dist(R))/2
+    #R[is.na(R)]=0
+    #}
     #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
     #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
     #largeVis is O(MNlog(N)) (M is number of features, N number of cells )
     #cor.shrink is O(MN^2)
-    else{
     R=ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
-    }
     return(as(R,"matrix"))
 }
 
