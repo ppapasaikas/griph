@@ -1056,10 +1056,10 @@ plotLVis <- function(gr,
         add.args$M=2    
     }
     if (!is.element('gamma',names(add.args))){
-        add.args$gamma=0.8    
+        add.args$gamma=1    
     }
     if (!is.element('alpha',names(add.args))){
-        add.args$alpha=0.1    
+        add.args$alpha=0.2    
     }
     if (!is.element('useDegree',names(add.args))){
         add.args$useDegree=TRUE    
