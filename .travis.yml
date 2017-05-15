@@ -14,24 +14,84 @@ install:
   - Rscript -e 'install.packages(c("devtools","roxygen2","knitr"));'
 
 script:
-  - Rscript -e 'devtools::check("./")'
+#  - Rscript -e 'devtools::check("./")'
 #  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
 #  - Rscript -e 'biocLite()'
 #  - Rscript -e 'biocLite(c("BiocStyle"))'
+#if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then export CC=gcc-4.8; fi
 
-#Build on both linux and OSX:
+
+#Installation of different compilers:
+addons:
+  apt:
+    sources:
+    # add PPAs with more up-to-date toolchains
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.6
+    packages:
+    # install toolchains
+    - gcc-5
+    - g++-4.9
+    - g++-5
+    - clang-3.6
+    - clang-3.7
+
+#Test using different compilers:
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+      env: COMPILER=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+      env: COMPILER=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+      env: COMPILER=clang++-3.6
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - clang-3.7
+      env: COMPILER=clang++-3.7
+
+
+
+
+
+
+#Build on both linux and OSX?:
 os:
   - linux
-  - osx
+#  - osx
 
 compiler:
   - clang
-  #- gcc
+  - gcc
 
 #Allow for failure in osx build:
-matrix:
-  allow_failures:
-    - os: osx
+#matrix:
+#  allow_failures:
+#    - os: osx
 
 #after_success:
 #  - Rscript -e 'covr::coveralls()'
