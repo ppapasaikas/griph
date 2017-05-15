@@ -3,17 +3,7 @@ cache: packages
 
 sudo: required
 
-before_install:
-  # Make sure default environment variables do not interfere with MPI:
-  #- test -n $CC  && unset CC
-  #- test -n $CXX && unset CXX
-
-install:
-  # Install package building R dependencies:
-  #- Rscript -e 'install.packages(c("devtools"));'
-  #- Rscript -e 'devtools::install_deps("./")'
-
-script:
+#script:
 #  - Rscript -e 'devtools::check("./")'
 #  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
 #  - Rscript -e 'biocLite()'
@@ -110,7 +100,7 @@ addons:
 #  provider: releases
 ##  user: "GITHUB USERNAME"
 ##  password: "GITHUB PASSWORD"
-   api_key: "bcdf070564c2112120b99ac76ab9e097e01bb599"
+#   api_key: "bcdf070564c2112120b99ac76ab9e097e01bb599"
 #  file: "${FILE_TO_UPLOAD}"
 #  skip_cleanup: true
 #  on:
