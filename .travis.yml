@@ -1,2 +1,16 @@
 language: r
 cache: packages
+
+# Specify folder
+install:
+  - Rscript -e 'install.packages(c("devtools","roxygen2"));devtools::install_deps("griph")'
+script:
+  - Rscript -e 'devtools::check("griph")'
+
+
+#after_success:
+#  - Rscript -e 'covr::coveralls()'
+notifications:
+  email:
+    on_success: change
+    on_failure: change
