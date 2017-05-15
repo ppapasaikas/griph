@@ -5,7 +5,7 @@ sudo: required
 
 script:
 #  - Rscript -e 'devtools::check("./")'
-#  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
+  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
 #  - Rscript -e 'biocLite()'
   - Rscript -e 'biocLite(c("BiocStyle"))'
 
@@ -100,11 +100,15 @@ addons:
 #  provider: releases
 ##  user: "GITHUB USERNAME"
 ##  password: "GITHUB PASSWORD"
-#   api_key: "bcdf070564c2112120b99ac76ab9e097e01bb599"
+#   api_key:
+#      secure: GDY3ZNCh8U0EZmadOhPzxENL4OKicSMLpHmFpBbLbY9Ivuk9wFJPIAcpS939N62nXM1pv1qkkBBXc1fEG8rFMnWjU0KXaLMkoe2LBai6wNvz/QXjImUduGgREbVurn6a7xJJtdNijMAbSzfY8yn47dgXXx0jYVWd9V5m3XbyMSkJYFEt/YNm/wsrXzjkR5vUXZPV6KvxZItNMAae4nPzr0GB9lkigPaaF784zPJky+lqIvOH0e8Q+yP1FmLkqtfPCp9eTgGZYA0taCMNZv2Od7rpjdi2LbUG0IgYSTlx46d/F63snd6hcYJilLTbfVTdTol4iYh3LJrxyFXDozMskzwG+K8UonAzIS/PLDLC+raZO8AETq5rG2405C9KqGmvLILGsRaTIo7W43iY1c4o+6Suz5zCeTl4ZmoUuCm3hB+jvu90rhUAWY9DeDIISopvyY52+jO0nn/Y77CANlp085JmsCr8e1YSz6MkfKliLmgd8Z0TZcjZbAc8Ny+B3TGVsmS4EnLfrVUKLJg0NuGTqyM5UGQVaLO+oUDu2DsDv0/XLb8dSi20gQS0BcDpvNcbiNGNx6dTXcDpaRJlTjj9YW5eYegP2yClz51ORVIqPB6dXGx5+OwfsECrfw+zzj+OHXilJsobucCZ3BA4v5gmKlknYU4L2v6k06v2rPKjaOg=
 #  file: "${FILE_TO_UPLOAD}"
 #  skip_cleanup: true
 #  on:
 #    tags: true
+
+
+cran: http://cran.rstudio.com
 
 
 notifications:
