@@ -2,10 +2,14 @@ language: r
 cache: packages
 
 # Specify folder
+before_install:
+  - cd griph
 install:
-  - Rscript -e 'install.packages(c("devtools","roxygen2"));devtools::install_deps("griph")'
-script:
-  - Rscript -e 'devtools::check("griph")'
+  #- Rscript -e 'install.packages(c("devtools","roxygen2"));devtools::install_deps("griph")'
+  - Rscript -e 'install.packages(c("devtools","roxygen2"));
+
+#script:
+#  - Rscript -e 'devtools::check("griph")'
 
 
 #after_success:
