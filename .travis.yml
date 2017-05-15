@@ -6,8 +6,7 @@ sudo: required
 script:
 #  - Rscript -e 'devtools::check("./")'
   - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
-#  - Rscript -e 'biocLite()'
-  - Rscript -e 'biocLite(c("BiocStyle"))'
+  - Rscript -e 'BiocInstaller::biocLite(c("BiocStyle"))'
 
 
 matrix:
