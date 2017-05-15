@@ -3,11 +3,11 @@ cache: packages
 
 sudo: required
 
-#script:
+script:
 #  - Rscript -e 'devtools::check("./")'
 #  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
 #  - Rscript -e 'biocLite()'
-#  - Rscript -e 'biocLite(c("BiocStyle"))'
+  - Rscript -e 'biocLite(c("BiocStyle"))'
 
 
 matrix:
