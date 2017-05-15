@@ -14,7 +14,8 @@
 #' @return A vector of the distances between the columns in `x` indexed by `i` and `j`, with attribute \code{method} giving the \code{distance_method}.
 #'
 #' @note This function and additional code called by it were imported from the \code{largeVis}
-#'     package (see \url{https://github.com/elbamos/largeVis}).
+#'     package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
+#'     described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 distance <- function(x,
                      i,
                      j,
@@ -22,7 +23,6 @@ distance <- function(x,
 										 threads = NULL,
                      verbose) UseMethod("distance")
 
-#' @export
 #' @rdname distance
 distance.matrix <- function(x,
                      i,
@@ -40,7 +40,6 @@ distance.matrix <- function(x,
   ret
 }
 
-#' @export
 #' @rdname distance
 distance.CsparseMatrix <- function(x,
                                    i,
@@ -60,7 +59,6 @@ distance.CsparseMatrix <- function(x,
   ret
 }
 
-#' @export
 #' @rdname distance
 distance.TsparseMatrix <- function(
                                   x,
@@ -96,7 +94,8 @@ distance.TsparseMatrix <- function(
 #' }
 #' 
 #' @note This function and additional code called by it were imported from the \code{largeVis}
-#'     package (see \url{https://github.com/elbamos/largeVis}).
+#'     package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
+#'     described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 neighborsToVectors <- function(x) {
   K <- nrow(x)
   N <- ncol(x)

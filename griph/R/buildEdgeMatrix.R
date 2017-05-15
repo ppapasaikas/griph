@@ -11,9 +11,8 @@
 #' @return An `edgematrix` object consisting of the elements of a sparse matrix, with the distance method stored in attribute \code{method}.
 #' 
 #' @note This function and additional code called by it were imported from the \code{largeVis}
-#'     package (see \url{https://github.com/elbamos/largeVis}).
-#'
-#' @export
+#'     package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
+#'     described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 buildEdgeMatrix <- function(data,
                             neighbors = NULL,
                             distance_method = "Euclidean",

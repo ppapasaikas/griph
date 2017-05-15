@@ -22,7 +22,8 @@
 #' @return A [K, N] matrix of the approximate K nearest neighbors for each vertex.
 #'
 #' @note This function and additional code called by it were imported from the \code{largeVis}
-#'     package (see \url{https://github.com/elbamos/largeVis}).
+#'     package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
+#'     described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 randomProjectionTreeSearch <- function(x,
                                        K = 150,
                                        n_trees = 50,
@@ -34,7 +35,6 @@ randomProjectionTreeSearch <- function(x,
                                        verbose = getOption("verbose", TRUE))
   UseMethod("randomProjectionTreeSearch")
 
-#' @export
 #' @rdname randomProjectionTreeSearch
 randomProjectionTreeSearch.matrix <- function(x,
                                        K = 150,
@@ -71,7 +71,6 @@ randomProjectionTreeSearch.matrix <- function(x,
   return(knns)
 }
 
-#' @export
 #' @rdname randomProjectionTreeSearch
 randomProjectionTreeSearch.CsparseMatrix <- function(x,
                                               K = 150,
@@ -108,7 +107,6 @@ randomProjectionTreeSearch.CsparseMatrix <- function(x,
   return(knns)
 }
 
-#' @export
 #' @rdname randomProjectionTreeSearch
 randomProjectionTreeSearch.TsparseMatrix <- function(x,
                                                      K = 150,
