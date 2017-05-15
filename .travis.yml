@@ -15,9 +15,9 @@ install:
 
 script:
   - Rscript -e 'devtools::check("./")'
-  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
-  - Rscript -e 'biocLite()'
-  - Rscript -e 'biocLite(c("BiocStyle"))'
+#  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
+#  - Rscript -e 'biocLite()'
+#  - Rscript -e 'biocLite(c("BiocStyle"))'
 
 #Build on both linux and OSX:
 os:
