@@ -10,14 +10,14 @@ before_install:
 
 
 install:
-  #- Rscript -e 'devtools::install_deps("./")'
+  - Rscript -e 'devtools::install_deps("./")'
   - Rscript -e 'install.packages(c("devtools","roxygen2","knitr"));'
 
-#script:
-#  - Rscript -e 'devtools::check("./")'
-#  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
-#  - Rscript -e 'biocLite()'
-#  - Rscript -e 'biocLite(c("BiocStyle"))'
+script:
+  - Rscript -e 'devtools::check("./")'
+  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
+  - Rscript -e 'biocLite()'
+  - Rscript -e 'biocLite(c("BiocStyle"))'
 
 #Build on both linux and OSX:
 os:
