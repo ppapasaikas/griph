@@ -10,8 +10,8 @@ before_install:
 
 
 install:
-  - Rscript -e 'devtools::install_deps("./")'
   - Rscript -e 'install.packages(c("devtools","roxygen2","knitr"));'
+  - Rscript -e 'devtools::install_deps("./")'
 
 script:
 #  - Rscript -e 'devtools::check("./")'
