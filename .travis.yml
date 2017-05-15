@@ -12,8 +12,8 @@ before_install:
 
 install:
   # Install package building R dependencies:
-  - Rscript -e 'install.packages(c("devtools"));'
-  - Rscript -e 'devtools::install_deps("./")'
+  #- Rscript -e 'install.packages(c("devtools"));'
+  #- Rscript -e 'devtools::install_deps("./")'
 
 script:
 #  - Rscript -e 'devtools::check("./")'
@@ -97,6 +97,19 @@ addons:
 
 #after_success:
 #  - Rscript -e 'covr::coveralls()'
+
+
+#before_deploy:
+#  - export FILE_TO_UPLOAD=$(ls _builds/*/Foo-*.tar.gz)
+
+#deploy:
+#  provider: releases
+#  api_key: "GITHUB OAUTH TOKEN"
+#  file: "${FILE_TO_UPLOAD}"
+#  skip_cleanup: true
+#  on:
+#    tags: true
+
 
 notifications:
   email:
