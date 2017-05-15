@@ -4,11 +4,9 @@ cache: packages
 sudo: required
 
 before_install:
-  # Specify package folder
-  - cd griph
   # Make sure default environment variables do not interfere with MPI:
-  - test -n $CC  && unset CC
-  - test -n $CXX && unset CXX
+  #- test -n $CC  && unset CC
+  #- test -n $CXX && unset CXX
 
 install:
   # Install package building R dependencies:
@@ -28,6 +26,7 @@ matrix:
     dist: trusty
     r: release
     before_install: |1
+     cd griph
      mkdir ~/.R
      cat <<EOF > ~/.R/Makevars
      CC=gcc-6
@@ -36,11 +35,13 @@ matrix:
      CXX11=g++-6
   - os: osx
     r: release
-
+    before_install: |1
+     cd griph
   - os: linux
     dist: trusty
     r: devel
     before_install: |1
+     cd griph
      mkdir ~/.R
      cat <<EOF > ~/.R/Makevars
      CC=gcc-6
@@ -49,6 +50,8 @@ matrix:
      CXX11=g++-6
   - os: osx
     r: devel
+    before_install: |1
+     cd griph
     env: _R_CHECK_FORCE_SUGGESTS_=FALSE
   allow_failure:
     r: devel
@@ -75,6 +78,7 @@ r_binary_packages:
   - knitr
   - rmarkdown
   - roxygen2
+  - devtools
 
 addons:
   apt:
@@ -104,7 +108,9 @@ addons:
 
 #deploy:
 #  provider: releases
-#  api_key: "GITHUB OAUTH TOKEN"
+##  user: "GITHUB USERNAME"
+##  password: "GITHUB PASSWORD"
+   api_key: "bcdf070564c2112120b99ac76ab9e097e01bb599"
 #  file: "${FILE_TO_UPLOAD}"
 #  skip_cleanup: true
 #  on:
