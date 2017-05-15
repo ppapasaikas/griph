@@ -29,16 +29,13 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
     M=sweep(M,2,CellCounts,FUN="/")
     M=M*10000 
     
-    message("2","\n")
     Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
-    message("3","\n")
     Dt=cor(FB,M,method="spearman")
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
-    message("4","\n")
     Dt=PHellingerMat(FB,M)
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
@@ -57,17 +54,12 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
     W=((minW)/(W+1*minW))  #
     W=W/max(W)
     R=R^2
-    message("5","\n")
         R=sweep(R,2,colMeans(R),"-")
-        R=R*(W^0.41)
-        R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine"  )
-        #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine",K=min(max(10*sqrt(ncol(R)),100) ,floor(ncol( R))/1.25)  )
+        #R=R*(W^0.4)
+        #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine"  )
+        R=buildEdgeMatrix( R ,distance_method="Cosine"  )
+        #R=buildEdgeMatrix( R ,distance_method="Cosine",K=min(max(0.25*sqrt(ncol(R)),200) ,floor(ncol( R))/4)  )
         R=sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
-        message("6","\n")
-        #R=1-(R/2)
-        #R=1-as.matrix(as.dist(R))/2
-        #message("7","\n")
-        #R[is.na(R)]=0
         dimnames(R)=list(CellIds,CellIds)
 
     return(R)    
@@ -138,7 +130,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 
 
 
-griph_cluster <- function(DM, SamplingSize=750,ref.iter=0,use.par=FALSE,ncores="all",
+griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="all",
                           impute = FALSE, filter = FALSE, rho = 0.25, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
@@ -190,7 +182,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=0,use.par=FALSE,ncores="
                 params$DM=DM
                 }
                 
-                cluster.res <- do.call(    "SC_cluster", c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1,ncom=20 ) )     )
+                cluster.res <- do.call(    "SC_cluster", c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1,ncom=16 ) )     )
             }
             else {
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
@@ -210,7 +202,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=0,use.par=FALSE,ncores="
                 
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
                 
-                #FakeBulk=matrix(0,nrow(params$DM),length(good.clust))
+
                 FakeBulk=matrix(0,nrow(DM),length(good.clust))
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
