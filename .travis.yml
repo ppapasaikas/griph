@@ -4,11 +4,26 @@ cache: packages
 # Specify folder
 before_install:
   - cd griph
+
 install:
   #- Rscript -e 'install.packages(c("devtools","roxygen2"));devtools::install_deps("griph")'
-  - Rscript -e 'install.packages(c("devtools","roxygen2"));'
+  - Rscript -e 'install.packages(c("devtools","roxygen2","knitr"));'
+
 #script:
-#  - Rscript -e 'devtools::check("griph")'
+#  - Rscript -e 'devtools::check("./")'
+#  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
+#  - Rscript -e 'biocLite()'
+#  - Rscript -e 'biocLite(c("BiocStyle"))'
+
+#Build on both linux and OSX:
+os:
+  - linux
+  - osx
+
+#Allow for failure in osx build:
+matrix:
+  allow_failures:
+    - os: osx
 
 
 #after_success:
