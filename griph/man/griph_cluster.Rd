@@ -4,19 +4,15 @@
 \alias{griph_cluster}
 \title{Wrapper function for SC_cluster}
 \usage{
-griph_cluster(DM, is.cor = FALSE, ref.iter = 0, use.par = FALSE,
+griph_cluster(DM, SamplingSize = 750, ref.iter = 1, use.par = FALSE,
   ncores = "all", impute = FALSE, filter = FALSE, rho = 0.25,
-  pr.iter = 1, batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
+  batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
   BatchAssignment = NULL, plotG = TRUE, maxG = 2500,
   fsuffix = RandString(), image.format = "png")
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 Required argument.}
-
-\item{is.cor}{If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
-Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
-matrix, and a correlation matrix will be computed.}
 
 \item{ref.iter}{Number of clustering refinement iterations.}
 
@@ -27,18 +23,12 @@ functions based on \code{\link[foreach]{foreach}} (see details).}
 parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 the available cores. Ignored if \code{use.par==FALSE}.}
 
-\item{impute}{Perform imputation prior to clustering. Default: \code{FALSE}.}
-
 \item{filter}{T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.}
 
 \item{rho}{Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 Default=0.25.  The parameter is then automatically scaled to account for
 number of variables or converted into a matrix and adjusted according to
 the batch.penalty factor to account for BatchAssignment (if given).}
-
-\item{pr.iter}{A numberic scalar defining the number of iterations to use for
-re-weighting the graph edges using personalized PageRank node similarity score.
-Set to zero to deactivate.}
 
 \item{batch.penalty}{[0,1] rho scaling factor for enforcing topological constraints
 variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
@@ -58,6 +48,14 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}
+
+\item{is.cor}{If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
+Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
+matrix, and a correlation matrix will be computed.}
+
+\item{pr.iter}{A numberic scalar defining the number of iterations to use for
+re-weighting the graph edges using personalized PageRank node similarity score.
+Set to zero to deactivate.}
 }
 \value{
 Currently a list with the clustering results.

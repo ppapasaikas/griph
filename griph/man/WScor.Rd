@@ -4,12 +4,12 @@
 \alias{WScor}
 \title{Combined distance calculations.}
 \usage{
-WScor(M, C1 = matrix(1, ncol(M), ncol(M)), CanberraDist = CanberraDist,
-  SpearmanCor = SpearmanCor, HellingerDist = HellingerDist,
-  ShrinkCor = ShrinkCor)
+WScor(M, PearsonCor = PearsonCor, ShrinkCor = ShrinkCor)
 }
 \arguments{
 \item{M}{gene-by-cell count matrix.}
+
+\item{ShrinkCor}{Function to calculate shrinkage correlation.}
 
 \item{C1}{cell-by-cell (correlation?) matrix.}
 
@@ -18,8 +18,6 @@ WScor(M, C1 = matrix(1, ncol(M), ncol(M)), CanberraDist = CanberraDist,
 \item{SpearmanCor}{Function to calculate Spearman rank correlation.}
 
 \item{HellingerDist}{Function to calculate Hellinger distance.}
-
-\item{ShrinkCor}{Function to calculate shrinkage correlation.}
 }
 \value{
 cell-by-cell distance matrix.

@@ -5,7 +5,7 @@
 \title{Unsupervised graph-based clustering of single cell RNA-seq data.}
 \usage{
 SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
-  impute = FALSE, filter = FALSE, rho = 0.25, pr.iter = 1,
+  filter = FALSE, do.glasso = TRUE, rho = 0.25, pr.iter = 1,
   batch.penalty = 0.5, comm.method = igraph::cluster_infomap, ncom = NULL,
   ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL,
   plotG = TRUE, maxG = 2500, fsuffix = RandString(),
@@ -26,9 +26,9 @@ the available cores. Ignored if \code{use.par==FALSE}.}
 Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
 matrix, and a correlation matrix will be computed.}
 
-\item{impute}{Perform imputation prior to clustering. Default: \code{FALSE}.}
-
 \item{filter}{T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.}
+
+\item{do.glasso}{T/F  Sparsify cell correlation matrix using graphical lasso. Default: \code{TRUE}.}
 
 \item{rho}{Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 Default=0.25.  The parameter is then automatically scaled to account for
