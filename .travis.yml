@@ -1,16 +1,18 @@
 language: r
 cache: packages
 
+sudo: required
+
 before_install:
   # Specify package folder
   - cd griph
-  # Make sure default environment variable do not interfere with MPI:
+  # Make sure default environment variables do not interfere with MPI:
   - test -n $CC  && unset CC
   - test -n $CXX && unset CXX
 
-
 install:
-  - Rscript -e 'install.packages(c("devtools","roxygen2","knitr"));'
+  # Install package building R dependencies:
+  - Rscript -e 'install.packages(c("devtools"));'
   - Rscript -e 'devtools::install_deps("./")'
 
 script:
@@ -18,75 +20,75 @@ script:
 #  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
 #  - Rscript -e 'biocLite()'
 #  - Rscript -e 'biocLite(c("BiocStyle"))'
-#if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$CC" = "gcc" ]; then export CC=gcc-4.8; fi
 
 
-#Installation of different compilers:
+matrix:
+  include:
+  - os: linux
+    dist: trusty
+    r: release
+    before_install: |1
+     mkdir ~/.R
+     cat <<EOF > ~/.R/Makevars
+     CC=gcc-6
+     CXX=g++-6
+     CXX1X=g++-6
+     CXX11=g++-6
+  - os: osx
+    r: release
+
+  - os: linux
+    dist: trusty
+    r: devel
+    before_install: |1
+     mkdir ~/.R
+     cat <<EOF > ~/.R/Makevars
+     CC=gcc-6
+     CXX=g++-6
+     CXX1X=g++-6
+     CXX11=g++-6
+  - os: osx
+    r: devel
+    env: _R_CHECK_FORCE_SUGGESTS_=FALSE
+  allow_failure:
+    r: devel
+    r_check_args: --use-valgrind
+
+env:
+  global:
+  - OS=$(uname -s)
+
+cran: http://cran.rstudio.com
+
+r_packages:
+  - covr
+  - BH
+  - ggplot2
+
+r_binary_packages:
+  - testthat
+  - png
+  - Rcpp
+  - RcppArmadillo
+  - RcppProgress
+  - dbscan
+  - knitr
+  - rmarkdown
+  - roxygen2
+
 addons:
   apt:
     sources:
-    # add PPAs with more up-to-date toolchains
-    - ubuntu-toolchain-r-test
-    - llvm-toolchain-precise-3.6
+      - ubuntu-toolchain-r-test
     packages:
-    # install toolchains
-    - gcc-5
-    - g++-4.9
-    - g++-5
-    - clang-3.6
-    - clang-3.7
-
-#Test using different compilers:
-matrix:
-  include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env: COMPILER=g++-4.9
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: COMPILER=g++-5
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
-          packages:
-            - clang-3.6
-      env: COMPILER=clang++-3.6
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
-          packages:
-            - clang-3.7
-      env: COMPILER=clang++-3.7
+      - gcc-6
+      - g++-6
+      - gfortran-6
+      - libudunits2-dev
+  brew_packages:
+      - udunits
 
 
-
-
-
-
-#Build on both linux and OSX?:
-os:
-  - linux
-#  - osx
-
-compiler:
-  - clang
-  - gcc
 
 #Allow for failure in osx build:
 #matrix:
