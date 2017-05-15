@@ -6,6 +6,52 @@
 
 using namespace Rcpp;
 
+// HellingerMat
+NumericMatrix HellingerMat(NumericMatrix A);
+RcppExport SEXP griph_HellingerMat(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(HellingerMat(A));
+    return rcpp_result_gen;
+END_RCPP
+}
+// JSDmat
+NumericMatrix JSDmat(NumericMatrix A);
+RcppExport SEXP griph_JSDmat(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(JSDmat(A));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PCanberraMat
+NumericMatrix PCanberraMat(NumericMatrix A, NumericMatrix B);
+RcppExport SEXP griph_PCanberraMat(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(PCanberraMat(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
+// PHellingerMat
+NumericMatrix PHellingerMat(NumericMatrix A, NumericMatrix B);
+RcppExport SEXP griph_PHellingerMat(SEXP ASEXP, SEXP BSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(PHellingerMat(A, B));
+    return rcpp_result_gen;
+END_RCPP
+}
 // checkBits
 bool checkBits();
 RcppExport SEXP griph_checkBits() {
@@ -97,28 +143,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// HellingerMat
-NumericMatrix HellingerMat(NumericMatrix A);
-RcppExport SEXP griph_HellingerMat(SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(HellingerMat(A));
-    return rcpp_result_gen;
-END_RCPP
-}
-// JSDmat
-NumericMatrix JSDmat(NumericMatrix A);
-RcppExport SEXP griph_JSDmat(SEXP ASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    rcpp_result_gen = Rcpp::wrap(JSDmat(A));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sgd
 arma::mat sgd(arma::mat& coords, arma::ivec& targets_i, arma::ivec& sources_j, arma::ivec& ps, arma::vec& weights, const double& gamma, const double& rho, const arma::uword& n_samples, const int& M, const double& alpha, const Rcpp::Nullable<Rcpp::NumericVector> momentum, const bool& useDegree, const Rcpp::Nullable<Rcpp::NumericVector> seed, const Rcpp::Nullable<Rcpp::NumericVector> threads, const bool verbose);
 RcppExport SEXP griph_sgd(SEXP coordsSEXP, SEXP targets_iSEXP, SEXP sources_jSEXP, SEXP psSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP rhoSEXP, SEXP n_samplesSEXP, SEXP MSEXP, SEXP alphaSEXP, SEXP momentumSEXP, SEXP useDegreeSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
@@ -141,30 +165,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::Nullable<Rcpp::NumericVector> >::type threads(threadsSEXP);
     Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
     rcpp_result_gen = Rcpp::wrap(sgd(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose));
-    return rcpp_result_gen;
-END_RCPP
-}
-// PCanberraMat
-NumericMatrix PCanberraMat(NumericMatrix A, NumericMatrix B);
-RcppExport SEXP griph_PCanberraMat(SEXP ASEXP, SEXP BSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(PCanberraMat(A, B));
-    return rcpp_result_gen;
-END_RCPP
-}
-// PHellingerMat
-NumericMatrix PHellingerMat(NumericMatrix A, NumericMatrix B);
-RcppExport SEXP griph_PHellingerMat(SEXP ASEXP, SEXP BSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
-    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(PHellingerMat(A, B));
     return rcpp_result_gen;
 END_RCPP
 }
