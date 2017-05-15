@@ -7,7 +7,6 @@ before_install:
 install:
   #- Rscript -e 'install.packages(c("devtools","roxygen2"));devtools::install_deps("griph")'
   - Rscript -e 'install.packages(c("devtools","roxygen2"));
-
 #script:
 #  - Rscript -e 'devtools::check("griph")'
 
