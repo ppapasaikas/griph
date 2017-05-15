@@ -1,12 +1,16 @@
 language: r
 cache: packages
 
-# Specify folder
 before_install:
+  # Specify package folder
   - cd griph
+  # Make sure default environment variable do not interfere with MPI:
+  - test -n $CC  && unset CC
+  - test -n $CXX && unset CXX
+
 
 install:
-  #- Rscript -e 'install.packages(c("devtools","roxygen2"));devtools::install_deps("griph")'
+  #- Rscript -e 'devtools::install_deps("./")'
   - Rscript -e 'install.packages(c("devtools","roxygen2","knitr"));'
 
 #script:
@@ -20,14 +24,18 @@ os:
   - linux
   - osx
 
+compiler:
+  - clang
+  #- gcc
+
 #Allow for failure in osx build:
 matrix:
   allow_failures:
     - os: osx
 
-
 #after_success:
 #  - Rscript -e 'covr::coveralls()'
+
 notifications:
   email:
     on_success: change
