@@ -1064,17 +1064,7 @@ plotLVis <- function(gr,
         message("Computing largeVis projection...")
    
     set.seed(seed = seed)
-<<<<<<< HEAD
-    
-    
-    
-    
-    #res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=min(1,1e5/sum(gr$DISTM!=0)), M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
-    #res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), useDegree=TRUE, sgd_batches=min(1,1e5/sum(gr$DISTM!=0)), M=3, seed=seed, args)
-    
-    res <- do.call("largeVis::projectKNNs",c(list(wij=Matrix::Matrix(gr$DISTM),useDegree=TRUE,sgd_batches=min(1,1e5/sum(gr$DISTM!=0)), M=3, seed=seed),args ) )
-    
-=======
+
     #res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
     if (!is.element('sgd_batches',names(add.args))){
         add.args$sgd_batches=20000/(sum(gr$DISTM!=0)/2)   
@@ -1092,8 +1082,7 @@ plotLVis <- function(gr,
         add.args$useDegree=TRUE    
     }
     res <- do.call(projectKNNs, c( list(wij=Matrix::Matrix(gr$DISTM),seed=seed),add.args )    )
->>>>>>> 5e6b063bd95c6534bee6880baefc8da7a5ac7fd6
-    
+
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
     class.true <- factor(MEMB.true, levels=unique(MEMB.true))
