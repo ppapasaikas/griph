@@ -223,7 +223,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     ##### Strip dimnames:
     CellIds=colnames(DM)
-    dimnames(DM)=NULL
+    dimnames(DM)=list(NULL,NULL)
     
     if (!isTRUE(is.cor)) {  
         
@@ -828,6 +828,7 @@ plotTsne <- function(gr,
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
              'install.packages("Rtsne")')
     
+    args<-list(...)
     # get varaibles from gr
     MEMB <- gr$MEMB
     MEMB.true <- gr$MEMB.true
@@ -863,7 +864,16 @@ plotTsne <- function(gr,
     if(!quiet)
         message("Computing t-SNE projection...")
     set.seed(seed = seed)
-    res <- Rtsne::Rtsne(stats::as.dist(1-gr$DISTM), pca = FALSE, is_distance = TRUE, ...)
+    
+    if ( !("perplexity" %in% names(args))  ){
+    args$perplexity=min(30,round(sqrt(nrow(gr$DISTM))-1))
+    }
+    
+    
+    
+    #res <- Rtsne::Rtsne(stats::as.dist(1-gr$DISTM), pca = FALSE, is_distance = TRUE, args)
+    res <-do.call("Rtsne::Rtsne",c(  list(X=stats::as.dist(1-gr$DISTM), pca = FALSE, is_distance = TRUE),args)  )
+    
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
@@ -965,6 +975,11 @@ plotTsne <- function(gr,
 
 
 
+
+
+
+
+
 #' @title Visualize griph result using a LargeVis (Tang et al 2016 ) projection.
 #' 
 #' @description Plot a largeVis projection of the affinity matrix obtained from
@@ -998,7 +1013,7 @@ plotTsne <- function(gr,
 #'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
 #'     is rendered on the currently opened plotting device.
 #' @param quiet If \code{TRUE}, do not report on progress.
-#' @param ... additional arguments passed to \code{largeVis}
+#' @param ... additional arguments passed to \code{largeVis::projectKNNs}
 #' 
 #' @return Invisible the results of the largeVis projection.
 #' 
@@ -1021,6 +1036,7 @@ plotLVis <- function(gr,
         stop('"plotLvis" requires the "Matrix" package. Please install it with:\n\t',
              'install.packages("Matrix")')
     
+    args<-list(...)
     # get varaibles from gr
     MEMB <- gr$MEMB
     MEMB.true <- gr$MEMB.true
@@ -1056,7 +1072,15 @@ plotLVis <- function(gr,
     if(!quiet)
         message("Computing largeVis projection...")
     set.seed(seed = seed)
-    res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
+    
+    
+    
+    
+    #res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=min(1,1e5/sum(gr$DISTM!=0)), M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
+    #res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), useDegree=TRUE, sgd_batches=min(1,1e5/sum(gr$DISTM!=0)), M=3, seed=seed, args)
+    
+    res <- do.call("largeVis::projectKNNs",c(list(wij=Matrix::Matrix(gr$DISTM),useDegree=TRUE,sgd_batches=min(1,1e5/sum(gr$DISTM!=0)), M=3, seed=seed),args ) )
+    
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))

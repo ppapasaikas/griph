@@ -12,6 +12,9 @@
 #' 
 #' @return cell-by-cell distance matrix.
 WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
+    message(ncol(M),nrow(M),"\r")
+    message(ncol(FB),nrow(FB),"\r")
+    
     CellIds=colnames(M)
     dimnames(M)=NULL
     message("1","\n")
@@ -67,7 +70,8 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
         #R[is.na(R)]=0
         dimnames(R)=list(CellIds,CellIds)
 
-    return(as(R,"matrix"))
+    return(R)    
+    #return(as(R,"matrix"))
 }
 
 
@@ -206,10 +210,11 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=0,use.par=FALSE,ncores="
                 
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
                 
-                FakeBulk=matrix(0,nrow(params$DM),length(good.clust))
+                #FakeBulk=matrix(0,nrow(params$DM),length(good.clust))
+                FakeBulk=matrix(0,nrow(DM),length(good.clust))
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
-                    FakeBulk[,c]=rowSums(params$DM[,names(memb)][,memb==clust])
+                    FakeBulk[,c]=rowSums(DM[,names(memb)][,memb==clust])
                 }
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
