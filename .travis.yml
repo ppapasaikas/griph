@@ -90,16 +90,16 @@ after_success:
 - cd ..
 - R CMD INSTALL --build griph
 
-before_deploy:
-  - export FILE_TO_UPLOAD=$(ls ${TRAVIS_BUILD_DIR}/*/*.t*gz)
+#before_deploy:
+#  - export FILE_TO_UPLOAD=$(ls ${TRAVIS_BUILD_DIR}/*/*.t*gz)
 
 deploy:
   provider: releases
   api_key:
       secure: pHNhu1qLXymUzW2ZF/XTG/6mlDRes04MtfwpOFEB6waxnFjoQf39UB+WBsk+4WGC6bQyWjjEshgqD9SrtZOnTVTIwxnaE2VnYnNQlDLfeYpXqCkj17VSWSNmILjk9q8kn02aPM4Xeg9k7R6wrnS8zkzq564T/7jTQkF916u1RqywHs++fAbO+3ii9vIgEh1pEgrBnXhfD7f7ocCBZiMA81C+vMH7iCPdAJy/9aeE3VEfePXqtUY9THKZrz9Lsq9hcGdtx3bi1qOSZo2XdnE2+DwOH4pQysgyVM5xx4t9lsHtEYV7/I91eznXCQCLq3A7o5s8biUco+TVfXmKH1q/FeTS6bqqQvQkCfePoMw0Vet8dFGh0jxpJOkchApGnBUhHwl9Cqv32R58NVFhIx7/R3sMJhgfoH3ZIo0V1jXZrkse3domtgQ/Zd2GGtAheyxtvBggvn3S3oCmnqWfOn8xplD8pTDq2oS3YHY/QKNadKkVRRGUqntVNcAgsOHNMBC0bnjqmc7oY2isgIFzLOWY0uEEqIS9iIYHJtfGq+9MVXp62jac+bZsfmXpCaYw0B0Fpdf7vmqKpo64/FbveklvVJuge62zxHB9bAlC76RwuRW/znJU8HvHVHwihbj+oX1hbwxBgy0oPeaidd+rcqL76NGepBrGqtEN78eX2Nr36f0=
   file_glob: true
-  file: ${FILE_TO_UPLOAD}
-  #file: griph*.t*gz
+  #file: ${FILE_TO_UPLOAD}
+  file: griph*.t*gz
   skip_cleanup: true
   on:
     tags: true
