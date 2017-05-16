@@ -42,7 +42,8 @@ Convert an edge matrix to a \code{dist} object.
 }
 \note{
 This function and additional code called by it were imported from the \code{largeVis}
-    package (see \url{https://github.com/elbamos/largeVis}).
+    package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
+    described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 
 This method converts the otherwise sparse edge matrix into a dense \code{dist} object,
 where any distances absent from the edge matrix are represented as \code{NA}.

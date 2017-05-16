@@ -22,7 +22,8 @@ The formula used is the one used by the \code{LargeVis} reference implementation
 }
 \note{
 This function and additional code called by it were imported from the \code{largeVis}
-    package (see \url{https://github.com/elbamos/largeVis}).
+    package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
+    described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 }
 \examples{
 # Observe that increasing K has no effect on processing time
