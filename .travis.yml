@@ -8,15 +8,13 @@ script:
   - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
   - Rscript -e 'BiocInstaller::biocLite(c("BiocStyle"))'
 
-before_install:
-  - cd griph
-
 matrix:
   include:
   - os: linux
     dist: trusty
     r: release
     before_install: |1
+     cd griph
      mkdir ~/.R
      cat <<EOF > ~/.R/Makevars
      CC=gcc-6
@@ -25,6 +23,8 @@ matrix:
      CXX11=g++-6
   - os: osx
     r: release
+    before_install: |1
+     cd griph
   #- os: linux
   #  dist: trusty
   #  r: devel
