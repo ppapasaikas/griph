@@ -95,7 +95,6 @@ after_success:
 #  - export FILE_TO_UPLOAD=$(ls ${TRAVIS_BUILD_DIR}/*/*.tar.gz)
 #  - export FILE_TO_UPLOAD=$(ls _builds/*/*.tar.gz)
 
-${TRAVIS_BUILD_DIR}
 deploy:
   provider: releases
   api_key:
