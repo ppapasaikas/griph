@@ -84,22 +84,30 @@ addons:
 
 #after_success:
 #  - Rscript -e 'covr::coveralls()'
+#after_success:
+#- if [[ "$TRAVIS_R_VERSION" != "devel" && ("$TRAVIS_OS_NAME" == "osx") ]]; then R CMD INSTALL --build $PKG_TARBALL; fi
+after_success:
+- R CMD INSTALL --build $PKG_TARBALL; fi
 
 
-before_deploy:
-  - export FILE_TO_UPLOAD=$(ls _builds/*/*.tar.gz)
+#before_deploy:
+#  - export FILE_TO_UPLOAD=$(ls ${TRAVIS_BUILD_DIR}/*/*.tar.gz)
+#  - export FILE_TO_UPLOAD=$(ls ${TRAVIS_BUILD_DIR}/*/*.tar.gz)
+#  - export FILE_TO_UPLOAD=$(ls _builds/*/*.tar.gz)
 
+${TRAVIS_BUILD_DIR}
 deploy:
   provider: releases
   api_key:
       secure: INOd7zxJYw6WRqFOZO7EhrR6zoWmR5apThTndG+D4FkM/OgF35cyVyyqYKCy78d0RO49eF9wUYvCr1MsxrMF1tyj87apb6ddOJPMrAfxsM7GOpmjskuvmoOsKBOlu9oDrEO9n0rDJRYpkweqBKVU8z1t4DUV8NKptERkEBpbhbdvpOb9mGDt6/kUjLf+ea+1SSig/LmLHgBygcMpu/1Qidw/yVISsU6idxA0mcnu75H27OFSFu+A0p2dLYyzz4eQ3v6b4GsHcq9F/2ixQmp3zwUfwv18tiauOXQEonzTf7bz6XieSOFJPRPCtZmePaM2Sz5qCwY0AxyqkQMLr/jTjiZQBAeFpgQkx8zSf51iccrcJHDcEipXhhkpDKO1UgdlmA/9bb9XXsjF032T9MprboaESTxpKSykp5pne+cXJjuEZwV1AWfDYF0W8ShKw02K5lG6YSjiJmvYyN0+xQqz1NsxCpXs7LKvUfE1muO1vgPmoIiYfn5AEwcR3/1NorD/EpM3p6w3UvO1cIhMn2vR0SIw542E5oovDkunCsw+CDPeRcGADBrlxAiGQd1s24s+r/OwapnAt6rohOlTsVFcYjBeelWaDhl8/yuVwcxsKRIn2iPtUw0UArzy49KVsRurOo6SdSggu+hJmeGFVzj64eXyXgAPogVnuRLgGBISgs0=
   file_glob: true
-  file: "${FILE_TO_UPLOAD}"
+  #file: "${FILE_TO_UPLOAD}"
+  file: griph_*.t*gz
   skip_cleanup: true
   on:
     tags: true
-#    condition: "$r = release"
-
+ #   condition: "$r = release"
+ #   r: release
 
 cran: http://cran.rstudio.com
 
