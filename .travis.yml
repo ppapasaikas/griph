@@ -98,7 +98,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: true
-    condition: "$r = release"
+#    condition: "$r = release"
 
 
 cran: http://cran.rstudio.com
