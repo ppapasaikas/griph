@@ -1,13 +1,15 @@
 language: r
+
 cache: packages
 
 sudo: required
 
 script:
-#  - Rscript -e 'devtools::check("./")'
   - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
   - Rscript -e 'BiocInstaller::biocLite(c("BiocStyle"))'
 
+before_install:
+  - cd griph
 
 matrix:
   include:
@@ -15,7 +17,6 @@ matrix:
     dist: trusty
     r: release
     before_install: |1
-     cd griph
      mkdir ~/.R
      cat <<EOF > ~/.R/Makevars
      CC=gcc-6
@@ -24,27 +25,25 @@ matrix:
      CXX11=g++-6
   - os: osx
     r: release
-    before_install: |1
-     cd griph
-  - os: linux
-    dist: trusty
-    r: devel
-    before_install: |1
-     cd griph
-     mkdir ~/.R
-     cat <<EOF > ~/.R/Makevars
-     CC=gcc-6
-     CXX=g++-6
-     CXX1X=g++-6
-     CXX11=g++-6
-  - os: osx
-    r: devel
-    before_install: |1
-     cd griph
-    env: _R_CHECK_FORCE_SUGGESTS_=FALSE
-  allow_failure:
-    r: devel
-    r_check_args: --use-valgrind
+  #- os: linux
+  #  dist: trusty
+  #  r: devel
+  #  before_install: |1
+  #   cd griph
+  #   mkdir ~/.R
+  #   cat <<EOF > ~/.R/Makevars
+  #   CC=gcc-6
+  #   CXX=g++-6
+  #   CXX1X=g++-6
+  #   CXX11=g++-6
+  #- os: osx
+  #  r: devel
+  #  before_install: |1
+  #   cd griph
+  #  env: _R_CHECK_FORCE_SUGGESTS_=FALSE
+  #allow_failure:
+  #  r: devel
+  #  r_check_args: --use-valgrind
 
 env:
   global:
@@ -58,12 +57,9 @@ r_packages:
   - ggplot2
 
 r_binary_packages:
-  - testthat
-  - png
   - Rcpp
   - RcppArmadillo
   - RcppProgress
-  - dbscan
   - knitr
   - rmarkdown
   - roxygen2
@@ -82,31 +78,27 @@ addons:
       - udunits
 
 
-#after_success:
-#  - Rscript -e 'covr::coveralls()'
-#after_success:
-#- if [[ "$TRAVIS_R_VERSION" != "devel" && ("$TRAVIS_OS_NAME" == "osx") ]]; then R CMD INSTALL --build $PKG_TARBALL; fi
 after_success:
+- Rscript -e 'covr::coveralls()'
 - cd ..
 - R CMD INSTALL --build griph
+#- if [[ "$TRAVIS_R_VERSION" != "devel" && ("$TRAVIS_OS_NAME" == "osx") ]]; then R CMD INSTALL --build $PKG_TARBALL; fi
 
-#before_deploy:
-#  - export FILE_TO_UPLOAD=$(ls ${TRAVIS_BUILD_DIR}/*/*.t*gz)
 
 deploy:
   provider: releases
   api_key:
       secure: pHNhu1qLXymUzW2ZF/XTG/6mlDRes04MtfwpOFEB6waxnFjoQf39UB+WBsk+4WGC6bQyWjjEshgqD9SrtZOnTVTIwxnaE2VnYnNQlDLfeYpXqCkj17VSWSNmILjk9q8kn02aPM4Xeg9k7R6wrnS8zkzq564T/7jTQkF916u1RqywHs++fAbO+3ii9vIgEh1pEgrBnXhfD7f7ocCBZiMA81C+vMH7iCPdAJy/9aeE3VEfePXqtUY9THKZrz9Lsq9hcGdtx3bi1qOSZo2XdnE2+DwOH4pQysgyVM5xx4t9lsHtEYV7/I91eznXCQCLq3A7o5s8biUco+TVfXmKH1q/FeTS6bqqQvQkCfePoMw0Vet8dFGh0jxpJOkchApGnBUhHwl9Cqv32R58NVFhIx7/R3sMJhgfoH3ZIo0V1jXZrkse3domtgQ/Zd2GGtAheyxtvBggvn3S3oCmnqWfOn8xplD8pTDq2oS3YHY/QKNadKkVRRGUqntVNcAgsOHNMBC0bnjqmc7oY2isgIFzLOWY0uEEqIS9iIYHJtfGq+9MVXp62jac+bZsfmXpCaYw0B0Fpdf7vmqKpo64/FbveklvVJuge62zxHB9bAlC76RwuRW/znJU8HvHVHwihbj+oX1hbwxBgy0oPeaidd+rcqL76NGepBrGqtEN78eX2Nr36f0=
   file_glob: true
-  #file: ${FILE_TO_UPLOAD}
   file: griph*.t*gz
   skip_cleanup: true
   on:
     tags: true
  #   repo: ppapasaikas/griph
- #   condition: "$r = release"
+ ##   condition: "$r = release"
  #   r: release
- #   condition: "$TRAVIS_R_VERSION != devel && ($TRAVIS_OS_NAME == osx)"
+ ##   condition: "$TRAVIS_R_VERSION != devel && ($TRAVIS_OS_NAME == osx)"
+
 cran: http://cran.rstudio.com
 
 
