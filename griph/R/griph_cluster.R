@@ -119,6 +119,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 #'     class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
 #' @param BatchAssignment If available a numeric vector of length \code{k} with numeric
 #'     batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
+#' @param ncom Forces detection of a fixed number of clusters (communities).
 #' @param plotG if \code{TRUE} plots the resulting graph
 #' @param maxG Approximate maximal number of vertices to include when plotting the graph.
 #' @param fsuffix A suffix added to the file names of output plots. If not given
@@ -132,7 +133,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 
 griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="all",
                           impute = FALSE, filter = FALSE, rho = 0.25, batch.penalty = 0.5,
-                          ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
+                          ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom=NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
     
     ptm=proc.time() #Start clock
@@ -171,7 +172,8 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 
                 if (ncol(DM)>SamplingSize){
                 SMPL=sample(1:ncol(DM),SamplingSize)
-                params$DM=DM[,SMPL]    
+                params$DM=DM[,SMPL]
+                params$ncom=min(ceiling(sqrt(ncol(DM))),16)
                 params$ClassAssignment=ClassAssignment[SMPL]
                     if (!is.null(BatchAssignment)){
                     params$BatchAssignment=BatchAssignment[SMPL]   
@@ -182,10 +184,11 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 params$DM=DM
                 }
                 
-                cluster.res <- do.call(    "SC_cluster", c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1,ncom=16 ) )     )
+                cluster.res <- do.call(    "SC_cluster", c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
             }
             else {
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
+                params$ncom=ncom
                 params$is.cor=TRUE
                 params$ClassAssignment=ClassAssignment
                 params$BatchAssignment=BatchAssignment  

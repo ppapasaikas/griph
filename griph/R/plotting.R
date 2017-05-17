@@ -409,7 +409,7 @@ plotTsne <- function(gr,
     if ( !("perplexity" %in% names(args))  ) {
         args$perplexity=min(30,round(sqrt(nrow(gr$DISTM))-1))
     }
-    res <-do.call("Rtsne::Rtsne",c(list(X=stats::as.dist(1-gr$DISTM), pca = FALSE, is_distance = TRUE), args))
+    res <-do.call( "Rtsne::Rtsne",c(list(X=stats::as.dist(1-gr$DISTM), pca = FALSE, is_distance = TRUE), args))
     
     # get colors
     class.pred <- factor(MEMB, levels = sort(as.numeric(unique(MEMB))))
