@@ -18,6 +18,7 @@ branches:
 before_build:
    ps: |
         cp ..\travis-tool.sh .\travis-tool.sh
+        cp ..\travis-tool.sh griph\travis-tool.sh
         cp travis-tool.sh.cmd griph\travis-tools.sh.cmd
         cd griph
         bash -c "echo '^travis-tool\.sh\.cmd$' >> .Rbuildignore"
