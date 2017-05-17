@@ -27,7 +27,6 @@ importFrom("grDevices", "dev.off", "hcl", "pdf", "png", "colorRampPalette", "rgb
 importFrom("graphics", "legend", "par", "plot", "symbols", "points")
 importFrom("stats", "IQR", "cor", "dist", "median", "nls", "predict", "quantile", "sd","kmeans")
 importFrom("utils", "flush.console")
-importFrom("Rcpp", "evalCpp")
 import(RColorBrewer)
 
 useDynLib(griph, .registration = TRUE)
