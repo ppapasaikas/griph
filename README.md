@@ -1,4 +1,5 @@
 [![Travis-CI Build Status](https://travis-ci.org/ppapasaikas/griph.svg?branch=master)](https://travis-ci.org/ppapasaikas/griph) 
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/ppapasaikas/griph?branch=master&svg=true)](https://ci.appveyor.com/project/ppapasaikas/griph?branch=master)
 
 # griph: Graph Inference of Population Heterogeneity
 Panagiotis Papasaikas, Michael Stadler, Atul Sethi  
