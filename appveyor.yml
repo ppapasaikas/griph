@@ -25,6 +25,17 @@ before_build:
   #- ps: ...
 
 build_script:
+  - travis-tool.sh install_r devtools
+  - travis-tool.sh install_r roxygen2
+  - travis-tool.sh install_r knitr
+  - travis-tool.sh install_r rmarkdown
+  - travis-tool.sh install_r Rcpp
+  - travis-tool.sh install_r RcppArmadillo
+  - travis-tool.sh install_r RcppProgress
+  - travis-tool.sh install_r covr
+  - travis-tool.sh install_r BH
+  - travis-tool.sh install_r ggplot2
+  - travis-tool.sh install_bioc_ BiocStyle
   - travis-tool.sh install_deps
   - ps: cd ..
   - ps: R CMD INSTALL --build griph
@@ -50,17 +61,17 @@ artifacts:
     name: Logs
 
   - path: '\*_*.tar.gz'
-    name: Bits
+    name: tar
 
   - path: '\*_*.zip'
-    name: Bits
+    name: zip
 
 deploy:
-  - provider: releases
-    name: Bits
+  - provider: GitHub
+    #name: zip
     auth_token:
       secure: byrMk4PZnSieDDIT01xfa86wYfX/7b0Hfs4XZPrLH9gpIv+EtVYPLEzqpvV0w1BR
-    artifact: /.*\.zip
+    artifact: /griph*.zip/
     on:
     ##  appveyor_repo_tag: true
       branch: master
