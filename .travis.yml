@@ -17,12 +17,15 @@ matrix:
      CXX=g++-6
      CXX1X=g++-6
      CXX11=g++-6
+    before_script: |1
+     cd ../
 
   - os: osx
     r: release
     before_install: |1
      cd griph
-
+    before_script: |1
+     cd ../
   #- os: linux
   #  dist: trusty
   #  r: devel
