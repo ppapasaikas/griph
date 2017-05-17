@@ -45,6 +45,8 @@ build_script:
 test_script:
   - travis-tool.sh run_tests
   - travis-tool.sh run_tests >> test.out
+  - ps: ls -l >> test.out
+ # - ps: ls -l ../ >> test.out
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
