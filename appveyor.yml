@@ -52,3 +52,12 @@ artifacts:
 
   - path: '\*_*.zip'
     name: Bits
+
+deploy:
+  - provider: releases
+    name: production
+      api_key:
+      secure: byrMk4PZnSieDDIT01xfa86wYfX/7b0Hfs4XZPrLH9gpIv+EtVYPLEzqpvV0w1BR
+    on:
+    #  appveyor_repo_tag: true
+      branch: master
