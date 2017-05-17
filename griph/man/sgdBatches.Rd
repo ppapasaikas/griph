@@ -25,13 +25,3 @@ This function and additional code called by it were imported from the \code{larg
     package (see \url{https://github.com/elbamos/largeVis}, implementing the largeVis algorithm
     described by Tang et al. (2016) in \url{https://doi.org/10.1145/2872427.2883041}).
 }
-\examples{
-# Observe that increasing K has no effect on processing time
-N <- 70000 # MNIST
-K <- 10:250
-plot(K, sgdBatches(rep(N, length(K)), N * K / 2))
-
-# Observe that processing time scales linarly with N
-N <- c(seq(from = 1, to = 10000, by = 100), seq(from = 10000, to = 10000000, by = 1000))
-plot(N, sgdBatches(N))
-}
