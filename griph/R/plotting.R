@@ -366,15 +366,16 @@ plotTsne <- function(gr,
                      seed=91919,
                      fsuffix=RandString(), image.format=NA,
                      quiet=FALSE, ...) {
-    if (! is.element("Rtsne", utils::installed.packages()[,1]))
+    if (!is.element("Rtsne", utils::installed.packages()[,1])) {
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
              'install.packages("Rtsne")')
+    }
     
     args <- list(...)
     # get varaibles from gr
     MEMB <- gr$MEMB
     MEMB.true <- gr$MEMB.true
-    csize <- table(MEMB)
+    #csize <- table(MEMB)
     
     # digest arguments
     fill.type <- match.arg(fill.type)
@@ -407,9 +408,9 @@ plotTsne <- function(gr,
         message("Computing t-SNE projection...")
     set.seed(seed = seed)
     if ( !("perplexity" %in% names(args))  ) {
-        args$perplexity=min(30,round(sqrt(nrow(gr$DISTM))-1))
+        args$perplexity <- min(30,round(sqrt(nrow(gr$DISTM)) - 1))
     }
-    res <-do.call( "Rtsne::Rtsne",c(list(X=stats::as.dist(1-gr$DISTM), pca = FALSE, is_distance = TRUE), args))
+    res <- do.call(Rtsne::Rtsne, c(list(X = stats::as.dist(1 - gr$DISTM), pca = FALSE, is_distance = TRUE), args))
     
     # get colors
     class.pred <- factor(MEMB, levels = sort(as.numeric(unique(MEMB))))

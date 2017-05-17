@@ -184,7 +184,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 params$DM=DM
                 }
                 
-                cluster.res <- do.call(    "SC_cluster", c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
+                cluster.res <- do.call(SC_cluster, c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
             }
             else {
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
@@ -218,7 +218,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 params$DM=WScorFB(DM,FakeBulk,ShrinkCor=ShrinkCor)
                 message("done")
                 
-                cluster.res <- do.call("SC_cluster",c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
+                cluster.res <- do.call(SC_cluster, c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
             }
             gc() #Call garbage collector
         }
