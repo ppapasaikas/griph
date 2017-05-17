@@ -1,9 +1,5 @@
 language: r
 
-cache: packages
-
-sudo: required
-
 script:
   - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
   - Rscript -e 'BiocInstaller::biocLite(c("BiocStyle"))'
@@ -21,10 +17,13 @@ matrix:
      CXX=g++-6
      CXX1X=g++-6
      CXX11=g++-6
+
   - os: osx
     r: release
     before_install: |1
      cd griph
+
+
   #- os: linux
   #  dist: trusty
   #  r: devel
@@ -45,6 +44,8 @@ matrix:
   #  r: devel
   #  r_check_args: --use-valgrind
 
+cache: packages
+
 env:
   global:
   - OS=$(uname -s)
@@ -64,6 +65,8 @@ r_binary_packages:
   - rmarkdown
   - roxygen2
   - devtools
+
+sudo: required
 
 addons:
   apt:
