@@ -279,37 +279,6 @@ FlashGlasso <- function (DM,ncores="all",rho=0.3,tol=1e-3,maxIter=100,msg=0) {
 
 
 
-#Parallel regularized non-negative matrix factorization
-FlashRNMF <- function (DM,ncores="all",k=6,alpha = 0.15,tol=1e-2,maxit=10,showprogress=FALSE,quiet=TRUE) { 
-  DM=as.big.matrix(DM)
-  desc<-describe(DM)
-  NCOL=desc@description["totalCols"][[1]]
-  NROW=desc@description["totalRows"][[1]]
-  
-  ncores=getDoParWorkers()
-  nblocks = ncores 
-
-  DMimp <- matrix(data=0,nrow=NROW,ncol=NCOL )
-  DMimp <- as.big.matrix(DMimp,type="double")
-  bigDMimp <- describe(DMimp)
-  ## split column numbers into 'nblocks' groups
-  SPLIT=split(1:NCOL, ceiling(seq_along(1:NCOL)/ceiling(NCOL/nblocks)  ))
-
-  ## iterate through each block and apply rNMF:
-  results<-foreach(i = 1:length(SPLIT),.export=c('rnmf'), .packages=('bigmemory') ) %dopar%{
-    G <- SPLIT[[i]]
-    x<-attach.big.matrix(desc)
-    DMimp<-attach.big.matrix(bigDMimp)
-    IMP <- rnmf(x[,G],k=k,alpha = alpha,tol=tol,maxit=maxit,showprogress=showprogress,quiet=quiet)$fit
-    DMimp[, G] <- IMP
-    IMP <- NULL
-    return(0L)
-  }
-  return(as.matrix(DMimp))
-}
-
-
-
 
 #Parallel computation of personalized-pagerank based distances
 FlashPPR <- function (G,ncores="all",df=0.75) { 

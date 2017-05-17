@@ -4,7 +4,6 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
-#' @param CanberraDist Function to calculate Canberra distance.
 #' @param PearsonCor Function to calculate Pearson correlation.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' 
@@ -162,7 +161,7 @@ PPR <- function (G,df=0.75){
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
-
+#' @param ... Additional arguments passed from griph_cluster
 #' 
 #' @return Currently a list with the clustering results.
 
