@@ -26,6 +26,7 @@ before_build:
 
 build_script:
   - travis-tool.sh install_deps
+  - ps: cd ..
   - R CMD INSTALL --build griph
 
 test_script:
