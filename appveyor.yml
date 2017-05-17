@@ -45,6 +45,7 @@ build_script:
 test_script:
   - travis-tool.sh run_tests
   - travis-tool.sh run_tests > test.out
+  - dir >> test.out
   - ls -l >> test.out
  # - ps: ls -l ../ >> test.out
 
