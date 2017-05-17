@@ -33,8 +33,6 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
     cFB=NULL
 
-
-    #message("1","\n")
     D=cor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
