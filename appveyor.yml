@@ -10,8 +10,18 @@ init:
 install:
   ps: |
         Bootstrap
-        cd griph
 # Adapt as necessary starting from here
+branches:
+  only:
+    - master
+
+before_build:
+  - ps: |
+    cp ..\travis-tool.sh .\travis-tool.sh
+    cp travis-tool.sh.cm griph\travis-tools.sh.cmd
+    cd griph
+    bash -c "echo '^travis-tool\.sh\.cmd$' >> .Rbuildignore"
+  #- ps: ...
 
 build_script:
   - travis-tool.sh install_deps
