@@ -4,12 +4,8 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
-#' @param C1 cell-by-cell (correlation?) matrix.
-#' @param CanberraDist Function to calculate Canberra distance.
-#' @param SpearmanCor Function to calculate Spearman rank correlation.
-#' @param HellingerDist Function to calculate Hellinger distance.
+#' @param FB gene-by-FakeBulks gene sums count matrix.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
-#' 
 #' @return cell-by-cell distance matrix.
 WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
     message(ncol(M),nrow(M),"\r")
@@ -95,9 +91,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 #' 
 #' @param DM Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 #'     Required argument.
-#' @param is.cor If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
-#'     Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
-#'     matrix, and a correlation matrix will be computed.
+#' @param SamplingSize Number of sampled cells in initialization step. 
 #' @param ref.iter Number of clustering refinement iterations.  
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
 #'     functions based on \code{\link[foreach]{foreach}} (see details).
@@ -109,9 +103,6 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 #'     Default=0.25.  The parameter is then automatically scaled to account for
 #'     number of variables or converted into a matrix and adjusted according to
 #'     the batch.penalty factor to account for BatchAssignment (if given).
-#' @param pr.iter A numberic scalar defining the number of iterations to use for
-#'     re-weighting the graph edges using personalized PageRank node similarity score.
-#'     Set to zero to deactivate.
 #' @param batch.penalty [0,1] rho scaling factor for enforcing topological constraints
 #'     variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 #'     rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}. 

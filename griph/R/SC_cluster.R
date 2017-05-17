@@ -4,10 +4,8 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
-#' @param C1 cell-by-cell (correlation?) matrix.
 #' @param CanberraDist Function to calculate Canberra distance.
-#' @param SpearmanCor Function to calculate Spearman rank correlation.
-#' @param HellingerDist Function to calculate Hellinger distance.
+#' @param PearsonCor Function to calculate Pearson correlation.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' 
 #' @return cell-by-cell distance matrix.
