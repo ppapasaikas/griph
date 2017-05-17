@@ -37,12 +37,14 @@ build_script:
   - travis-tool.sh install_r ggplot2
   - travis-tool.sh install_bioc_ BiocStyle
   - travis-tool.sh install_deps
-  - ps: cd ..
+  #- ps: cd ..
+
   #- R CMD INSTALL --build griph
 
 #The run_test also builds binaries on the windows platform:
 test_script:
   - travis-tool.sh run_tests
+  - travis-tool.sh run_tests >> test.out
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
@@ -61,18 +63,20 @@ artifacts:
   - path: '*.Rcheck\**\*.Rout'
     name: Logs
 
+  - path: 'test.out'
+    name: tout
+
   - path: '\*_*.tar.gz'
     name: tar
 
   - path: 'griph*.zip'
     name: zip
 
-deploy:
-  - provider: GitHub
-    #name: zip
-    auth_token:
-      secure: byrMk4PZnSieDDIT01xfa86wYfX/7b0Hfs4XZPrLH9gpIv+EtVYPLEzqpvV0w1BR
-    artifact: /griph*.zip/
-    on:
-    ##  appveyor_repo_tag: true
-      branch: master
+#deploy:
+#  - provider: GitHub
+#    auth_token:
+#      secure: byrMk4PZnSieDDIT01xfa86wYfX/7b0Hfs4XZPrLH9gpIv+EtVYPLEzqpvV0w1BR
+#    artifact: /griph*.zip/
+#    on:
+#    ##  appveyor_repo_tag: true
+#      branch: master
