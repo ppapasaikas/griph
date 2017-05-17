@@ -64,7 +64,7 @@ artifacts:
   - path: '\*_*.tar.gz'
     name: tar
 
-  - path: '\*_*.zip'
+  - path: 'griph*.zip'
     name: zip
 
 deploy:
