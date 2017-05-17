@@ -44,8 +44,8 @@ build_script:
 #The run_test also builds binaries on the windows platform:
 test_script:
   - travis-tool.sh run_tests
-  - travis-tool.sh run_tests >> test.out
-  - ps: ls -l >> test.out
+  - travis-tool.sh run_tests > test.out
+  - ls -l >> test.out
  # - ps: ls -l ../ >> test.out
 
 on_failure:
@@ -65,7 +65,7 @@ artifacts:
   - path: '*.Rcheck\**\*.Rout'
     name: Logs
 
-  - path: 'test.out'
+  - path: '**\*.out'
     name: tout
 
   - path: '\*_*.tar.gz'
