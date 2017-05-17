@@ -83,9 +83,9 @@ addons:
 
 after_success:
 - Rscript -e 'covr::codecov(branch = Sys.getenv("TRAVIS_BRANCH"))'
-- cd ..
-- R CMD INSTALL --build griph
-#- if [[ "$TRAVIS_R_VERSION" != "devel" && ("$TRAVIS_OS_NAME" == "osx") ]]; then R CMD INSTALL --build $PKG_TARBALL; fi
+#- cd ..
+#- R CMD INSTALL --build griph
+###- if [[ "$TRAVIS_R_VERSION" != "devel" && ("$TRAVIS_OS_NAME" == "osx") ]]; then R CMD INSTALL --build $PKG_TARBALL; fi
 
 
 deploy:
