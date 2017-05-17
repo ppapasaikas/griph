@@ -10,8 +10,8 @@ matrix:
     dist: trusty
     r: release
     before_install: |1
-     cd griph
      mkdir ~/.R
+     cd griph
      cat <<EOF > ~/.R/Makevars
      CC=gcc-6
      CXX=g++-6
@@ -22,7 +22,6 @@ matrix:
     r: release
     before_install: |1
      cd griph
-
 
   #- os: linux
   #  dist: trusty
@@ -57,7 +56,6 @@ r_packages:
   - BH
   - ggplot2
 
-
 bioc_packages:
   - BiocStyle
 
@@ -84,13 +82,11 @@ addons:
   brew_packages:
       - udunits
 
-
 after_success:
 - Rscript -e 'covr::codecov(branch = Sys.getenv("TRAVIS_BRANCH"))'
 #- cd ..
 #- R CMD INSTALL --build griph
 ###- if [[ "$TRAVIS_R_VERSION" != "devel" && ("$TRAVIS_OS_NAME" == "osx") ]]; then R CMD INSTALL --build $PKG_TARBALL; fi
-
 
 deploy:
   provider: releases
