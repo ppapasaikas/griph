@@ -132,7 +132,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 
 
 griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="all",
-                          impute = FALSE, filter = FALSE, rho = 0.25, batch.penalty = 0.5,
+                          filter = FALSE, rho = 0.25, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom=NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
     
