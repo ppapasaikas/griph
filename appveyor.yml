@@ -55,9 +55,10 @@ artifacts:
 
 deploy:
   - provider: releases
-    name: production
-      api_key:
+    name: Bits
+    auth_token:
       secure: byrMk4PZnSieDDIT01xfa86wYfX/7b0Hfs4XZPrLH9gpIv+EtVYPLEzqpvV0w1BR
+    artifact: /.*\.zip
     on:
     #  appveyor_repo_tag: true
       branch: master
