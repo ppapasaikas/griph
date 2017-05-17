@@ -37,9 +37,10 @@ build_script:
   - travis-tool.sh install_r ggplot2
   - travis-tool.sh install_bioc_ BiocStyle
   - travis-tool.sh install_deps
-  #- ps: cd ..
+  - ps: cd ..
   #- R CMD INSTALL --build griph
 
+#The run_test also builds binaries on the windows platform:
 test_script:
   - travis-tool.sh run_tests
 
