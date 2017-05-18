@@ -22,7 +22,6 @@ matrix:
     r: release
     before_install: |1
      cd griph
-
   #- os: linux
   #  dist: trusty
   #  r: devel

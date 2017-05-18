@@ -4,17 +4,13 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
-#' @param C1 cell-by-cell (correlation?) matrix.
-#' @param CanberraDist Function to calculate Canberra distance.
-#' @param SpearmanCor Function to calculate Spearman rank correlation.
-#' @param HellingerDist Function to calculate Hellinger distance.
+#' @param PearsonCor Function to calculate Pearson correlation.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' 
 #' @return cell-by-cell distance matrix.
 WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     
     nBulks=min(1000, 3*ncol(M) )
-    #FBsize=min(100,ceiling(2*sqrt(ncol(M))) )
     FBsize=3
     
     rep.ind=rep(1:ncol(M),ceiling(nBulks*FBsize/ncol(M))   )
@@ -27,40 +23,33 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
         }
     }
     else {FB=M[,SMPL[1:nBulks]]}
-    ###FB=M
-    
+
     cFB=PearsonCor(log2(FB+1))
     cFB[!lower.tri(cFB)] <- 0
     Q=quantile(cFB[lower.tri(cFB)],0.995)
     FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
     cFB=NULL
 
-    #message("Number of Fake Bulks Kept: ", ncol(FB),"\n")
-
-    #message("1","\n")
     D=cor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
-    
     ######## Counts per 10K:
     CellCounts=colSums(FB)
     FB=sweep(FB,2,CellCounts,FUN="/")
     FB=FB*10000
-    #FB=(FB+(rowSums(FB)/ncol(FB)))/2
     CellCounts=colSums(M)
     M=sweep(M,2,CellCounts,FUN="/")
     M=M*10000 
     
-    #message("2","\n")
     Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
-    #message("3","\n")
+
     Dt=cor(FB,M,method="spearman")
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
-    #message("4","\n")
+    
     Dt=PHellingerMat(FB,M)
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
@@ -80,17 +69,6 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     W=W/max(W)
     R=R^2
 
-    #if(is.element("largeVis", utils::installed.packages()[,1]) & ncol(R) > 2e5){
-    #R=sweep(R,2,colMeans(R),"-")
-    #R=R*(W^0.41)
-    #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine")
-    #R=1-as.matrix(as.dist(R))/2
-    #R[is.na(R)]=0
-    #}
-    #Linear cor.shrink is faster than Largevis for n < 500x25K (~150seconds)
-    #parallelized cor.shrink is faster than cor.shrink for n > 500x10K (~20seconds for cor.shrink), and faster than largeVis for n < 500x200K 
-    #largeVis is O(MNlog(N)) (M is number of features, N number of cells )
-    #cor.shrink is O(MN^2)
     R=ShrinkCor( R ,verbose=FALSE,lambda=0, w=W ) 
     return(as(R,"matrix"))
 }
@@ -183,7 +161,7 @@ PPR <- function (G,df=0.75){
 #' @param fsuffix A suffix added to the file names of output plots. If not given
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
-
+#' @param ... Additional arguments passed from griph_cluster
 #' 
 #' @return Currently a list with the clustering results.
 

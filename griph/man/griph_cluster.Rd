@@ -5,14 +5,16 @@
 \title{Wrapper function for SC_cluster}
 \usage{
 griph_cluster(DM, SamplingSize = 750, ref.iter = 1, use.par = FALSE,
-  ncores = "all", impute = FALSE, filter = FALSE, rho = 0.25,
-  batch.penalty = 0.5, ClassAssignment = rep(1, ncol(DM)),
-  BatchAssignment = NULL, plotG = TRUE, maxG = 2500,
-  fsuffix = RandString(), image.format = "png")
+  ncores = "all", filter = FALSE, rho = 0.25, batch.penalty = 0.5,
+  ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL, ncom = NULL,
+  plotG = TRUE, maxG = 2500, fsuffix = RandString(),
+  image.format = "png")
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 Required argument.}
+
+\item{SamplingSize}{Number of sampled cells in initialization step.}
 
 \item{ref.iter}{Number of clustering refinement iterations.}
 
@@ -40,6 +42,8 @@ class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 \item{BatchAssignment}{If available a numeric vector of length \code{k} with numeric
 batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
+\item{ncom}{Forces detection of a fixed number of clusters (communities).}
+
 \item{plotG}{if \code{TRUE} plots the resulting graph}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
@@ -48,14 +52,6 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}
-
-\item{is.cor}{If \code{TRUE}, \code{DM} is assumed to be a correlation matrix.
-Otherwise (the default), \code{DM} is assumed to be a genes-by-cells count
-matrix, and a correlation matrix will be computed.}
-
-\item{pr.iter}{A numberic scalar defining the number of iterations to use for
-re-weighting the graph edges using personalized PageRank node similarity score.
-Set to zero to deactivate.}
 }
 \value{
 Currently a list with the clustering results.

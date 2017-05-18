@@ -9,15 +9,11 @@ WScor(M, PearsonCor = PearsonCor, ShrinkCor = ShrinkCor)
 \arguments{
 \item{M}{gene-by-cell count matrix.}
 
+\item{PearsonCor}{Function to calculate Pearson correlation.}
+
 \item{ShrinkCor}{Function to calculate shrinkage correlation.}
 
-\item{C1}{cell-by-cell (correlation?) matrix.}
-
 \item{CanberraDist}{Function to calculate Canberra distance.}
-
-\item{SpearmanCor}{Function to calculate Spearman rank correlation.}
-
-\item{HellingerDist}{Function to calculate Hellinger distance.}
 }
 \value{
 cell-by-cell distance matrix.
