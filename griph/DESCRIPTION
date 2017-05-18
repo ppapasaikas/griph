@@ -1,7 +1,7 @@
 Package: griph
 Type: Package
 Title: Graph Inference of Population Heterogeneity
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Panagiotis", "Papasaikas", role = c("aut", "cre"),
                      email = "panagiotis.papasaikas@fmi.ch"),
               person("Michael", "Stadler", role = "aut",

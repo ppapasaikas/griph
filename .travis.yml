@@ -1,8 +1,6 @@
 language: r
 
-#script:
-#  - Rscript -e 'source("https://bioconductor.org/biocLite.R")'
-#  - Rscript -e 'BiocInstaller::biocLite(c("BiocStyle"))'
+warnings_are_errors: false
 
 matrix:
   include:
