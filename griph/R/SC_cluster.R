@@ -279,12 +279,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
         RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
     
-        if(!is.null(BatchAssignment)){
-            rL=min(1,rho^(1-batch.penalty))
-            rS=rho^(1+batch.penalty)
-            RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
-            RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
-        }
+
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
         kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
         kN=get.knn(Cuse,k=kvect )
@@ -293,6 +288,14 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             RHO[i,-kN[,i] ]=min(1,1.5*rho)
         }
     
+        if(!is.null(BatchAssignment)){
+            rL=min(1,rho^(1-batch.penalty))
+            rS=rho^(1+batch.penalty)
+            RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
+            RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
+        }
+        
+        
         C=NULL
         tol=5e-02
         maxIter=40
