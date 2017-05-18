@@ -161,14 +161,16 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
     tryCatch({    
         for (i in 0:ref.iter) { 
             if (i==0) {
+                #Set the number of initialization clusters to smth reasonable given the number of cells:
+                params$ncom=min(ceiling(sqrt(ncol(DM))),16)
+                params$ncom=max(params$ncom,8)
+                if (ref.iter==0){
+                    params$ncom=ncom    
+                }
                 
                 if (ncol(DM)>SamplingSize){
                 SMPL=sample(1:ncol(DM),SamplingSize)
                 params$DM=DM[,SMPL]
-                params$ncom=min(ceiling(sqrt(ncol(DM))),16)
-                    if (ref.iter==0){
-                    params$ncom=ncom    
-                    }
                 params$ClassAssignment=ClassAssignment[SMPL]
                     if (!is.null(BatchAssignment)){
                     params$BatchAssignment=BatchAssignment[SMPL]   

@@ -602,9 +602,8 @@ plotLVis <- function(gr,
     
     set.seed(seed = seed)
     
-    #res <- largeVis::projectKNNs(Matrix::Matrix(gr$DISTM), sgd_batches=0.25, M=3, gamma=10, alpha=0.5, useDegree=TRUE, seed=seed, ...)
     if (!is.element('sgd_batches',names(add.args))){
-        add.args$sgd_batches=min(20000/(sum(gr$DISTM!=0)/2),0.95)   
+        add.args$sgd_batches=min(20000/(sum(gr$DISTM!=0)/2),0.99)   
     }
     if (!is.element('M',names(add.args))){
         add.args$M=4    
@@ -618,6 +617,7 @@ plotLVis <- function(gr,
     if (!is.element('useDegree',names(add.args))){
         add.args$useDegree=TRUE    
     }
+    
     res <- do.call(projectKNNs, c( list(wij=Matrix::Matrix(gr$DISTM,sparse = TRUE),seed=seed),add.args )    )
     
     # get colors
