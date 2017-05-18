@@ -92,7 +92,8 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 #' @param DM Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 #'     Required argument.
 #' @param SamplingSize Number of sampled cells in initialization step. 
-#' @param ref.iter Number of clustering refinement iterations.  
+#' @param ref.iter Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
+#'     step is performed to \code{min(SamplingSize,ncol(DM))} cells. 
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
 #'     functions based on \code{\link[foreach]{foreach}} (see details).
 #' @param ncores a numeric(1) or character(1), either specifying the number of
@@ -165,6 +166,9 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 SMPL=sample(1:ncol(DM),SamplingSize)
                 params$DM=DM[,SMPL]
                 params$ncom=min(ceiling(sqrt(ncol(DM))),16)
+                    if (ref.iter==0){
+                    params$ncom=ncom    
+                    }
                 params$ClassAssignment=ClassAssignment[SMPL]
                     if (!is.null(BatchAssignment)){
                     params$BatchAssignment=BatchAssignment[SMPL]   
