@@ -62,6 +62,8 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}
+
+\item{...}{Additional arguments passed from griph_cluster}
 }
 \value{
 Currently a list with the clustering results.

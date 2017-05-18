@@ -12,8 +12,6 @@ WScor(M, PearsonCor = PearsonCor, ShrinkCor = ShrinkCor)
 \item{PearsonCor}{Function to calculate Pearson correlation.}
 
 \item{ShrinkCor}{Function to calculate shrinkage correlation.}
-
-\item{CanberraDist}{Function to calculate Canberra distance.}
 }
 \value{
 cell-by-cell distance matrix.

@@ -16,7 +16,8 @@ Required argument.}
 
 \item{SamplingSize}{Number of sampled cells in initialization step.}
 
-\item{ref.iter}{Number of clustering refinement iterations.}
+\item{ref.iter}{Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
+step is performed to \code{min(SamplingSize,ncol(DM))} cells.}
 
 \item{use.par}{If \code{TRUE}, use parallel versions of distance calculation
 functions based on \code{\link[foreach]{foreach}} (see details).}
