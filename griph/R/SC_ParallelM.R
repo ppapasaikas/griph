@@ -279,7 +279,6 @@ FlashGlasso <- function (DM,ncores="all",rho=0.3,tol=1e-3,maxIter=100,msg=0) {
 
 
 
-
 #Parallel computation of personalized-pagerank based distances
 FlashPPR <- function (G,ncores="all",df=0.75) { 
   if (!isTRUE(is.igraph(G))) {  
