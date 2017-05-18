@@ -34,7 +34,6 @@ buildEdgeMatrix <- function(data,
 	ret
 }
 
-#' @importFrom Matrix sparseMatrix
 toMatrix <- function(x) {
 	sparseMatrix(
 		i = x$j,
@@ -57,10 +56,7 @@ toMatrix <- function(x) {
 #' @note This method converts the otherwise sparse edge matrix into a dense \code{dist} object,
 #' where any distances absent from the edge matrix are represented as \code{NA}.
 #'
-#' @export
 #' @rdname buildEdgeMatrix
-#' @importFrom Matrix triu tril t as.matrix diag sparseMatrix
-#' @importFrom stats as.dist
 as.dist.edgematrix <- function(m, diag = FALSE, upper = FALSE) {
 	x <- toMatrix(m)
 	y <- Matrix::tril(x)
@@ -95,18 +91,15 @@ as.dist.edgematrix <- function(m, diag = FALSE, upper = FALSE) {
 #'    unlike most other matrices in this package.}
 #'    \item{'k'}{The number of nearest neighbors.}
 #'  }
-#' @export
 buildWijMatrix <- function(x,
 													 threads = NULL,
 										       perplexity = 50) UseMethod("buildWijMatrix")
-#' @export
 #' @rdname buildWijMatrix
 buildWijMatrix.edgematrix <- function(x,
 																		 threads = NULL,
 																		 perplexity = 50) {
 	buildWijMatrix(toMatrix(x), threads, perplexity)
 }
-#' @export
 #' @rdname buildWijMatrix
 buildWijMatrix.TsparseMatrix <- function(x,
 																				 threads = NULL,
@@ -114,7 +107,6 @@ buildWijMatrix.TsparseMatrix <- function(x,
 	wij <- referenceWij(x@j, x@i, x@x^2, as.integer(threads), perplexity);
 	return(wij)
 }
-#' @export
 #' @rdname buildWijMatrix
 buildWijMatrix.CsparseMatrix <- function(x, threads = NULL, perplexity = 50) {
 	is <- rep(0:(ncol(x) - 1), diff(x@p))
