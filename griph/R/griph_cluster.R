@@ -56,7 +56,6 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
         R=buildEdgeMatrix( R ,distance_method="Cosine"  )
         #R=buildEdgeMatrix( R ,distance_method="Cosine",K=min(max(0.25*sqrt(ncol(R)),200) ,floor(ncol( R))/4)  )
         R=sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
-        dimnames(R)=list(CellIds,CellIds)
 
     return(R)    
     #return(as(R,"matrix"))
@@ -161,11 +160,11 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
     tryCatch({    
         for (i in 0:ref.iter) { 
             if (i==0) {
-                #Set the number of initialization clusters to smth reasonable given the number of cells:
-                params$ncom=min(ceiling(sqrt(ncol(DM))),16)
+                ##Set the number of initialization clusters to smth reasonable given the number of cells:
+                params$ncom=min(0.5*ceiling(sqrt(ncol(DM))),16)
                 params$ncom=max(params$ncom,8)
                 if (ref.iter==0){
-                    params$ncom=ncom    
+                params$ncom=ncom    
                 }
                 
                 if (ncol(DM)>SamplingSize){
@@ -190,11 +189,14 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 params$ClassAssignment=ClassAssignment
                 params$BatchAssignment=BatchAssignment  
                 
+                message("MISCL","\n",cluster.res$miscl,"\n")
+                
                 ####### construct cell2cell correlation matrix using the current cluster.res: ########
                 memb=cluster.res$MEMB
                 min.csize <-max(4, ceiling(0.2*sqrt(length(memb)) ) )
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
+
                 if (length(good.clust)<3){
                     message("\nToo few (<3) substantial clusters. Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
                     break  
@@ -210,9 +212,8 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 }
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
-                message(nrow(FakeBulk),"\t",nrow(DM),"\t",ncol(FakeBulk),"\t",ncol(DM))
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
-                params$DM=WScorFB(DM,FakeBulk,ShrinkCor=ShrinkCor)
+                params$DM=WScorFB(DM[,names(memb)],FakeBulk,ShrinkCor=ShrinkCor)
                 message("done")
                 
                 cluster.res <- do.call(SC_cluster, c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
