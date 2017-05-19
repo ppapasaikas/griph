@@ -618,7 +618,7 @@ plotLVis <- function(gr,
         add.args$useDegree=TRUE    
     }
     
-    res <- do.call(projectKNNs, c( list(wij=Matrix::Matrix(gr$DISTM,sparse = TRUE),seed=seed),add.args )    )
+    res <- do.call(projectKNNs, c( list(wij=as_adj(gr$GRAO,names=FALSE, sparse=TRUE),seed=seed),add.args )    )
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
