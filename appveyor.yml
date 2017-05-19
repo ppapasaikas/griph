@@ -61,8 +61,7 @@ test_script:
   - travis-tool.sh run_tests
   - travis-tool.sh run_tests > test.out
   - ls -l >> test.out
-  - cd ../
-  - ls -l >> test.out
+
 
 on_failure:
   - 7z a failure.zip *.Rcheck\*
@@ -84,7 +83,7 @@ artifacts:
   - path: '**\*.out'
     name: tout
 
-  - path: '\*_*.tar.gz'
+  - path: 'griph*.tar.gz'
     name: tar
 
   - path: 'griph*.zip'
