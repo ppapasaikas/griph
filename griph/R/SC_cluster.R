@@ -363,8 +363,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     
     pct <- 1
-    if (median(igraph::degree(GRAO)) > 8) {
-        pct <- min(1,1/(median(igraph::degree(GRAO))^0.25 )  )
+    if (median(igraph::degree(GRAO)) > 10) {
+        pct <- min(1,1/(median(igraph::degree(GRAO))^0.2 )  )
         message("\tkeeping ", round(100*pct,1), "% of edges")
         ADJtemp <- apply(ADJ,1,function(x) sparsify(x,pct) )
         GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
