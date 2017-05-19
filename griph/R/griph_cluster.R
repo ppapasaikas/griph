@@ -52,13 +52,10 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
     R=R^2
         R=sweep(R,2,colMeans(R),"-")
         #R=R*(W^0.4)
-        #R=largeVis::buildEdgeMatrix( R ,distance_method="Cosine"  )
-        R=buildEdgeMatrix( R ,distance_method="Cosine"  )
-        #R=buildEdgeMatrix( R ,distance_method="Cosine",K=min(max(0.25*sqrt(ncol(R)),200) ,floor(ncol( R))/4)  )
+        R=buildEdgeMatrix( R ,distance_method="Cosine",K=ceiling(1e2+sqrt(ncol(R))  )  )
         R=sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
 
     return(R)    
-    #return(as(R,"matrix"))
 }
 
 
@@ -160,9 +157,11 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
     tryCatch({    
         for (i in 0:ref.iter) { 
             if (i==0) {
-                ##Set the number of initialization clusters to smth reasonable given the number of cells:
+
+                #Set the number of initialization clusters to smth reasonable given the number of cells:
                 params$ncom=min(0.5*ceiling(sqrt(ncol(DM))),16)
-                params$ncom=max(params$ncom,8)
+                params$ncom=max(params$ncom,5)
+
                 if (ref.iter==0){
                 params$ncom=ncom    
                 }
