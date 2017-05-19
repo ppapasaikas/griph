@@ -61,7 +61,7 @@ test_script:
   - travis-tool.sh run_tests
   - travis-tool.sh run_tests > test.out
   - ls -l >> test.out
-  - cd griph
+  - cd ../
   - ls -l >> test.out
 
 on_failure:
