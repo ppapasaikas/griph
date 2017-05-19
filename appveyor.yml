@@ -19,13 +19,10 @@ environment:
   global:
     WARNINGS_ARE_ERRORS: 0
 
-
-matrix:
-  - R_VERSION: release
-    R_ARCH: x64
-    GCC_PATH: mingw_64
-
-
+  matrix:
+    - BUILD_TYPE: Release
+      COMPILER: MinGW-w64
+      PLATFORM: x64
 
 branches:
   only:
