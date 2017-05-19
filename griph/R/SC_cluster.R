@@ -10,36 +10,38 @@
 #' @return cell-by-cell distance matrix.
 WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     
-    nBulks=min(1000, 3*ncol(M) )
+    nBulks=min(1000, ceiling(4*ncol(M)) )
     FBsize=3
-    
-    rep.ind=rep(1:ncol(M),ceiling(nBulks*FBsize/ncol(M))   )
+    Gcounts=colSums(M)
+    HighQual=c(1:ncol(M))[-which(Gcounts <  quantile(Gcounts,0.05)  )]
+    rep.ind=rep(HighQual, ceiling(nBulks*FBsize/length(HighQual))         )
     SMPL=sample(rep.ind,(nBulks*FBsize),replace=FALSE    )
-
     FB=matrix(0,nrow(M),nBulks)
     if (FBsize>1){
+        index=1
         for (c in 1:nBulks) {
-        FB[,c]=rowSums(M[,SMPL[ (((c-1)*FBsize)+1):(c*FBsize)]   ])
+        FB[,c]=rowSums(M[,SMPL[ index:(index+FBsize-1)]   ])
+        index=index+FBsize
         }
     }
-    else {FB=M[,SMPL[1:nBulks]]}
+    else {FB=M[,SMPL[1:min(nBulks,ncol(M))]]}
 
-    cFB=PearsonCor(log2(FB+1))
-    cFB[!lower.tri(cFB)] <- 0
-    Q=quantile(cFB[lower.tri(cFB)],0.995)
-    FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
-    cFB=NULL
+    ##cFB=PearsonCor(log2(FB+1))
+    ##cFB[!lower.tri(cFB)] <- 0
+    ##Q=quantile(cFB[lower.tri(cFB)],0.998)
+    ##FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
+    ##cFB=NULL
 
     D=cor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
-    ######## Counts per 10K:
+    ######## Counts per Million:
     CellCounts=colSums(FB)
     FB=sweep(FB,2,CellCounts,FUN="/")
-    FB=FB*10000
+    FB=FB*1e6
     CellCounts=colSums(M)
     M=sweep(M,2,CellCounts,FUN="/")
-    M=M*10000 
+    M=M*1e6 
     
     Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
@@ -101,7 +103,6 @@ PPR <- function (G,df=0.75){
         if (!isSymmetric(G) )  {stop ("!! G should be either a graph object or a symmetric matrix !!")}   
         G=igraph::graph.adjacency(G [1:nrow(G),1:nrow(G)],mode=c("max"),weighted=TRUE,diag=FALSE)
     }
-    
     L=length(V(G))
     PR=diag(nrow=L)
     vals=sapply(1:L, function(x) igraph::page_rank(G, vids=c(1:L),personalized=PR[,x],damping=df )$vector   )
