@@ -58,11 +58,10 @@ build_script:
 
 #The run_tests also builds binaries on the windows platform:
 test_script:
-  - cd griph
   - travis-tool.sh run_tests
   - travis-tool.sh run_tests > test.out
   - ls -l >> test.out
-  - cd ..
+  - cd griph
   - ls -l >> test.out
 
 on_failure:
