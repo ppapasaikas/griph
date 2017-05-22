@@ -159,8 +159,8 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
             if (i==0) {
 
                 #Set the number of initialization clusters to smth reasonable given the number of cells:
-                params$ncom=min(0.5*ceiling(sqrt(ncol(DM))),16)
-                params$ncom=max(params$ncom,5)
+                params$ncom=min(0.1*ceiling(sqrt(ncol(DM))),16)
+                params$ncom=max(params$ncom,3)
 
                 if (ref.iter==0){
                 params$ncom=ncom    
