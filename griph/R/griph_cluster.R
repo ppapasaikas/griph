@@ -159,8 +159,8 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
             if (i==0) {
 
                 #Set the number of initialization clusters to smth reasonable given the number of cells:
-                params$ncom=min(0.5*ceiling(sqrt(ncol(DM))),16)
-                params$ncom=max(params$ncom,5)
+                #params$ncom=min(0.5*ceiling(sqrt(ncol(DM))),16)
+                #params$ncom=max(params$ncom,5)
 
                 if (ref.iter==0){
                 params$ncom=ncom    
@@ -203,11 +203,21 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 
                 message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
                 
-
-                FakeBulk=matrix(0,nrow(DM),length(good.clust))
+                #Number of boostrapping samples:
+                Nboot.Smpls=ceiling(16/length(good.clust))
+                bootS.size=Nboot.Smpls^(-0.6)
+                FakeBulk=matrix(0,nrow(DM),length(good.clust)*Nboot.Smpls)
+                r=0
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
-                    FakeBulk[,c]=rowSums(DM[,names(memb)][,memb==clust])
+                    for (b in 1:Nboot.Smpls){
+                        #FakeBulk[,c]=rowSums(DM[,names(memb)][,memb==clust])
+                        r=r+1
+                        cluster.sample=sample(which(memb==clust),ceiling(sum(memb==clust)*bootS.size)+1 ,replace=TRUE    )
+                        message("\nHERE\t",length(cluster.sample),"\t",r,"\n")
+                        FakeBulk[,r]=rowSums(DM[,names(memb)][,cluster.sample])
+                        
+                    }
                 }
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
