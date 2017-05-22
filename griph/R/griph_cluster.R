@@ -8,8 +8,6 @@
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' @return cell-by-cell distance matrix.
 WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
-    message(ncol(M),nrow(M),"\r")
-    message(ncol(FB),nrow(FB),"\r")
     
     CellIds=colnames(M)
     dimnames(M)=NULL
@@ -159,8 +157,8 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
             if (i==0) {
 
                 #Set the number of initialization clusters to smth reasonable given the number of cells:
-                params$ncom=min(0.25*ceiling(sqrt(ncol(DM))),16)
-                params$ncom=max(params$ncom,4)
+                #params$ncom=min(0.25*ceiling(sqrt(ncol(DM))),16)
+                #params$ncom=max(params$ncom,4)
 
                 if (ref.iter==0){
                 params$ncom=ncom    
@@ -196,15 +194,15 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
 
-                if (length(good.clust)<3){
-                    message("\nToo few (<3) substantial clusters. Using fake bulks to refine clusters not possible\n Reverting to previous iteration...\n", appendLF = FALSE)
-                    break  
+                if (length(good.clust)<2){
+                    message("\nNotice: No substantial clusters found. This might indicate unstructured data...\n", appendLF = FALSE)
+                    #break  
                 }
                 
-                message("\nUsing ", length(good.clust) ," fake bulks to refine clusters...\n", appendLF = FALSE)
+                message("\nBootstrapping ", length(good.clust) ," to refine clusters...\n", appendLF = FALSE)
                 
                 #Number of boostrapping samples:
-                Nboot.Smpls=ceiling(16/length(good.clust))
+                Nboot.Smpls=ceiling(48/length(good.clust))
                 bootS.size=Nboot.Smpls^(-0.6)
                 FakeBulk=matrix(0,nrow(DM),length(good.clust)*Nboot.Smpls)
                 r=0
@@ -214,9 +212,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                         #FakeBulk[,c]=rowSums(DM[,names(memb)][,memb==clust])
                         r=r+1
                         cluster.sample=sample(which(memb==clust),ceiling(sum(memb==clust)*bootS.size)+1 ,replace=TRUE    )
-                        message("\nHERE\t",length(cluster.sample),"\t",r,"\n")
                         FakeBulk[,r]=rowSums(DM[,names(memb)][,cluster.sample])
-                        
                     }
                 }
                 

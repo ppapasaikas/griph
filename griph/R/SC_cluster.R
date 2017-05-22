@@ -357,8 +357,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
         }
     }
-    message("")
-    
+
     
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
@@ -415,9 +414,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     dimnames(ADJ) <- list(CellIds,CellIds)
     dimnames(Cuse) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
-    
-    message(length(V(GRAO)),"\r")
-    message(length(CellIds),"\r")
     
     V(GRAO)$labels=CellIds
 
