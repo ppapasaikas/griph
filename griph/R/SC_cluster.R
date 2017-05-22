@@ -258,11 +258,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     else {
         C=list()
-        ####Normalize Initial Correlation matrix:
-        #cmDM <- colMeans(DM)
-        #W <- pmax(1e-1, cmDM) / mean(cmDM)
-        #W <- sqrt(W) %o% sqrt(W)
-        #C[[2]]=( DM / W )
         C[[2]]=DM
     }
     
@@ -276,7 +271,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         message("Estimating Graph Structure...", appendLF = FALSE)
     
         RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
-    
 
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
         kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
@@ -291,8 +285,15 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             rS=rho^(1+batch.penalty)
             RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
             RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
+            ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
+            kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
+            kN=get.knn(Cuse,k=kvect )
+            for(i in 1:ncol(  RHO  )){
+                RHO[ -kN[,i],i]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[ -kN[,i],i])
+                RHO[i,-kN[,i] ]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[i,-kN[,i] ])
+            }
         }
-        
+
         
         C=NULL
         tol=5e-02
@@ -301,19 +302,15 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
         X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
         ADJ= -X
-        X<-NULL
-    
+        RHO<-NULL
         message("done")
-    
     }
     
     else{
     #####Assumes Cuse comes sparse...    
     ADJ=Cuse    
     }
-        
-       
-        
+    
     ######## Graph weights:
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
     ave=mean(Cuse[which(ADJ>0)])
@@ -329,6 +326,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         ADJ[ -kN[,i],i]=0
         ADJ[i,-kN[,i] ]=0
     }
+    
+    
     
     GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
     message("done")
@@ -348,24 +347,26 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                 ADJ[ -kN[,i],i]=0
                 ADJ[i,-kN[,i] ]=0
             }
-            
-            #PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  )
-            #diag(PR)=1
             ave=mean(Cuse[which(ADJ>0)])
             ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
-            #ADJ=(ADJ*(PR))
             GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
         }
     }
 
+
+    if (do.glasso==TRUE){
+    ADJ[which(X>=0)]=0  #Reinstate 0 state from glasso
+    X<-NULL
+    }
+    
     
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
-        pct <- min(1,1/(median(igraph::degree(GRAO))^0.2 )  )
+        pct <- min(1,1/(median(igraph::degree(GRAO))^0.1 )  )
         message("\tkeeping ", round(100*pct,1), "% of edges")
         ADJtemp <- apply(ADJ,1,function(x) sparsify(x,pct) )
         GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
-        #ADJtemp <- NULL
+        ADJtemp <- NULL
     }
     
     
