@@ -198,18 +198,21 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                     message("\nNotice: No substantial clusters found. This might indicate unstructured data...\n", appendLF = FALSE)
                     #break  
                 }
+                else{
+                    message("\n", length(good.clust)," substantial clusters found...\n", appendLF = FALSE)
+                }
                 
-                message("\nBootstrapping ", length(good.clust) ," to refine clusters...\n", appendLF = FALSE)
+                message("\nBootstrapping to refine clusters...\n", appendLF = FALSE)
                 
                 #Number of boostrapping samples:
-                Nboot.Smpls=ceiling(48/length(good.clust))
-                bootS.size=Nboot.Smpls^(-0.6)
+                Nboot.Smpls=min(ceiling(150/(length(good.clust)^2) ), 80)
+                Nboot.Smpls=max(Nboot.Smpls,2)
+                bootS.size=Nboot.Smpls^(-0.5)
                 FakeBulk=matrix(0,nrow(DM),length(good.clust)*Nboot.Smpls)
                 r=0
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
                     for (b in 1:Nboot.Smpls){
-                        #FakeBulk[,c]=rowSums(DM[,names(memb)][,memb==clust])
                         r=r+1
                         cluster.sample=sample(which(memb==clust),ceiling(sum(memb==clust)*bootS.size)+1 ,replace=TRUE    )
                         FakeBulk[,r]=rowSums(DM[,names(memb)][,cluster.sample])
@@ -218,9 +221,8 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
-                params$DM=WScorFB(DM[,names(memb)],FakeBulk,ShrinkCor=ShrinkCor)
+                params$DM=WScorFB(DM,FakeBulk,ShrinkCor=ShrinkCor)
                 message("done")
-                
                 cluster.res <- do.call(SC_cluster, c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
             }
             gc() #Call garbage collector
