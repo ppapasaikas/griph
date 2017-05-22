@@ -218,7 +218,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
-                params$DM=WScorFB(DM[,names(memb)],FakeBulk,ShrinkCor=ShrinkCor)
+                params$DM=WScorFB(DM[,names(memb)], FakeBulk, ShrinkCor=ShrinkCor)
                 message("done")
                 
                 cluster.res <- do.call(SC_cluster, c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
@@ -227,7 +227,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
         }
         
         if (plotG==TRUE){    
-            plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
+            cluster.res[["plotGRAO"]] <- plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
         }
         
     }, # end of tryCatch expression, cluster object cl not needed anymore    
