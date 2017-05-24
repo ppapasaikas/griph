@@ -5,32 +5,36 @@
 #' 
 #' @param M gene-by-cell count matrix.
 #' @param FB gene-by-FakeBulks gene sums count matrix.
+#' @param PPearsonCor Function to calculate Pearson correlation between the columns of two matrices.
+#' @param PSpearmanCor Function to calculate Spearman correlation between the columns of two matrices.
+#' @param PHellinger Function to calculate Hellinger Distance between the columns of two matrices.
+#' @param PCanberra Function to calculate Canberra Distance between the columns of two matrices.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' @return cell-by-cell distance matrix.
-WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
+WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
     
     CellIds=colnames(M)
     dimnames(M)=NULL
     message("1","\n")
-    D=cor(log2(FB+1),log2(M+1))
+    D=PPearsonCor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
     
-    ######## Counts per 10K:
+    ######## Counts per 100K:
     CellCounts=colSums(FB)
     FB=sweep(FB,2,CellCounts,FUN="/")
-    FB=FB*10000
+    FB=FB*100000
     CellCounts=colSums(M)
     M=sweep(M,2,CellCounts,FUN="/")
-    M=M*10000 
+    M=M*100000 
     
-    Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
+    Dt=PCanberra( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
-    Dt=cor(FB,M,method="spearman")
+    Dt=PSpearmanCor(FB,M)
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
-    Dt=PHellingerMat(FB,M)
+    Dt=PHellinger(FB,M)
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
@@ -51,7 +55,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
         R=sweep(R,2,colMeans(R),"-")
         #R=R*(W^0.4)
         R=buildEdgeMatrix( R ,distance_method="Cosine",K=ceiling(1e2+sqrt(ncol(R))  )  )
-        R=sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
+        R=Matrix::sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
 
     return(R)    
 }
@@ -85,7 +89,7 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 #' 
 #' @param DM Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 #'     Required argument.
-#' @param SamplingSize Number of sampled cells in initialization step. 
+#' @param SamplingSize Number of sampled cells in initialization step. If NULL it is set to \code{max(750,ncores*250)}
 #' @param ref.iter Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
 #'     step is performed to \code{min(SamplingSize,ncol(DM))} cells. 
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
@@ -117,15 +121,26 @@ WScorFB <- function (M,FB, ShrinkCor=ShrinkCor   ) {
 
 
 
-griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="all",
+griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores="all",
                           filter = FALSE, rho = 0.25, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom=NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
     
     ptm=proc.time() #Start clock
     
+    
+    params <-as.list(environment())
+    params$plotG=FALSE 
+    
+    if (is.null(SamplingSize)){
+    params$SamplingSize=750    
+    }
+    
     #######Define functions if use.par=FALSE
-    SpearmanCor=Spcor
+    PSpearmanCor=PSpcor
+    PPearsonCor=stats::cor
+    PHellinger=PHellingerMat
+    PCanberra=PCanberraMat
     ShrinkCor=corpcor::cor.shrink
     
     if (length(ClassAssignment) != ncol(DM))
@@ -136,36 +151,37 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
     # Register cluster here, remove regiastation block from SC_cluster
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
-        SpearmanCor=FlashSpearmanCor
+        PPearsonCor=FlashPPearsonCor
+        PSpearmanCor=FlashPSpearmanCor
+        PHellinger=FlashPHellinger
+        PCanberra=FlashPCanberra 
         ShrinkCor=FlashShrinkCor
         
         if(ncores=="all"){
             ncores = parallel::detectCores()
             ncores=min(48,floor(0.9*ncores),ceiling(ncol(DM)/200))
         } else{
-            ncores=min(48,ncores,floor(0.9*parallel::detectCores()),ceiling(ncol(DM)/200))
+            ncores=min(ncores,parallel::detectCores(),ceiling(ncol(DM)/200))
         }
         cl<-parallel::makeCluster(ncores)
         doParallel::registerDoParallel(cl)
+        
+        if (is.null(SamplingSize)){
+            params$SamplingSize=max(params$SamplingSize, 250 * ncores )    
+        }
     }
     
-    params <-as.list(environment())
-    params$plotG=FALSE  
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
     tryCatch({    
         for (i in 0:ref.iter) { 
             if (i==0) {
 
-                #Set the number of initialization clusters to smth reasonable given the number of cells:
-                #params$ncom=min(0.25*ceiling(sqrt(ncol(DM))),16)
-                #params$ncom=max(params$ncom,4)
-
                 if (ref.iter==0){
                 params$ncom=ncom    
                 }
                 
-                if (ncol(DM)>SamplingSize){
-                SMPL=sample(1:ncol(DM),SamplingSize)
+                if (ncol(DM)>params$SamplingSize){
+                SMPL=sample(1:ncol(DM),params$SamplingSize)
                 params$DM=DM[,SMPL]
                 params$ClassAssignment=ClassAssignment[SMPL]
                     if (!is.null(BatchAssignment)){
@@ -221,7 +237,7 @@ griph_cluster <- function(DM, SamplingSize=750,ref.iter=1,use.par=FALSE,ncores="
                 
                 ###### Calculate distances of all the cells to the FakeBulks:
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
-                params$DM <- WScorFB(DM, FakeBulk, ShrinkCor=ShrinkCor)
+                params$DM <- WScorFB(DM, FakeBulk,PSpearmanCor=PSpearmanCor, PPearsonCor=PPearsonCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor)
                 message("done")
                 cluster.res <- do.call(SC_cluster, c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
             }

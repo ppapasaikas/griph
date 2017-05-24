@@ -4,11 +4,15 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
-#' @param PearsonCor Function to calculate Pearson correlation.
+#' @param PPearsonCor Function to calculate Pearson correlation between the columns of two matrices.
+#' @param PSpearmanCor Function to calculate Spearman correlation between the columns of two matrices.
+#' @param PHellinger Function to calculate Hellinger Distance between the columns of two matrices.
+#' @param PCanberra Function to calculate Canberra Distance between the columns of two matrices.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' 
 #' @return cell-by-cell distance matrix.
-WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
+WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
+        
     
     nBulks=min(1500, ceiling(5*ncol(M)) )
     FBsize=3
@@ -26,13 +30,8 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     }
     else {FB=M[,SMPL[1:min(nBulks,ncol(M))]]}
 
-    ##cFB=PearsonCor(log2(FB+1))
-    ##cFB[!lower.tri(cFB)] <- 0
-    ##Q=quantile(cFB[lower.tri(cFB)],0.998)
-    ##FB <- FB[,!apply(cFB,2,function(x) any(x > Q))]
-    ##cFB=NULL
 
-    D=cor(log2(FB+1),log2(M+1))
+    D=PPearsonCor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
     ######## Counts per Million:
@@ -43,16 +42,16 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
     M=sweep(M,2,CellCounts,FUN="/")
     M=M*1e6 
     
-    Dt=PCanberraMat( log2(FB+1),log2(M+1) )   #
+    Dt=PCanberra( log2(FB+1),log2(M+1) )   #
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
 
-    Dt=cor(FB,M,method="spearman")
+    Dt=PSpearmanCor(FB,M)
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
     
-    Dt=PHellingerMat(FB,M)
+    Dt=PHellinger(FB,M)
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
@@ -82,6 +81,12 @@ WScor <- function (M, PearsonCor=PearsonCor, ShrinkCor=ShrinkCor   ) {
 Spcor <- function (M) { #Spearman's correlation using coop
     R=vapply(c(1:ncol(M)),function (x) rank(M[,x]),FUN.VALUE=double(length=nrow(M) ) )
     R=coop::pcor(R)
+    return(R)
+}
+
+
+PSpcor <- function (M1,M2) { #Spearman's correlation using coop
+    R=stats::cor(M1,M2,method="spearman")
     return(R)
 }
 
@@ -178,22 +183,24 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
     rho=min(0.9,rho)
     #######Switch to parallelized functions if use.par=TRUE
-    PearsonCor=coop::pcor
-    SpearmanCor=Spcor
-    CanberraDist=canberra
+    
+    PPearsonCor=stats::cor
+    PSpearmanCor=PSpcor
+    PHellinger=PHellingerMat
+    PCanberra=PCanberraMat
+    
     ShrinkCor=corpcor::cor.shrink
-    HellingerDist=HellingerMat
     Glasso=Qglasso
     PPRank=PPR
     
     if (isTRUE(use.par)) {  
-        PearsonCor=FlashPearsonCor
-        SpearmanCor=FlashSpearmanCor
-        CanberraDist=FlashCanberra
+        PPearsonCor=FlashPPearsonCor
+        PSpearmanCor=FlashPSpearmanCor
+        PHellinger=FlashPHellinger
+        PCanberra=FlashPCanberra 
+        
         ShrinkCor=FlashShrinkCor
-        HellingerDist=FlashHellinger
         Glasso=FlashGlasso
-        RNMF=FlashRNMF
         PPRank=FlashPPR 
     }
     
@@ -251,7 +258,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
 
         message("Calculating Pairwise and Diffused Similarities...", appendLF = FALSE)
         
-        C[[2]]=WScor(DM, PearsonCor=PearsonCor, ShrinkCor = ShrinkCor )
+        C[[2]]=WScor(DM, PPearsonCor=PPearsonCor, PSpearmanCor=PSpearmanCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor )
         nDM<-NULL
         
         message("done")
@@ -261,10 +268,11 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     else {
         C=list()
         C[[2]]=DM
+        
     }
     
-    Cuse=as.matrix(C[[2]])
-    
+    Cuse=C[[2]]
+
     if (do.glasso==TRUE){
     
         ############### glasso-based graph structure estimation: #####################
@@ -273,12 +281,13 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
 
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-        kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
-        kN=get.knn(Cuse,k=kvect )
+        k=min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)  
+        kN=get.knn(Cuse,k=k )
         for(i in 1:ncol(  RHO  )){
             RHO[ -kN[,i],i]=min(1,1.5*rho)
             RHO[i,-kN[,i] ]=min(1,1.5*rho)
         }
+        kN=NULL
     
         if(!is.null(BatchAssignment)){
             rL=min(1,rho^(1-batch.penalty))
@@ -286,8 +295,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
             RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
             ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-            kvect=rep(  min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)   ,    ncol(Cuse)  )
-            kN=get.knn(Cuse,k=kvect )
+            k=min(max( floor(5*sqrt(ncol(Cuse))),50) ,floor(ncol( Cuse))/1.5)  
+            kN=get.knn(Cuse,k=k )
             for(i in 1:ncol(  RHO  )){
                 RHO[ -kN[,i],i]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[ -kN[,i],i])
                 RHO[i,-kN[,i] ]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[i,-kN[,i] ])
@@ -302,6 +311,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
         X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
         ADJ= -X
+        ADJ=Matrix::Matrix(data=ADJ,sparse=TRUE,dimnames=NULL)
         RHO<-NULL
         message("done")
     }
@@ -314,23 +324,32 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     ######## Graph weights:
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
     ave=mean(Cuse[which(ADJ>0)])
+
     ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
+    message("\n0\n",is(ADJ,'sparseMatrix'),"\n")
+    
     ADJ[which(ADJ < 0)]=0
     diag(ADJ)=1
-    
+    message("\n1\n",is(ADJ,'sparseMatrix'),"\n")
     
     ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-    kvect=rep(  min(max(5*sqrt(ncol(ADJ)),100) ,floor(ncol( ADJ))/1.5)   ,    ncol(ADJ)  )
-    kN=get.knn(ADJ,k=kvect )
+    k=min(max( floor(5*sqrt(ncol(ADJ))) ,100) ,floor(ncol( ADJ))/1.5)  
+    kN=get.knn(ADJ,k=k )
     for(i in 1:ncol(  ADJ  )){
         ADJ[ -kN[,i],i]=0
         ADJ[i,-kN[,i] ]=0
     }
+    apply(ADJ,2,function(x) x[] )
+    kN=NULL
+    message("\n2\n",is(ADJ,'sparseMatrix'),"\n")
     
     
     
     GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
     message("done")
+    
+    message("\n3\n",is(ADJ,'sparseMatrix'),"\n")
+    
     
     if(pr.iter > 0) {
         for (i in 1:pr.iter){
@@ -341,8 +360,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             ADJ=PR
             ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
             ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-            kvect=rep( min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)    ,ncol(ADJ)  )
-            kN=get.knn(PR,k=kvect )
+            k=min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)   
+            kN=get.knn(PR,k=k )
             for(i in 1:ncol(ADJ)){
                 ADJ[ -kN[,i],i]=0
                 ADJ[i,-kN[,i] ]=0
@@ -359,15 +378,18 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     X<-NULL
     }
     
+    message("\n4\n",is(ADJ,'sparseMatrix'),"\n")
     
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
         pct <- min(1,1/(median(igraph::degree(GRAO))^0.1 )  )
         message("\tkeeping ", round(100*pct,1), "% of edges")
-        ADJtemp <- apply(ADJ,1,function(x) sparsify(x,pct) )
+        ADJtemp <- apply(ADJ,2,function(x) sparsify(x,pct) )
         GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
         ADJtemp <- NULL
     }
+    
+    message("\n5\n",is(ADJ,'sparseMatrix'),"\n")
     
     
     GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
@@ -423,6 +445,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     V(GRAO)$labels=CellIds
 
+    message("\n6\n",is(ADJ,'sparseMatrix'),"\n")
+    
     
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
