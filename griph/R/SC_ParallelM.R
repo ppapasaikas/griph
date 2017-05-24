@@ -59,7 +59,7 @@ FlashShrinkCor <- function (DM,ncores="all",lambda=0, w=rep(1,nrow(DM)),verbose=
   DM=as.big.matrix(DM)
   desc<-describe(DM)
   NCOL=desc@description["totalCols"][[1]]
-
+  
   ncores=getDoParWorkers()
   nblocks = ncores 
 
@@ -88,6 +88,9 @@ FlashShrinkCor <- function (DM,ncores="all",lambda=0, w=rep(1,nrow(DM)),verbose=
   }
   return(as.matrix(corMAT))
 }
+
+
+
 
 
 
@@ -202,7 +205,7 @@ FlashHellinger <- function (DM,ncores="all") {
   desc<-describe(DM)
   NCOL=desc@description["totalCols"][[1]]
   NROW=desc@description["totalRows"][[1]]
-  
+    
   ncores=getDoParWorkers()
   nblocks = ncores 
 
@@ -228,6 +231,7 @@ FlashHellinger <- function (DM,ncores="all") {
     DIST <- NULL
     return(0L)
   }
+
   return(as.matrix(distMAT))
 }
 
@@ -236,7 +240,6 @@ FlashHellinger <- function (DM,ncores="all") {
 
 # Parallel regularized estimates of the inverse covarinace matrix using the QUIC implementation.
 FlashGlasso <- function (DM,ncores="all",rho=0.3,tol=1e-3,maxIter=100,msg=0) { 
-
   DM=as.big.matrix(DM)
   desc<-describe(DM)
   NCOL=desc@description["totalCols"][[1]]
@@ -245,10 +248,10 @@ FlashGlasso <- function (DM,ncores="all",rho=0.3,tol=1e-3,maxIter=100,msg=0) {
   if (!is.matrix(rho) && length(rho) != 1 && length(rho) !=NCOL)  {  stop("Wrong number of elements in rho") }
   if (is.vector(rho)) { rho <- matrix(sqrt(rho)) %*% sqrt(rho) }
   if (length(rho) == 1) {rho <- matrix(rho, ncol = NCOL, nrow = NCOL)}
-  
-  ncores=getDoParWorkers()
-  nblocks = ncores 
 
+  ncores=getDoParWorkers()
+  nblocks = 4*ncores 
+  
   PrecMAT <- matrix(data=0,nrow=NCOL,ncol=NCOL )
   PrecMAT <- as.big.matrix(PrecMAT,type="double")
   bigPREC <- describe(PrecMAT)
@@ -258,9 +261,9 @@ FlashGlasso <- function (DM,ncores="all",rho=0.3,tol=1e-3,maxIter=100,msg=0) {
   COMBS <- t(apply(COMBS, 1, sort))
   if (nrow(COMBS)>1) {COMBS <- COMBS[-which(COMBS[,1]==COMBS[,2]),]}
   COMBS <- unique(COMBS)
-  
+
   ## iterate through each block combination, calculate sparse inv. cov. matrix between blocks and store them:
-  results<-foreach(i = 1:nrow(COMBS),.export=c('QUIC'), .packages=('bigmemory') ) %dopar%{
+  results<-foreach(i = 1:nrow(COMBS),.export=c('QUIC'), .packages=('bigmemory'), .combine='c') %dopar%{
     COMB <- COMBS[i, ]
     G1 <- SPLIT[[COMB[1]]]
     G2 <- SPLIT[[COMB[2]]]
@@ -279,6 +282,8 @@ FlashGlasso <- function (DM,ncores="all",rho=0.3,tol=1e-3,maxIter=100,msg=0) {
 
 
 
+
+
 #Parallel computation of personalized-pagerank based distances
 FlashPPR <- function (G,ncores="all",df=0.75) { 
   if (!isTRUE(is.igraph(G))) {  
@@ -290,6 +295,7 @@ FlashPPR <- function (G,ncores="all",df=0.75) {
 
   L=length(V(G))
   ncores=getDoParWorkers()
+  
   nblocks = ncores 
 
   PR=diag(nrow=L)
@@ -307,6 +313,94 @@ FlashPPR <- function (G,ncores="all",df=0.75) {
   PR=2^PR
   return(PR)
 }
+
+
+
+
+
+
+
+
+
+
+# Fastcomputation of Pearson's correlation between two big matrices 
+# Inputs are the two matrices and the desired number of cores
+# The function assumes that matrix with the largest dimension is
+FlashPPearsonCor <- function (DM1, DM2, ncores="all") { 
+    ncores=getDoParWorkers()
+    nblocks = ncores 
+    resMAT <- matrix(data=0,nrow=ncol(DM1),ncol=ncol(DM2) )
+    ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
+    SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
+    DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
+        vals <- cor(DM1, M)
+    }
+    resMAT=results
+    return(as.matrix(resMAT))
+}
+
+
+
+# Fastcomputation of Spearman's correlation between two big matrices 
+# Inputs are the two matrices and the desired number of cores
+# The function assumes that matrix with the largest dimension is
+FlashPSpearmanCor <- function (DM1, DM2, ncores="all") { 
+    ncores=getDoParWorkers()
+    nblocks = 2*ncores 
+    resMAT <- matrix(data=0,nrow=ncol(DM1),ncol=ncol(DM2) )
+    ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
+    SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
+    DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
+        vals <- cor(DM1, M,method="spearman")
+    }
+    resMAT=results
+    return(as.matrix(resMAT))
+}
+
+
+
+# Fastcomputation of Hellinger Distance between two big matrices 
+# Inputs are the two matrices and the desired number of cores
+# The function assumes that matrix with the largest dimension is
+FlashPHellinger <- function (DM1, DM2, ncores="all") { 
+    ncores=getDoParWorkers()
+    nblocks = ncores 
+    resMAT <- matrix(data=0,nrow=ncol(DM1),ncol=ncol(DM2) )
+    ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
+    SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
+    DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    results<-foreach( M = DM2.list,.combine='cbind' ) %dopar%{
+    vals <- PHellingerMat(DM1, M)
+    }
+    resMAT=results
+    return(as.matrix(resMAT))
+}
+
+
+
+# Fastcomputation of Canberra distances between two big matrices 
+# Inputs are the two matrices and the desired number of cores
+# The function assumes that matrix with the largest dimension is
+FlashPCanberra <- function (DM1, DM2, ncores="all") {
+    ncores=getDoParWorkers()
+    nblocks = ncores 
+    resMAT <- matrix(data=0,nrow=ncol(DM1),ncol=ncol(DM2) )
+    ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
+    SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
+    DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
+        vals <- PCanberraMat(DM1, M)
+    }
+    resMAT=results
+    return(as.matrix(resMAT))
+}
+
 
 
 
