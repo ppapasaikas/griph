@@ -22,7 +22,7 @@
 #' HellingerMat(x)
 #'
 HellingerMat <- function(A) {
-    .Call('griph_HellingerMat', PACKAGE = 'griph', A)
+    .Call(griph_HellingerMat, A)
 }
 
 #' @title Jensen-Shannon divergence between columns of a matrix.
@@ -46,7 +46,7 @@ HellingerMat <- function(A) {
 #' JSDmat(x)
 #'
 JSDmat <- function(A) {
-    .Call('griph_JSDmat', PACKAGE = 'griph', A)
+    .Call(griph_JSDmat, A)
 }
 
 #' @title Canberra distance between columns of two matrices.
@@ -72,7 +72,7 @@ JSDmat <- function(A) {
 #' PHellingerMat(x, y)
 #'
 PCanberraMat <- function(A, B) {
-    .Call('griph_PCanberraMat', PACKAGE = 'griph', A, B)
+    .Call(griph_PCanberraMat, A, B)
 }
 
 #' @title Hellinger distance between columns of two matrices.
@@ -98,42 +98,42 @@ PCanberraMat <- function(A, B) {
 #' PHellingerMat(x, y)
 #'
 PHellingerMat <- function(A, B) {
-    .Call('griph_PHellingerMat', PACKAGE = 'griph', A, B)
+    .Call(griph_PHellingerMat, A, B)
 }
 
 checkBits <- function() {
-    .Call('griph_checkBits', PACKAGE = 'griph')
+    .Call(griph_checkBits)
 }
 
 checkOpenMP <- function() {
-    .Call('griph_checkOpenMP', PACKAGE = 'griph')
+    .Call(griph_checkOpenMP)
 }
 
 searchTrees <- function(threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose) {
-    .Call('griph_searchTrees', PACKAGE = 'griph', threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
+    .Call(griph_searchTrees, threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
 }
 
 fastDistance <- function(is, js, data, distMethod, threads, verbose) {
-    .Call('griph_fastDistance', PACKAGE = 'griph', is, js, data, distMethod, threads, verbose)
+    .Call(griph_fastDistance, is, js, data, distMethod, threads, verbose)
 }
 
 fastCDistance <- function(is, js, i_locations, p_locations, x, distMethod, threads, verbose) {
-    .Call('griph_fastCDistance', PACKAGE = 'griph', is, js, i_locations, p_locations, x, distMethod, threads, verbose)
+    .Call(griph_fastCDistance, is, js, i_locations, p_locations, x, distMethod, threads, verbose)
 }
 
 fastSDistance <- function(is, js, i_locations, j_locations, x, distMethod, threads, verbose) {
-    .Call('griph_fastSDistance', PACKAGE = 'griph', is, js, i_locations, j_locations, x, distMethod, threads, verbose)
+    .Call(griph_fastSDistance, is, js, i_locations, j_locations, x, distMethod, threads, verbose)
 }
 
 sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose) {
-    .Call('griph_sgd', PACKAGE = 'griph', coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
+    .Call(griph_sgd, coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
 }
 
 searchTreesCSparse <- function(threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose) {
-    .Call('griph_searchTreesCSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
+    .Call(griph_searchTreesCSparse, threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
 }
 
 searchTreesTSparse <- function(threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose) {
-    .Call('griph_searchTreesTSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
+    .Call(griph_searchTreesTSparse, threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
 }
 

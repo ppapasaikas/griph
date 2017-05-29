@@ -15,7 +15,7 @@ abstract: >
     that may confound the cell types.
 
     The most important function that combines all the steps of cell type identification
-    from griph is SC_cluster. The vignette illustrates its use
+    from griph is griph_cluster. The vignette illustrates its use
     applied to several publicly available datasets.
 output: 
     BiocStyle::html_document2:
@@ -69,10 +69,10 @@ trueLabel <- attr(M, "label")
 table(trueLabel)
 ```
 
-Cell types can be identified using *SC_cluster*:  
+Cell types can be identified using *griph_cluster*:  
 ```{r load_griph, message=FALSE}
 library(griph)
-res <- SC_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')
+res <- griph_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='buettner')
 ```
 ```{r buettner_types}
 table(res$MEMB)
@@ -88,7 +88,7 @@ list.files("./", pattern = ".png")
 
 The image shows a plotting-optimized version of the complete graph. The full graph
 and the plotting-optimized graph (when using `plotG=TRUE` are contained as
-`r CRANpkg("igraph")` objects in the return value of *SC_cluster*:  
+`r CRANpkg("igraph")` objects in the return value of *griph_cluster*:  
 ```{r graphreturned}
 res$GRAO # full graph
 res$plotGRAO # simplified graph
@@ -96,7 +96,7 @@ res$plotGRAO # simplified graph
 
 
 # Visualizing `r Githubpkg("ppapasaikas/griph")` results
-In the graphs returned by *SC_cluster*, cells are represented by graph verteces.
+In the graphs returned by *griph_cluster*, cells are represented by graph vertices.
 All cells are contained in the full graph (`res$GRAO`), and a representatitve subset
 of cells in the simplified graph (`res$plotGRAO`), which will be used for plotting.
 The graph can be easily plotted again, for example to separately illustrate known and
@@ -109,7 +109,7 @@ g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
 In *plotGRAO*, weak edges are pruned, vertex attributes are added for visualization
 of predicted and known class assignments (if given) and a subset of the vertices is sampled
 if the graph exceeds the `maxG` argument. When `plotG` is set to `FALSE`,
-the *plotGRAO* component in the return value of *SC_cluster* is `NULL` and
+the *plotGRAO* component in the return value of *griph_cluster* is `NULL` and
 the simplified graph is generated later when necessary by *plotGraph*.
 
 It is also possible to draw polygons around cells of each class:  
@@ -141,7 +141,7 @@ plotTsne(res, fill.type = "predicted", line.type = "none", mark.type = "true",
 ```
 
 # Accessing the cell classification
-*SC_cluster* identified `r length(unique(res$MEMB))`
+*griph_cluster* identified `r length(unique(res$MEMB))`
 cell types in the data, and the confusion matrix returned in the result summarizes
 how they relate to the known cell types or states:  
 ```{r buettner_eval}

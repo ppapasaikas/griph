@@ -282,7 +282,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
 
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
         k=min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)  
-        kN=get.knn(Cuse,k=k )
+        kN=get.knn(Cuse,k=round(k) )
         for(i in 1:ncol(  RHO  )){
             RHO[ -kN[,i],i]=min(1,1.5*rho)
             RHO[i,-kN[,i] ]=min(1,1.5*rho)
@@ -296,7 +296,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
             ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
             k=min(max( floor(5*sqrt(ncol(Cuse))),50) ,floor(ncol( Cuse))/1.5)  
-            kN=get.knn(Cuse,k=k )
+            kN=get.knn(Cuse,k=round(k) )
             for(i in 1:ncol(  RHO  )){
                 RHO[ -kN[,i],i]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[ -kN[,i],i])
                 RHO[i,-kN[,i] ]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[i,-kN[,i] ])
@@ -309,46 +309,34 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         maxIter=40
         if (ncol(Cuse)<200) {tol=1e-02;maxIter=80}
         if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
-        X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  #0.1 for C4/ 0.3 for C3 / 0.5 for C2
-        ADJ= -X
-        ADJ=Matrix::Matrix(data=ADJ,sparse=TRUE,dimnames=NULL)
+        X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  
+        #Coerce Cuse to a sparse matrix in the triplet representation
+        Cuse[X>=0]=0
+        Cuse=as(  Cuse ,"dgCMatrix")
+        ADJ=Cuse
+        X<-NULL
         RHO<-NULL
         message("done")
     }
     
     else{
-    #####Assumes Cuse comes sparse...    
+    #####Assumes Cuse comes as a  sparse matrix  (dgCmatrix) object...    
     ADJ=Cuse    
     }
     
+    
+    
     ######## Graph weights:
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
-    ave=mean(Cuse[which(ADJ>0)])
+    ave=mean(Cuse@x)
+    ADJ@x=exp(- ( ((1-Cuse@x)^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
 
-    ADJ@x=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
-    message("\n0\n",is(ADJ,'sparseMatrix'),"\n")
-    
-    ADJ@x[ADJ@x < 0]=0
-    diag(ADJ)=1
-    message("\n1\n",is(ADJ,'sparseMatrix'),"\n")
-    
     ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
     k=min(max( floor(5*sqrt(ncol(ADJ))) ,100) ,floor(ncol( ADJ))/1.5)  
-    kN=get.knn(ADJ,k=k )
-    for(i in 1:ncol(  ADJ  )){
-        ADJ[ -kN[,i],i]=0
-        ADJ[i,-kN[,i] ]=0
-    }
-    apply(ADJ,2,function(x) x[] )
-    kN=NULL
-    message("\n2\n",is(ADJ,'sparseMatrix'),"\n")
-    
-    
-    
+    ADJ=keep.mknn(ADJ,k=round(k) )
+
     GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
     message("done")
-    
-    message("\n3\n",is(ADJ,'sparseMatrix'),"\n")
     
     
     if(pr.iter > 0) {
@@ -361,35 +349,34 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             ADJ[which(PR < (0.01/(ncol(ADJ))  ) ) ]=0
             ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
             k=min(max(5*sqrt(ncol(Cuse)),100) ,floor(ncol( Cuse))/1.5)   
-            kN=get.knn(PR,k=k )
+            kN=get.knn(PR,k=round(k) )
             for(i in 1:ncol(ADJ)){
                 ADJ[ -kN[,i],i]=0
                 ADJ[i,-kN[,i] ]=0
             }
-            ave=mean(Cuse[which(ADJ>0)])
-            ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
+            ADJ[ADJ>0]=Cuse[ which(ADJ>0) ] 
+            ADJ=as(  ADJ ,"dgCMatrix")
+            ave=mean(ADJ@x)
+            ADJ@x=exp(- ( ((1-ADJ@x )^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
             GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
         }
     }
 
 
-    if (do.glasso==TRUE){
-    ADJ[which(X>=0)]=0  #Reinstate 0 state from glasso
-    X<-NULL
-    }
+    #if (do.glasso==TRUE){
+    #ADJ[which(X>=0)]=0  #Reinstate 0 state from glasso
+    #X<-NULL
+    #}
     
-    message("\n4\n",is(ADJ,'sparseMatrix'),"\n")
-    
+
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
         pct <- min(1,1/(median(igraph::degree(GRAO))^0.1 )  )
         message("\tkeeping ", round(100*pct,1), "% of edges")
-        ADJtemp <- apply(ADJ,2,function(x) sparsify(x,pct) )
+        ADJtemp <- sparsify(ADJ,pct)
         GRAO <- igraph::graph.adjacency(ADJtemp, mode=c("max"), weighted=TRUE, diag=FALSE)
         ADJtemp <- NULL
     }
-    
-    message("\n5\n",is(ADJ,'sparseMatrix'),"\n")
     
     
     GRAO<-igraph::set.vertex.attribute(GRAO, "class", value=as.character(ClassAssignment))
@@ -445,8 +432,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     V(GRAO)$labels=CellIds
 
-    message("\n6\n",is(ADJ,'sparseMatrix'),"\n")
-    
     
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
                 DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
