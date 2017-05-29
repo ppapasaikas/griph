@@ -55,7 +55,7 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
         R=sweep(R,2,colMeans(R),"-")
         #R=R*(W^0.4)
         R=buildEdgeMatrix( R ,distance_method="Cosine",K=ceiling(1e2+sqrt(ncol(R))  )  )
-        R=Matrix::sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
+        R=Matrix::sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds), giveCsparse = FALSE)
 
     return(R)    
 }

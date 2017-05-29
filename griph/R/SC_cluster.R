@@ -325,10 +325,10 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
     ave=mean(Cuse[which(ADJ>0)])
 
-    ADJ[which(ADJ>0)]=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
+    ADJ@x=exp(- ( ((1-Cuse[which(ADJ>0)])^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
     message("\n0\n",is(ADJ,'sparseMatrix'),"\n")
     
-    ADJ[which(ADJ < 0)]=0
+    ADJ@x[ADJ@x < 0]=0
     diag(ADJ)=1
     message("\n1\n",is(ADJ,'sparseMatrix'),"\n")
     

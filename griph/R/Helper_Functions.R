@@ -1,16 +1,18 @@
 #' Get k nearest neighbors of variables given a feature matrix. 
 #' 
 #' @param S feature matrix (here: always square)
-#' @param k numeric vector of length \code{nrow(S)} giving the number of nearest
-#'     neighbors to be returned for each column in \code{S}. Defaults to the
-#'     rounded square root of the number of rows (columns).
+#' @param k integer giving the number of nearest neighbors to be returned. Defaults to the
+#'          rounded square root of the number of rows (columns).
 #' 
 #' @return If all elements of \code{k} have the same value, a \code{k} by \code{ncol(S)}
 #'     matrix, else a \code{ncol(S)}-element \code{list}.
-get.knn <- function(S, k = rep(round(sqrt(nrow(S))), nrow(S))) {
+get.knn <- function(S, k = round(sqrt(nrow(S)))   ) {
   diag(S) <- 0
-  kN <- sapply(1:nrow(S), function(x) bigmemory::tail(order(S[,x]),k[x]))
-  return(kN)
+  #kN <- sapply(1:nrow(S), function(x) bigmemory::tail(order(S[,x]),k[x]))
+  kN <- sapply(1:nrow(S), function(y) {which( S@i==y & S@x > sort(S[y,],decreasing=TRUE)[k] ) }  )
+  
+  #kN <- apply(S, 2, function(x) bigmemory::tail(order(x), k  )  )
+  return(unlist(kN))
 }
 
 
