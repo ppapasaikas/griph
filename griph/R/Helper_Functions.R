@@ -1,37 +1,58 @@
 #' Get k nearest neighbors of variables given a feature matrix. 
 #' 
 #' @param S feature matrix (here: always square)
-#' @param k numeric vector of length \code{nrow(S)} giving the number of nearest
-#'     neighbors to be returned for each column in \code{S}. Defaults to the
+#' @param k integer giving the number of nearest
+#'     neighbors to be returned. Defaults to the
 #'     rounded square root of the number of rows (columns).
 #' 
-#' @return If all elements of \code{k} have the same value, a \code{k} by \code{ncol(S)}
-#'     matrix, else a \code{ncol(S)}-element \code{list}.
-get.knn <- function(S, k = rep(round(sqrt(nrow(S))), nrow(S))) {
-  diag(S) <- 0
-  kN <- sapply(1:nrow(S), function(x) bigmemory::tail(order(S[,x]),k[x]))
-  return(kN)
+#' @return A \code{k} by \code{ncol(S)} matrix.
+get.knn <- function(S, k = round(sqrt(nrow(S)) ) ) {
+    diag(S) <- 0
+    kN <- sapply(1:nrow(S), function(x) bigmemory::tail(order(S[,x]),k ))
+    return(kN)
+}
+
+
+
+
+#' Keep k mutual nearest neighbors of variables given a sparse similarity matrix. 
+#' 
+#' @param S  a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix
+#' @param k integer giving the number of mutual nearest meighbors
+#'      Defaults to the rounded square root of the number of variables.
+#' 
+#' @return a sparse Matrix of class CsparseMatrix with at most \code{length(S@x)} non-zero elements.
+keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
+  n <- diff(S@p)
+  lst <- split(S@x, rep.int(1:ncol(S), n))
+  o<-lapply(lst, function(x) order(x,decreasing=TRUE)  )
+  o=unlist(o)
+  S@x[o > k]=0
+  S=Matrix::drop0((S))
+  return( as(sqrt(S * t(S)), "dgCMatrix")  )
 }
 
 
 #' Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors  
 #' 
-#' @param x weighted adjacency matrix represting the grpah to be pruned.
+#' @param S a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix.
 #' @param pct fraction of edges to keep.
 #' 
-#' @return a matrix with the same dimensions as \code{x}, with only \code{pct} fraction of non-zero values.
-sparsify <- function(x, pct = 0.1) {
-  L <- length(x)
-  P <- sum(x > 0)
-  if (P < 3) { return(x) }
-  else {
-    k <- max(3, floor(pct * P)) 
-    k <- min(100, k) 
-    cutoff <- sort(x[which(x > 0)], decreasing = TRUE)[k]
-    x[which(x < cutoff)] <- 0  
-    return(x)
-  }
+#' @return a vector of the same length as \code{x}, with only \code{pct} fraction of non-zero values.
+sparsify <- function(S, pct = 0.1) {
+n <- diff(S@p)
+lst <- split(S@x, rep.int(1:ncol(S), n))
+o<-lapply(lst, function(x) { y=order(x,decreasing=TRUE) ;   if (length(y) >2) { y[ y>length(y)*pct ]=0  };return(y)  }  )
+o=unlist(o)
+S@x[o == 0]=0
+S=Matrix::drop0((S))
+return( as(S, "dgCMatrix")  )  
 }
+
+
+
+
+
 
 
 #' Emulate ggplot2 color palette.
