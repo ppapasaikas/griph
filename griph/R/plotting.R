@@ -166,8 +166,8 @@ plotGraph <- function(gr, maxG=2500,
         ######## Prune graph for better plot output
         if (median(igraph::degree(GRAOp)) > 4 ) {
             pct <- min(1, 1 / sqrt(0.1 * median(igraph::degree(GRAOp))))
-            ADJp <- as.matrix(igraph::get.adjacency(GRAOp, attr = 'weight'))
-            ADJp <- apply(ADJp, 1, function(x) sparsify(x,pct))
+            ADJp <- igraph::as_adj(GRAOp, attr = 'weight',sparse=TRUE)
+            ADJp <- sparsify(ADJp,pct)
             ADJp[which(abs(ADJp) > 0)] <- 1
             GRAOtemp <- igraph::graph.adjacency(ADJp, mode = "max", weighted = NULL,
                                                 diag = FALSE)
@@ -618,7 +618,7 @@ plotLVis <- function(gr,
         add.args$useDegree=TRUE    
     }
     
-    res <- do.call(projectKNNs, c( list(wij=as_adj(gr$GRAO,names=FALSE, sparse=TRUE),seed=seed),add.args )    )
+    res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
