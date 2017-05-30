@@ -29,8 +29,10 @@ keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
   o=unlist(o)
   S@x[o > k]=0
   S=Matrix::drop0((S))
-  return( as(sqrt(S * t(S)), "dgCMatrix")  )
+  return( as(sqrt(S * t(S)), "dgCMatrix")  ) #Instead, also S@x=pmin(S@x, t(S)@x)  would work if S@x  not strictly positive...
 }
+
+
 
 
 #' Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors  
@@ -42,7 +44,7 @@ keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
 sparsify <- function(S, pct = 0.1) {
 n <- diff(S@p)
 lst <- split(S@x, rep.int(1:ncol(S), n))
-o<-lapply(lst, function(x) { y=order(x,decreasing=TRUE) ;   if (length(y) >2) { y[ y>length(y)*pct ]=0  };return(y)  }  )
+o<-lapply(lst, function(x) {  y=order(x,decreasing=TRUE);  if (length(y)>2) { y[ y>length(y)*pct ]=0 }; return(y)  }   )
 o=unlist(o)
 S@x[o == 0]=0
 S=Matrix::drop0((S))

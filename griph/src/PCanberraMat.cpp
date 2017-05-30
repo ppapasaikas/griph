@@ -37,25 +37,24 @@ NumericMatrix PCanberraMat(NumericMatrix A,NumericMatrix B) {
     NumericMatrix answer(Acols,Bcols);
     
     // Do the main calculations
+    double denominator=0;
+    double result=0;
     for( unsigned int j = 0; j < Acols; j++){
         
         for( unsigned int k = 0; k < Bcols; k++){
+
+            result = 0;
             
-            double result = 0.0;
-            //double NZ=0.0;
             for( unsigned int i = 0; i < rows; i++){
-                //if ( std::abs(double(A2(i, j) + B2(i, k) )) >0 ) {
-                  //result = result + std::abs(double(A2(i, j) - B2(i, k))) / std::abs (double(A2(i, j) + B2(i, k) ));
-                
-                double denominator=  std::abs(double(A2(i, j) )) + std::abs(double ( B2(i, k) ) ) ; 
-                if ( denominator>0 ) {
-                  result = result + std::abs(double(A2(i, j) - B2(i, k))) / ( denominator ) ;
-                  //NZ=NZ+1; 
-                }
+
+                //denominator=  std::abs(A2(i, j) ) + std::abs( B2(i, k)  ) ;
+                denominator=  A2(i, j)  +  B2(i, k)   ; //Only for speedup in case of log2 transformed count matrices with pseudocount. Safer if line above
+                denominator += denominator <= 0;
+                result +=  (std::abs(A2(i, j) - B2(i, k)) /  denominator   ) ;
+
+                //result += denominator > 0 ? (std::abs(A2(i, j) - B2(i, k)) / ( denominator )  ) : 0;
             }
-            
             answer(j , k) =  result;
-            
         }
     }
     

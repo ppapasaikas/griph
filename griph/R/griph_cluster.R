@@ -15,8 +15,14 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
     
     CellIds=colnames(M)
     dimnames(M)=NULL
+    
+    ptm1=proc.time() #Start clock
+    
     D=PPearsonCor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
+    
+    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    message("\nP (Elapsed Time: ", Te1, ")")
     
     ######## Counts per 100K:
     CellCounts=colSums(FB)
@@ -26,36 +32,34 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
     M=sweep(M,2,CellCounts,FUN="/")
     M=M*100000 
     
-    Dt=PCanberra( log2(FB+1),log2(M+1) )   #
+    ptm1=proc.time() #Start clock
+    Dt=PCanberra( log2(FB+1),log2(M+1) )   
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
-    D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
+    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    message("C (Elapsed Time: ", Te1, ")")
+    
+    ptm1=proc.time() #Start clock
     Dt=PSpearmanCor(FB,M)
-    D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
+    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    message("S (Elapsed Time: ", Te1, ")")
+    
+    ptm1=proc.time() #Start clock
     Dt=PHellinger(FB,M)
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
-    D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
+    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    message("H (Elapsed Time: ", Te1, ")")
     
-    R=R/4
-    WM=D/4
+    ptm1=proc.time() #Start clock
+    R=(R/4)^2
+    R=sweep(R,2,colMeans(R),"-")
+    R=buildEdgeMatrix( R ,distance_method="Cosine",K=min( 250, ceiling(1e2+sqrt(ncol(R)) ) )   )
+    R=Matrix::sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
+    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    message("bEM (Elapsed Time: ", Te1, ")")
     
-    ##### Kernelize average distance
-    ave=mean(WM[which(WM>0)])
-    GK=exp(- ( ((1-WM)^2) / ((1-ave)^2) ) ) 
-    
-    ##### Compute weights of Fake bulks based on local density
-    W=apply(GK ,1,sum )^(3) #
-    minW=quantile(W,probs=seq(0,1,0.1))[[2]]
-    W=((minW)/(W+1*minW))  #
-    W=W/max(W)
-    R=R^2
-        R=sweep(R,2,colMeans(R),"-")
-        #R=R*(W^0.4)
-        R=buildEdgeMatrix( R ,distance_method="Cosine",K=ceiling(1e2+sqrt(ncol(R))  )  )
-        R=Matrix::sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
-
     return(R)    
 }
 
@@ -127,9 +131,15 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores
     
     ptm=proc.time() #Start clock
     
-    
     params <-as.list(environment())
     params$plotG=FALSE 
+    
+    #Make sure DM comes with rownames:
+    if (is.null(rownames(DM))) {rownames(DM)=c(1:nrow(DM)); params$DM=DM} 
+    
+    
+    if (ncol(DM)<300) {use.par=FALSE; params$use.par=FALSE} 
+    
     
     if (is.null(SamplingSize)){
     params$SamplingSize=750    
@@ -193,14 +203,19 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores
                 }
                 
                 cluster.res <- do.call(SC_cluster, c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
+                genelist=cluster.res$GeneList   #Make Sure only filtered genes are used....
+
+
             }
+            
+            
             else {
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
                 params$ncom=ncom
                 params$is.cor=TRUE
                 params$ClassAssignment=ClassAssignment
                 params$BatchAssignment=BatchAssignment  
-                
+
                 message("MISCL","\n",cluster.res$miscl,"\n")
                 
                 ####### construct cell2cell correlation matrix using the current cluster.res: ########
@@ -223,22 +238,25 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores
                 Nboot.Smpls=min(ceiling(150/(length(good.clust)^2) ), 80)
                 Nboot.Smpls=max(Nboot.Smpls,2)
                 bootS.size=Nboot.Smpls^(-0.5)
-                FakeBulk=matrix(0,nrow(DM),length(good.clust)*Nboot.Smpls)
+                
+                FakeBulk=matrix(0,length(genelist),length(good.clust)*Nboot.Smpls)
                 r=0
                 for (c in 1:length(good.clust)) {
                     clust=good.clust[c]
                     for (b in 1:Nboot.Smpls){
                         r=r+1
                         cluster.sample=sample(which(memb==clust),ceiling(sum(memb==clust)*bootS.size)+1 ,replace=TRUE    )
-                        FakeBulk[,r]=rowSums(DM[,names(memb)][,cluster.sample])
+                        FakeBulk[,r]=rowSums(DM[genelist,names(memb)][,cluster.sample])
                     }
                 }
                 
+
                 ###### Calculate distances of all the cells to the FakeBulks:
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
-                params$DM <- WScorFB(DM, FakeBulk,PSpearmanCor=PSpearmanCor, PPearsonCor=PPearsonCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor)
+                params$DM <- WScorFB(DM[genelist,], FakeBulk,PSpearmanCor=PSpearmanCor, PPearsonCor=PPearsonCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor)
                 message("done")
                 cluster.res <- do.call(SC_cluster, c(params,list(comm.method=igraph::cluster_louvain,do.glasso=FALSE,pr.iter=0) ) )
+                cluster.res$GeneList<-genelist        
             }
             gc() #Call garbage collector
         }
@@ -259,7 +277,6 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores
     Te=(proc.time() - ptm)[3]
     Te=signif(Te,digits=6)
     message("Finished (Elapsed Time: ", Te, ")")
-    cluster.res$CORM=NULL
     return(cluster.res)    
 }
 

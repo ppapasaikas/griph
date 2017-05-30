@@ -30,7 +30,6 @@ WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCo
     }
     else {FB=M[,SMPL[1:min(nBulks,ncol(M))]]}
 
-
     D=PPearsonCor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
@@ -46,7 +45,7 @@ WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCo
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
-
+    
     Dt=PSpearmanCor(FB,M)
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
@@ -55,7 +54,7 @@ WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCo
     Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
     D=D+Dt
     R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
-    
+
     R=R/4
     WM=D/4
     
@@ -86,7 +85,9 @@ Spcor <- function (M) { #Spearman's correlation using coop
 
 
 PSpcor <- function (M1,M2) { #Spearman's correlation using coop
-    R=stats::cor(M1,M2,method="spearman")
+    R1=vapply(c(1:ncol(M1)),function (x) rank(M1[,x]),FUN.VALUE=double(length=nrow(M1) ) )
+    R2=vapply(c(1:ncol(M2)),function (x) rank(M2[,x]),FUN.VALUE=double(length=nrow(M2) ) )
+    R=stats::cor(R1,R2)
     return(R)
 }
 
@@ -182,13 +183,16 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     qnt=8 #Max gene expression decile for imputation (e.g 8->bottom 70% of the genes are imputed) 
     rho=rho+( (ncol(DM)/1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
     rho=min(0.9,rho)
-    #######Switch to parallelized functions if use.par=TRUE
     
+    ##### Strip colnames:
+    CellIds=colnames(DM)
+    colnames(DM)=NULL
+    
+    #######Switch to parallelized functions if use.par=TRUE
     PPearsonCor=stats::cor
     PSpearmanCor=PSpcor
     PHellinger=PHellingerMat
     PCanberra=PCanberraMat
-    
     ShrinkCor=corpcor::cor.shrink
     Glasso=Qglasso
     PPRank=PPR
@@ -198,16 +202,11 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         PSpearmanCor=FlashPSpearmanCor
         PHellinger=FlashPHellinger
         PCanberra=FlashPCanberra 
-        
         ShrinkCor=FlashShrinkCor
         Glasso=FlashGlasso
         PPRank=FlashPPR 
     }
     
-    
-    ##### Strip dimnames:
-    CellIds=colnames(DM)
-    dimnames(DM)=list(NULL,NULL)
     
     if (!isTRUE(is.cor)) {  
         
@@ -218,7 +217,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             DM=DM[-AllZeroRows , ] 
         }
         
-        
         ##########  Remove invariant genes:
         meanDM=mean(DM)
         nSD=apply(DM,1,function(x) sd(x)/meanDM)
@@ -226,6 +224,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         if(length(ConstRows)>0){
             DM=DM[-ConstRows , ]
         }
+        message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " invariant/absent genes...\n", appendLF = FALSE)
         
         #############CV=f(mean) -based filtering:
         CellCounts=colSums(DM)
@@ -238,11 +237,14 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             
         }
         if (filter){
+            message("\nFiltering Genes...", appendLF = FALSE)
             X1=log2(rowMeans(nDM+1/ncol(nDM)))
             Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
             m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
             Yhat=predict(m)
-            DM=DM[which(Y1 > Yhat),]
+            DM=DM[which(Y1 > 0.9*Yhat),]
+            message("Removed ",nrow(nDM)-nrow(DM), " genes with low variance\n", appendLF = FALSE)
+            
         }
         
         NoData <- which(colSums(DM) == 0)
@@ -260,7 +262,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         
         C[[2]]=WScor(DM, PPearsonCor=PPearsonCor, PSpearmanCor=PSpearmanCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor )
         nDM<-NULL
-        
+        genelist<-rownames(DM)
         message("done")
     }
     
@@ -268,18 +270,20 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     else {
         C=list()
         C[[2]]=DM
-        
+        genelist<-NULL
     }
     
+    #Strip Dimnames:
+    dimnames(DM)=list(NULL,NULL)
     Cuse=C[[2]]
-
-    if (do.glasso==TRUE){
+    DM<-NULL
+    C<-NULL
     
+    if (do.glasso==TRUE){
         ############### glasso-based graph structure estimation: #####################
         message("Estimating Graph Structure...", appendLF = FALSE)
     
         RHO=matrix(rho,nrow=nrow(Cuse),ncol=ncol(Cuse) )
-
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
         k=min(max(5*sqrt(ncol(Cuse)),50) ,floor(ncol( Cuse))/1.5)  
         kN=get.knn(Cuse,k=round(k) )
@@ -287,7 +291,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             RHO[ -kN[,i],i]=min(1,1.5*rho)
             RHO[i,-kN[,i] ]=min(1,1.5*rho)
         }
-        kN=NULL
+        kN<-NULL
     
         if(!is.null(BatchAssignment)){
             rL=min(1,rho^(1-batch.penalty))
@@ -301,10 +305,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                 RHO[ -kN[,i],i]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[ -kN[,i],i])
                 RHO[i,-kN[,i] ]=pmin(rep(1,length(RHO[ -kN[,i],i])  ),1.5*RHO[i,-kN[,i] ])
             }
+            kN<-NULL
         }
-
         
-        C=NULL
         tol=5e-02
         maxIter=40
         if (ncol(Cuse)<200) {tol=1e-02;maxIter=80}
@@ -362,13 +365,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         }
     }
 
-
-    #if (do.glasso==TRUE){
-    #ADJ[which(X>=0)]=0  #Reinstate 0 state from glasso
-    #X<-NULL
-    #}
+    Cuse<-NULL
     
-
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
         pct <- min(1,1/(median(igraph::degree(GRAO))^0.1 )  )
@@ -427,14 +425,12 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
     
     dimnames(ADJ) <- list(CellIds,CellIds)
-    dimnames(Cuse) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
     
     V(GRAO)$labels=CellIds
 
-    
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
-                DISTM=ADJ, CORM=Cuse, ConfMatrix=ConfMatrix,
+                DISTM=ADJ, ConfMatrix=ConfMatrix, GeneList=genelist,
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
 
     ######### graph visualization

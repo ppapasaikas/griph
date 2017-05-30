@@ -603,7 +603,7 @@ plotLVis <- function(gr,
     set.seed(seed = seed)
     
     if (!is.element('sgd_batches',names(add.args))){
-        add.args$sgd_batches=min(20000/(sum(gr$DISTM!=0)/2),0.99)   
+        add.args$sgd_batches=min(25000/(sum(gr$DISTM!=0)/2),0.99)  #!!!!!!Use GRAO instead!!! 
     }
     if (!is.element('M',names(add.args))){
         add.args$M=4    
