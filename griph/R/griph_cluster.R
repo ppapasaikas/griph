@@ -125,7 +125,7 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 
 
 griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores="all",
-                          filter = FALSE, rho = 0.25, batch.penalty = 0.5,
+                          filter = TRUE, rho = 0.25, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom=NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
     
@@ -176,7 +176,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=FALSE,ncores
         doParallel::registerDoParallel(cl)
         
         if (is.null(SamplingSize)){
-            params$SamplingSize=max(params$SamplingSize, 250 * ncores )    
+        params$SamplingSize=max(params$SamplingSize, 250 * ncores )    
         }
     }
     
