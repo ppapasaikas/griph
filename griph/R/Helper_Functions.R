@@ -25,12 +25,18 @@ get.knn <- function(S, k = round(sqrt(nrow(S)) ) ) {
 keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
   n <- diff(S@p)
   lst <- split(S@x, rep.int(1:ncol(S), n))
-  o<-lapply(lst, function(x) order(x,decreasing=TRUE)  )
+  o<-lapply(lst, function(x) rank(-x)  )
   o=unlist(o)
   S@x[o > k]=0
+  
+  S@x=pmin(S@x, t(S)@x)
+  #S=sqrt( S * t(S) )  #Slower than line above, only works for strictly positive S
+  
   S=Matrix::drop0((S))
-  return( as(sqrt(S * t(S)), "dgCMatrix")  ) #Instead, also S@x=pmin(S@x, t(S)@x)  would work if S@x  not strictly positive...
-}
+  return( S ) 
+ }
+
+
 
 
 
@@ -40,18 +46,17 @@ keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
 #' @param S a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix.
 #' @param pct fraction of edges to keep.
 #' 
-#' @return a vector of the same length as \code{x}, with only \code{pct} fraction of non-zero values.
+#' @return a sparse Matrix of class CsparseMatrix with a fraction of \code{pct} non-zero elements per column.
 sparsify <- function(S, pct = 0.1) {
 n <- diff(S@p)
 lst <- split(S@x, rep.int(1:ncol(S), n))
-o<-lapply(lst, function(x) {  y=order(x,decreasing=TRUE);  if (length(y)>2) { y[ y>length(y)*pct ]=0 }; return(y)  }   )
+o<-lapply(lst, function(x) {  y=rank(-x);  if (length(y)>2) { y[ y> max(3,min(100,length(y)*pct))    ]=0 }; return(y)  }   )
 o=unlist(o)
 S@x[o == 0]=0
+#S@x=pmin(S@x, t(S)@x)
 S=Matrix::drop0((S))
 return( as(S, "dgCMatrix")  )  
 }
-
-
 
 
 
