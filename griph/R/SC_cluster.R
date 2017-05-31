@@ -12,8 +12,6 @@
 #' 
 #' @return cell-by-cell distance matrix.
 WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
-        
-    
     nBulks=min(1500, ceiling(5*ncol(M)) )
     FBsize=3
     Gcounts=colSums(M)
@@ -224,7 +222,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         if(length(ConstRows)>0){
             DM=DM[-ConstRows , ]
         }
-        message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " invariant/absent genes...\n", appendLF = FALSE)
+        message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (invariant/no-show) gene(s)...\n", appendLF = FALSE)
         
         #############CV=f(mean) -based filtering:
         CellCounts=colSums(DM)
@@ -243,7 +241,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
             Yhat=predict(m)
             DM=DM[which(Y1 > 0.9*Yhat),]
-            message("Removed ",nrow(nDM)-nrow(DM), " genes with low variance\n", appendLF = FALSE)
+            message("Removed an additional ",nrow(nDM)-nrow(DM), " gene(s) with low variance\n", appendLF = FALSE)
             
         }
         
@@ -357,11 +355,21 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                 ADJ[ -kN[,i],i]=0
                 ADJ[i,-kN[,i] ]=0
             }
-            ADJ[ADJ>0]=Cuse[ which(ADJ>0) ] 
+            PR=PR/ ( max(PR[upper.tri(PR)])+0.01/ncol(ADJ)  ) 
+            diag(PR)=1
+            #PR=1
+            
+            ADJ[ADJ>0]=Cuse[which(ADJ>0)] 
+
+            ave=mean(ADJ[ADJ>0])
+            ADJ[ADJ>0]=exp(- ( ((1-ADJ[ADJ>0] )^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
+            
+            ADJ=ADJ*PR #Reweighing
+            
             ADJ=as(  ADJ ,"dgCMatrix")
-            ave=mean(ADJ@x)
-            ADJ@x=exp(- ( ((1-ADJ@x )^2) / ((1-ave)^2) ) )   #According to Harel and Koren 2001 SIGKDD section 3
+            
             GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
+            PR<-NULL
         }
     }
 
