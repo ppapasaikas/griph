@@ -314,8 +314,12 @@ plotGraph <- function(gr, maxG=2500,
     if (!is.na(image.format))
         dev.off()
     
-    return(invisible(GRAOp))
+    return(list(y=l[,1:2],GRAO=invisible(GRAOp)))
 }
+
+
+
+
 
 #' @title Visualize griph result as a tSNE projection.
 #' 
@@ -603,13 +607,13 @@ plotLVis <- function(gr,
     set.seed(seed = seed)
     
     if (!is.element('sgd_batches',names(add.args))){
-        add.args$sgd_batches=min(25000/(sum(gr$DISTM!=0)/2),0.99)  #!!!!!!Use GRAO instead!!! 
+        add.args$sgd_batches=max(0.05*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e6)  #!!!!!!Use GRAO instead!!! 
     }
     if (!is.element('M',names(add.args))){
         add.args$M=4    
     }
     if (!is.element('gamma',names(add.args))){
-        add.args$gamma=1    
+        add.args$gamma=10    
     }
     if (!is.element('alpha',names(add.args))){
         add.args$alpha=0.2
@@ -618,7 +622,8 @@ plotLVis <- function(gr,
         add.args$useDegree=TRUE    
     }
     
-    res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
+    #res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
+    res <- do.call(projectKNNs, c( list(wij=gr$DISTM,seed=seed),add.args )    )
     
     # get colors
     class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
@@ -713,5 +718,5 @@ plotLVis <- function(gr,
     if(!is.na(image.format))
         dev.off()
     
-    return(invisible(res))
+    return(invisible(t(res)))
 }

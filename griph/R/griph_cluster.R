@@ -146,8 +146,9 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     }
     
     #######Define functions if use.par=FALSE
-    PSpearmanCor=PSpcor
+    PearsonCor=coop::pcor
     PPearsonCor=stats::cor
+    PSpearmanCor=PSpcor
     PHellinger=PHellingerMat
     PCanberra=PCanberraMat
     ShrinkCor=corpcor::cor.shrink
@@ -160,6 +161,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     # Register cluster here, remove regiastation block from SC_cluster
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
+        PearsonCor=FlashPearsonCor
         PPearsonCor=FlashPPearsonCor
         PSpearmanCor=FlashPSpearmanCor
         PHellinger=FlashPHellinger
@@ -191,22 +193,43 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 
                 if (ncol(DM)>params$SamplingSize){
                 SMPL=sample(1:ncol(DM),params$SamplingSize)
-                params$DM=DM[,SMPL]
-                params$ClassAssignment=ClassAssignment[SMPL]
-                    if (!is.null(BatchAssignment)){
-                    params$BatchAssignment=BatchAssignment[SMPL]   
-                    }
                 }
                 
                 else{
-                params$DM=DM
+                SMPL=c(1:ncol(DM))
                 }
+                
+                Gcounts=colSums(DM[,SMPL])
+                LowQual=which(Gcounts <  quantile(Gcounts,0.05)  )
+                SMPL=SMPL[-c(LowQual)]
+                cM=PearsonCor(log2(DM[,SMPL]+1))
+                sum.cM=(colSums(cM)-1)/2
+                Q=quantile(sum.cM,0.5)
+                exclude=which(sum.cM > Q)
+                exclude=sample(exclude,ceiling(0.5*length(exclude))  )
+                SMPL=SMPL[-c(exclude)]
+                
+                cat("::\n",length(SMPL), "\n")
+                
+                params$DM=DM[,SMPL]
+                
+                params$ClassAssignment=ClassAssignment[SMPL]
+                if (!is.null(BatchAssignment)){
+                    params$BatchAssignment=BatchAssignment[SMPL]   
+                }
+                
                 
                 cluster.res <- do.call(SC_cluster, c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
                 genelist=cluster.res$GeneList   #Make Sure only filtered genes are used....
 
 
             }
+            
+            
+            
+            
+            
+            
             
             
             else {

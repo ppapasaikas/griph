@@ -12,10 +12,10 @@
 #' 
 #' @return cell-by-cell distance matrix.
 WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
-    nBulks=min(1000, ceiling(5*ncol(M)) )
+    nBulks=min(1250, ceiling(5*ncol(M)) )
     FBsize=3
     Gcounts=colSums(M)
-    HighQual=c(1:ncol(M))[-which(Gcounts <  quantile(Gcounts,0.05)  )]
+    HighQual=c(1:ncol(M))[-which(Gcounts <  quantile(Gcounts,0.001)  )]
     rep.ind=rep(HighQual, ceiling(nBulks*FBsize/length(HighQual))         )
     SMPL=sample(rep.ind,(nBulks*FBsize),replace=FALSE    )
     FB=matrix(0,nrow(M),nBulks)
@@ -28,6 +28,8 @@ WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCo
     }
     else {FB=M[,SMPL[1:min(nBulks,ncol(M))]]}
 
+    
+    
     D=PPearsonCor(log2(FB+1),log2(M+1))
     R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
 
