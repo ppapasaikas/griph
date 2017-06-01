@@ -11,7 +11,7 @@ FlashPearsonCor <- function (DM,ncores="all") {
   NCOL=desc@description["totalCols"][[1]]
 
   ncores=getDoParWorkers()
-  nblocks = ncores 
+  nblocks = 2*ncores
 
   corMAT <- matrix(data=0,nrow=NCOL,ncol=NCOL )
   corMAT <- as.big.matrix(corMAT,type="double")

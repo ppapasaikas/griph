@@ -142,7 +142,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     
     
     if (is.null(SamplingSize)){
-    params$SamplingSize=750    
+    params$SamplingSize=1000    
     }
     
     #######Define functions if use.par=FALSE
@@ -191,26 +191,26 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 params$ncom=ncom    
                 }
                 
-                if (ncol(DM)>params$SamplingSize){
-                SMPL=sample(1:ncol(DM),params$SamplingSize)
+                Gcounts=colSums(DM>0)
+                LowQual=which(Gcounts <  quantile(Gcounts,0.01)  )
+                
+                if ( (ncol(DM) -length(LowQual) )  > params$SamplingSize ){
+                SMPL=sample(1:ncol(DM)[-LowQual],params$SamplingSize)
+                cM=PearsonCor(log2(DM[,SMPL]+1))
+                sum.cM=(colSums(cM)-1)/2
+                Y1=sum.cM
+                X1=log2(Gcounts[SMPL])
+                m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
+                Yhat=predict(m)
+                exclude=which(Y1/Yhat > 1.0)
+                SMPL=SMPL[-c(exclude)]
                 }
                 
                 else{
-                SMPL=c(1:ncol(DM))
+                SMPL=c(1:ncol(DM))[-LowQual] 
                 }
-                
-                Gcounts=colSums(DM[,SMPL])
-                LowQual=which(Gcounts <  quantile(Gcounts,0.05)  )
-                SMPL=SMPL[-c(LowQual)]
-                cM=PearsonCor(log2(DM[,SMPL]+1))
-                sum.cM=(colSums(cM)-1)/2
-                Q=quantile(sum.cM,0.5)
-                exclude=which(sum.cM > Q)
-                exclude=sample(exclude,ceiling(0.5*length(exclude))  )
-                SMPL=SMPL[-c(exclude)]
-                
+
                 cat("::\n",length(SMPL), "\n")
-                
                 params$DM=DM[,SMPL]
                 
                 params$ClassAssignment=ClassAssignment[SMPL]
@@ -243,7 +243,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 
                 ####### construct cell2cell correlation matrix using the current cluster.res: ########
                 memb=cluster.res$MEMB
-                min.csize <-max(4, ceiling(0.2*sqrt(length(memb)) ) )
+                min.csize <-max(4, ceiling(0.25*sqrt(length(memb)) ) )
                 nclust=length(unique(memb) )
                 good.clust=as.vector(which(table(memb)>=min.csize) )
 
