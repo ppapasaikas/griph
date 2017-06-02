@@ -46,13 +46,10 @@ NumericMatrix PCanberraMat(NumericMatrix A,NumericMatrix B) {
             result = 0;
             
             for( unsigned int i = 0; i < rows; i++){
-
-                //denominator=  std::abs(A2(i, j) ) + std::abs( B2(i, k)  ) ;
                 denominator=  A2(i, j)  +  B2(i, k)   ; //Only for speedup in case of log2 transformed count matrices with pseudocount. Safer if line above
-                denominator += denominator <= 0;
-                result +=  (std::abs(A2(i, j) - B2(i, k)) /  denominator   ) ;
-
                 //result += denominator > 0 ? (std::abs(A2(i, j) - B2(i, k)) / ( denominator )  ) : 0;
+                denominator += denominator <= 0; //Same as line above but avoids branching (see: https://stackoverflow.com/questions/16777456/what-is-the-fastest-integer-division-supporting-division-by-zero-no-matter-what)
+                result +=  (std::abs(A2(i, j) - B2(i, k)) /  denominator   ) ;
             }
             answer(j , k) =  result;
         }
