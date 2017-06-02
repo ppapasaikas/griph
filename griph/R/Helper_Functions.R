@@ -39,8 +39,6 @@ keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
 
 
 
-
-
 #' Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors  
 #' 
 #' @param S a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix.
@@ -57,6 +55,29 @@ S@x[o == 0]=0
 S=Matrix::drop0((S))
 return( as(S, "dgCMatrix")  )  
 }
+
+
+#' Correlation for sparse matrices:
+sparse.cor <- function(x){
+    n <- nrow(x)
+    cMeans <- colMeans(x)
+    covmat <- (as.matrix(crossprod(x)) - n*tcrossprod(cMeans))/(n-1)
+    sdvec <- sqrt(diag(covmat)) 
+    cormat <- covmat/tcrossprod(sdvec)
+}
+
+
+
+#' Pairwise correlation for 2 sparse matrices (with the same number of rows)
+psparse.cor <- function(x, y){
+    n <- nrow(x)
+    v <- t(scale(y))
+    sdvec <- sqrt(colSums(x^2)/(n-1) - colSums(x)^2/(n^2 - n)) 
+    cormat <- tcrossprod(t(x)/sdvec, v)/(n-1)
+    return( as(cormat,"matrix") ) 
+}
+
+
 
 
 

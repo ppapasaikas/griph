@@ -396,10 +396,31 @@ FlashPCanberra <- function (DM1, DM2, ncores="all") {
     DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
     results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
-        vals <- PCanberraMat(DM1, M)
+    vals <- PCanberraMat(DM1, M)
     }
     resMAT=results
     return(as.matrix(resMAT))
+}
+
+
+
+
+
+
+
+# Fas computation of Pearson's correlation for sparse matrices
+# Input is a sparse matrix (see package "Matrix") and the desired number of cores
+FlashSPearsonCor <- function (DM,ncores="all") { 
+    ncores=getDoParWorkers()
+    nblocks = 2*ncores 
+    corMAT <- matrix(data=0,nrow=ncol(DM),ncol=ncol(DM) )
+    SPLIT=split(1:ncol(DM), ceiling(seq_along(1:ncol(DM))/ceiling(ncol(DM)/nblocks)  ))
+    ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    results<-foreach(i = 1:length(SPLIT),.export=c('sparse.cor','psparse.cor'),.packages=('Matrix'),.combine='cbind' ) %dopar%{
+    v <- SPLIT[[i]]
+    return(psparse.cor(DM, DM[,v]))
+    }
+    return(as.matrix(results))
 }
 
 
