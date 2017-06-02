@@ -607,7 +607,7 @@ plotLVis <- function(gr,
     set.seed(seed = seed)
     
     if (!is.element('sgd_batches',names(add.args))){
-        add.args$sgd_batches=max(0.05*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e6)  #!!!!!!Use GRAO instead!!! 
+        add.args$sgd_batches=max(0.025*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e6)  #!!!!!!Use GRAO instead!!! 
     }
     if (!is.element('M',names(add.args))){
         add.args$M=4    
