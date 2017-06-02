@@ -13,7 +13,7 @@
 #' @return cell-by-cell distance matrix.
 WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
     nBulks=min(1250, ceiling(5*ncol(M)) )
-    FBsize=1
+    FBsize=2
     Gcounts=colSums(M)
     HighQual=c(1:ncol(M))[-which(Gcounts <  quantile(Gcounts,0.001)  )]
     rep.ind=rep(HighQual, ceiling(nBulks*FBsize/length(HighQual))         )
@@ -209,60 +209,9 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     
     if (!isTRUE(is.cor)) {  
-        
-        message("Preprocessing...", appendLF = FALSE)
-        
-        AllZeroRows=which  ( rowSums(DM)<1e-9 )
-        if(length(AllZeroRows)>0){
-            DM=DM[-AllZeroRows , ] 
-        }
-        
-        ##########  Remove invariant genes:
-        meanDM=mean(DM)
-        nSD=apply(DM,1,function(x) sd(x)/meanDM)
-        ConstRows=which   ( nSD < 0.25 )
-        if(length(ConstRows)>0){
-            DM=DM[-ConstRows , ]
-        }
-        message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (invariant/no-show) gene(s)...\n", appendLF = FALSE)
-        
-        #############CV=f(mean) -based filtering:
-        CellCounts=colSums(DM)
-        nDM=sweep(DM,2,CellCounts,FUN="/")
-        nDM=DM*10000 #Counts per 10K
-        if(is.null(filter)){
-            medianComplexity=median(apply(DM,2,function(x) sum(x>0))) 
-            filter=ifelse( medianComplexity > 2500,TRUE,FALSE)
-            message("Median Library Complexity: ",medianComplexity," --> Gene Filtering: ", filter ,"\r")
-            
-        }
-        if (filter){
-            message("\nFiltering Genes...", appendLF = FALSE)
-            X1=log2(rowMeans(nDM+1/ncol(nDM)))
-            Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
-            m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
-            Yhat=predict(m)
-            DM=DM[which(Y1 > 0.9*Yhat),]
-            message("Removed an additional ",nrow(nDM)-nrow(DM), " gene(s) with low variance\n", appendLF = FALSE)
-            
-        }
-        
-        NoData <- which(colSums(DM) == 0)
-        if (length(NoData > 0)){
-            DM <- DM[,-NoData]
-            ClassAssignment <- ClassAssignment[-NoData]
-            BatchAssignment <- BatchAssignment[-NoData]
-            CellCounts <- CellCounts[-NoData]
-        }
-        message("done")
-        
         C=list()
-
         message("Calculating Pairwise and Diffused Similarities...", appendLF = FALSE)
-        
         C[[2]]=WScor(DM, PPearsonCor=PPearsonCor, PSpearmanCor=PSpearmanCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor )
-        nDM<-NULL
-        genelist<-rownames(DM)
         message("done")
     }
     
@@ -270,7 +219,6 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     else {
         C=list()
         C[[2]]=DM
-        genelist<-NULL
     }
     
     #Strip Dimnames:
@@ -440,7 +388,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     V(GRAO)$labels=CellIds
 
     ret <- list(MEMB=memb$membership, MEMB.true=ClassAssignment,
-                DISTM=ADJ, ConfMatrix=ConfMatrix, GeneList=genelist,
+                DISTM=ADJ, ConfMatrix=ConfMatrix, 
                 miscl=misclErr, GRAO=GRAO, plotGRAO=NULL)
 
     ######### graph visualization

@@ -146,7 +146,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     }
     
     #######Define functions if use.par=FALSE
-    PearsonCor=coop::pcor
+    SPearsonCor=sparse.cor
     PPearsonCor=stats::cor
     PSpearmanCor=PSpcor
     PHellinger=PHellingerMat
@@ -158,10 +158,10 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     if(!is.null(BatchAssignment) && length(BatchAssignment) != ncol(DM))
         stop ("length(BatchAssignment) must be equal to ncol(DM)")
     
-    # Register cluster here, remove regiastation block from SC_cluster
+    # Register cluster here, remove registration block from SC_cluster
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
-        PearsonCor=FlashPearsonCor
+        SPearsonCor=FlashSPearsonCor
         PPearsonCor=FlashPPearsonCor
         PSpearmanCor=FlashPSpearmanCor
         PHellinger=FlashPHellinger
@@ -196,33 +196,89 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 
                 if ( (ncol(DM) -length(LowQual) )  > params$SamplingSize ){
                 SMPL=sample(1:ncol(DM)[-LowQual],params$SamplingSize)
-                cM=PearsonCor(log2(DM[,SMPL]+1))
-                sum.cM=(colSums(cM)-1)/2
-                Y1=sum.cM
-                X1=log2(Gcounts[SMPL])
-                m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
-                Yhat=predict(m)
-                exclude=which(Y1/Yhat > 1.0)
-                SMPL=SMPL[-c(exclude)]
                 }
                 
                 else{
                 SMPL=c(1:ncol(DM))[-LowQual] 
                 }
+                
+                
+                message("Preprocessing...", appendLF = FALSE)
+                
+                ########## Remove ghost cells (cells without detected genes):
+                NoData <- which(colSums( DM[,SMPL] ) == 0)
+                if (length(NoData > 0)){
+                SMPL=SMPL[-NoData]
+                }
 
-                cat("::\n",length(SMPL), "\n")
                 params$DM=DM[,SMPL]
+                
+                ########## Remove no-show genes:
+                AllZeroRows=which  ( rowSums( params$DM )<1e-9 )
+                if(length(AllZeroRows)>0){
+                params$DM=params$DM[-AllZeroRows , ] 
+                }
+                ##########  Remove invariant genes:
+                meanDM=mean( params$DM )
+                nSD=apply(params$DM,1,function(x) sd(x)/meanDM)
+                ConstRows=which   ( nSD < 0.25 )
+                if(length(ConstRows)>0){
+                params$DM=params$DM[-ConstRows , ]
+                }
+                message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (invariant/no-show) gene(s)...\n", appendLF = FALSE)
+
+                
+                ##########  Remove promiscuous cells (this only affects the sampling iteration):
+                DMS=as(params$DM,"dgCMatrix") #filteredGenes x SMPL
+                DMS@x=log2(DMS@x+1)
+                cM=SPearsonCor(DMS)
+                sum.cM=(colSums(cM)-1)/2
+                Y1=sum.cM
+                X1=log2(Gcounts[SMPL])
+                m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
+                Yhat=predict(m)
+                exclude=which(Y1/Yhat >  quantile(Y1/Yhat,0.5)  & sum.cM >   quantile(sum.cM,0.25 )     )
+                fraction=min( (ncol(DM)^2)/1e07,0.9)
+                exclude=sample(exclude, ceiling(length(exclude)*fraction) )
+                SMPL=SMPL[-c(exclude)]
+                cat("::\n",length(SMPL), "\n")
+                params$DM=params$DM[,-c(exclude)]
+
+                
+                
+                #############CV=f(mean) -based filtering:
+                CellCounts=colSums(  params$DM )
+                nDM=sweep( params$DM ,2,CellCounts,FUN="/")
+                #nDM=params$DM*10000 #Counts per 10K
+                nDM=nDM*1e9 #Counts per Billion
+                
+                if(is.null(filter)){
+                    medianComplexity=median(apply( params$DM ,2,function(x) sum(x>0))) 
+                    filter=ifelse( medianComplexity > 2500,TRUE,FALSE)
+                    message("Median Library Complexity: ",medianComplexity," --> Gene Filtering: ", filter ,"\r")
+                    
+                }
+                if (filter){
+                    message("\nFiltering Genes...", appendLF = FALSE)
+                    X1=log2(rowMeans(nDM+1/ncol(nDM)))
+                    Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
+                    m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
+                    Yhat=predict(m)
+                    params$DM=params$DM[which(Y1 > 0.9*Yhat),]
+                    message("Removed an additional ",nrow(nDM)-nrow(params$DM), " gene(s) with low variance\n", appendLF = FALSE)
+                }
+                
+                genelist<-rownames(params$DM)
                 
                 params$ClassAssignment=ClassAssignment[SMPL]
                 if (!is.null(BatchAssignment)){
                     params$BatchAssignment=BatchAssignment[SMPL]   
                 }
                 
+                message("done")
+                
                 
                 cluster.res <- do.call(SC_cluster, c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
-                genelist=cluster.res$GeneList   #Make Sure only filtered genes are used....
-
-
             }
             
             
@@ -284,11 +340,43 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
             gc() #Call garbage collector
         }
         
+        ######Top FeatureGenes:
+        
+        
+        ######Mark Doublets:
+        #if (markDoublets==TRUE){
+        #memb=cluster.res$MEMB
+        #n=length(memb)
+        #nsq=n^2
+        #TBL=table(memb)
+        #nclust=length(TBL)
+        #between=sapply(1:nclust, function(x)  rowMeans(cluster.res$DISTM[,memb==x])    )
+        #expected=matrix(0,nclust,nclust)
+        #    for (c1 in 1: nclust){
+        #        for (c2 in 1: nclust){
+        #        expected[c1,c2]=(1+sum(between[,c1] * between[,c2] > 0)   ) 
+        #        }
+        #    }
+        
+        #    get.mixr <- function (x) {
+        #    o=order(x,decreasing=TRUE)
+        #    mixr=x[o[2]]/(x[o[1]]+1e-3)
+        #    mixr=1/ ((expected[ o[1],o[2] ]) )
+        #    }
+        #mixing.ratio=apply(between,1,get.mixr )
+        #}
+        
+        
+        
         if (plotG==TRUE){    
             cluster.res[["plotGRAO"]] <- plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,image.format = image.format, quiet = FALSE)
         }
+    
         
+            
     }, # end of tryCatch expression, cluster object cl not needed anymore    
+    
+    
     finally = { 
         ##### Stop registered cluster:
         if (isTRUE(use.par) & foreach::getDoParRegistered())
