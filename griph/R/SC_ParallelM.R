@@ -334,6 +334,7 @@ FlashPPearsonCor <- function (DM1, DM2, ncores="all") {
     SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
     DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    M <- NULL
     results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
         vals <- cor(DM1, M)
     }
@@ -354,6 +355,7 @@ FlashPSpearmanCor <- function (DM1, DM2, ncores="all") {
     SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
     DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    M <- NULL
     results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
         #vals <- cor(DM1, M,method="spearman")
         vals <- PSpcor(DM1, M)
@@ -375,6 +377,7 @@ FlashPHellinger <- function (DM1, DM2, ncores="all") {
     SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
     DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    M <- NULL
     results<-foreach( M = DM2.list,.combine='cbind' ) %dopar%{
     vals <- PHellingerMat(DM1, M)
     }
@@ -395,6 +398,7 @@ FlashPCanberra <- function (DM1, DM2, ncores="all") {
     SPLIT=split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2))/ceiling(ncol(DM2)/nblocks)  ))
     DM2.list=lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
+    M <- NULL
     results<-foreach(M = DM2.list,.combine='cbind' ) %dopar%{
     vals <- PCanberraMat(DM1, M)
     }
