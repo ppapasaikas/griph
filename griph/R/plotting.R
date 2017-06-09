@@ -187,7 +187,7 @@ plotGraph <- function(gr, maxG=2500,
     } else {
         if (!quiet)
             message("\tusing existing plot-optimized graph")
-        GRAOp <- gr$plotGRAO
+        GRAOp <- gr$plotGRAO$GRAO
     }
     if (!quiet)
         message("\tdisplaying graph with ",length(V(GRAOp))," (",
