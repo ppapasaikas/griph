@@ -4,8 +4,8 @@
 \alias{griph_cluster}
 \title{Wrapper function for SC_cluster}
 \usage{
-griph_cluster(DM, SamplingSize = 750, ref.iter = 1, use.par = FALSE,
-  ncores = "all", filter = FALSE, rho = 0.25, batch.penalty = 0.5,
+griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
+  ncores = "all", filter = TRUE, rho = 0.25, batch.penalty = 0.5,
   ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL, ncom = NULL,
   plotG = TRUE, maxG = 2500, fsuffix = RandString(),
   image.format = "png")
@@ -14,7 +14,7 @@ griph_cluster(DM, SamplingSize = 750, ref.iter = 1, use.par = FALSE,
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 Required argument.}
 
-\item{SamplingSize}{Number of sampled cells in initialization step.}
+\item{SamplingSize}{Number of sampled cells in initialization step. If NULL it is set to \code{max(750,ncores*250)}}
 
 \item{ref.iter}{Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
 step is performed to \code{min(SamplingSize,ncol(DM))} cells.}
