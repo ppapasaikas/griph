@@ -123,15 +123,13 @@ FlashPPR <- function (G, ncores="all", df=0.75) {
 FlashPPearsonCor <- function (DM1, DM2, ncores="all") { 
     ncores  <- getDoParWorkers()
     nblocks <- 2*ncores 
-    resMAT  <- matrix(data = 0, nrow = ncol(DM1), ncol = ncol(DM2))
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
-    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[, SPLIT[[x]], drop = FALSE])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
-    results <- foreach(M = DM2.list, .combine='cbind') %dopar% {
+    resMAT <- foreach(M = DM2.list, .combine='cbind') %dopar% {
         vals <- cor(DM1, M)
     }
-    resMAT <- results
     return(as.matrix(resMAT))
 }
 
@@ -143,16 +141,14 @@ FlashPPearsonCor <- function (DM1, DM2, ncores="all") {
 FlashPSpearmanCor <- function (DM1, DM2, ncores="all") { 
     ncores <- getDoParWorkers()
     nblocks <- 2*ncores 
-    resMAT <- matrix(data = 0, nrow = ncol(DM1), ncol = ncol(DM2))
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
-    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[, SPLIT[[x]], drop = FALSE])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
-    results <- foreach(M = DM2.list, .combine='cbind') %dopar% {
+    resMAT <- foreach(M = DM2.list, .combine='cbind') %dopar% {
         #vals <- cor(DM1, M,method="spearman")
         vals <- PSpcor(DM1, M)
     }
-    resMAT <- results
     return(as.matrix(resMAT))
 }
 
@@ -165,15 +161,13 @@ FlashPSpearmanCor <- function (DM1, DM2, ncores="all") {
 FlashPHellinger <- function (DM1, DM2, ncores="all") { 
     ncores <- getDoParWorkers()
     nblocks <- 2*ncores 
-    resMAT <- matrix(data = 0, nrow = ncol(DM1), ncol = ncol(DM2))
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
-    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[, SPLIT[[x]], drop = FALSE])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
-    results <- foreach (M = DM2.list, .combine='cbind') %dopar% {
+    resMAT <- foreach (M = DM2.list, .combine='cbind') %dopar% {
         vals <- PHellingerMat(DM1, M)
     }
-    resMAT <- results
     return(as.matrix(resMAT))
 }
 
@@ -186,15 +180,13 @@ FlashPHellinger <- function (DM1, DM2, ncores="all") {
 FlashPCanberra <- function (DM1, DM2, ncores="all") {
     ncores  <- getDoParWorkers()
     nblocks <- 2*ncores 
-    resMAT  <- matrix(data = 0, nrow = ncol(DM1), ncol = ncol(DM2))
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
-    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[,SPLIT[[x]]])
+    DM2.list <- lapply(1:length(SPLIT), function(x) DM2[, SPLIT[[x]], drop = FALSE])
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
-    results <- foreach(M = DM2.list, .combine='cbind' ) %dopar% {
+    resMAT <- foreach(M = DM2.list, .combine='cbind' ) %dopar% {
         vals <- PCanberraMat(DM1, M)
     }
-    resMAT <- results
     return(as.matrix(resMAT))
 }
 
