@@ -2,7 +2,7 @@ test_that("get.knn works properly", {
     set.seed(0)
     M <- as(matrix(rnorm(100), nrow=10), "sparseMatrix")
     res1 <- get.knn(M)
-    res2 <- get.knn(M, 2,10)
+    res2 <- get.knn(M, 2)
     expect_is(res1, "matrix")
     expect_equal(sum(res1), 159)
     expect_equal(res1[-1,], res2)
