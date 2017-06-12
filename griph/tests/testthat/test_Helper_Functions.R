@@ -1,17 +1,16 @@
 test_that("get.knn works properly", {
     set.seed(0)
-    M <- matrix(rnorm(100), nrow=10)
+    M <- as(matrix(rnorm(100), nrow=10), "sparseMatrix")
     res1 <- get.knn(M)
-    res2 <- get.knn(M, rep(2,10))
+    res2 <- get.knn(M, 2,10)
     expect_is(res1, "matrix")
     expect_equal(sum(res1), 159)
     expect_equal(res1[-1,], res2)
-    expect_is(get.knn(M, 1:10), "list")
 })
 
 test_that("sparsify works properly", {
     set.seed(0)
-    M <- matrix(abs(rnorm(100)), nrow=10)
+    M <- as(matrix(abs(rnorm(100)), nrow=10), "sparseMatrix")
     res <- sparsify(M, 0.5)
     expect_is(res, "matrix")
     expect_equal(sum(res > 0), 50)
