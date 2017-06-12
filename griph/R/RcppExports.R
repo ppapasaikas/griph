@@ -29,54 +29,6 @@ referenceWij <- function(i, j, d, threads, perplexity) {
     .Call('griph_referenceWij', PACKAGE = 'griph', i, j, d, threads, perplexity)
 }
 
-#' @title Hellinger distance between columns of a matrix.
-#'
-#' @description
-#' \code{HellingerMat} returns a matrix of Hellinger distances between
-#' the columns of the matrix passed as argument.
-#'
-#' @details
-#' This function calculates the Hellinger distances between columns of the matrix
-#' given as argument. It is implemented in C++ for efficiency. For an argument
-#' matrix with r rows and c columns, the return value is an c-by-c matrix with
-#' all pairwise distances.
-#'
-#' @param A Numeric matrix.
-#'
-#' @return A square matrix of dimensions \code{ncol(A})-by-\code{ncol(A)}.
-#'
-#' @examples
-#' x <- matrix(1:12, nrow=3, ncol=4)
-#' HellingerMat(x)
-#'
-HellingerMat <- function(A) {
-    .Call('griph_HellingerMat', PACKAGE = 'griph', A)
-}
-
-#' @title Jensen-Shannon divergence between columns of a matrix.
-#'
-#' @description
-#' \code{JSDmat} returns a matrix of Jensen-Shannon divergences between the columns
-#' of the matrix passed as argument.
-#'
-#' @details
-#' This function calculates the Jensen-Shannon divergences between columns of the matrix
-#' given as argument. It is implemented in C++ for efficiency. For an argument
-#' matrix with r rows and c columns, the return value is an c-by-c matrix with
-#' all pairwise distances.
-#'
-#' @param A Numeric matrix.
-#'
-#' @return A square matrix of dimensions \code{ncol(A})-by-\code{ncol(A)}.
-#'
-#' @examples
-#' x <- matrix(1:12, nrow=3, ncol=4)
-#' JSDmat(x)
-#'
-JSDmat <- function(A) {
-    .Call('griph_JSDmat', PACKAGE = 'griph', A)
-}
-
 sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose) {
     .Call('griph_sgd', PACKAGE = 'griph', coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
 }
@@ -100,7 +52,7 @@ sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples
 #'
 #' @examples
 #' x <- matrix(1:12, nrow=3, ncol=4)
-#' y <- matrix(1:12, nrow=3, ncol=5)
+#' y <- matrix(1:15, nrow=3, ncol=5)
 #' PHellingerMat(x, y)
 #'
 PCanberraMat <- function(A, B) {
@@ -126,7 +78,7 @@ PCanberraMat <- function(A, B) {
 #'
 #' @examples
 #' x <- matrix(1:12, nrow=3, ncol=4)
-#' y <- matrix(1:12, nrow=3, ncol=5)
+#' y <- matrix(1:15, nrow=3, ncol=5)
 #' PHellingerMat(x, y)
 #'
 PHellingerMat <- function(A, B) {

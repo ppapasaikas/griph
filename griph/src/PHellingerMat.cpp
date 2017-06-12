@@ -22,7 +22,7 @@ using namespace Rcpp;
 //'
 //' @examples
 //' x <- matrix(1:12, nrow=3, ncol=4)
-//' y <- matrix(1:12, nrow=3, ncol=5)
+//' y <- matrix(1:15, nrow=3, ncol=5)
 //' PHellingerMat(x, y)
 //'
 // [[Rcpp::export]]
