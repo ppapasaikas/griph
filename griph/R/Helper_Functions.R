@@ -57,7 +57,12 @@ return( as(S, "dgCMatrix")  )
 }
 
 
-#' Correlation for sparse matrices:
+#' Correlation for sparse matrices
+#' 
+#' @param x a sparse matrix with n columns
+#' 
+#' @return an n-by-n symmetric matrix with Pearson's correlation coefficients between
+#'     the columns of the input matrix \code{x}.
 sparse.cor <- function(x){
     n <- nrow(x)
     cMeans <- colMeans(x)
@@ -69,6 +74,11 @@ sparse.cor <- function(x){
 
 
 #' Pairwise correlation for 2 sparse matrices (with the same number of rows)
+#' 
+#' @param x a sparse matrix.
+#' @param y a sparse matrix (same number of rows as \code{x}).
+#' 
+#' @return a matrix with correlations between columns of the inputs \code{x} and \code{y}.
 psparse.cor <- function(x, y){
     n <- nrow(x)
     v <- t(scale(y))

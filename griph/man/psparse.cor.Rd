@@ -6,6 +6,14 @@
 \usage{
 psparse.cor(x, y)
 }
+\arguments{
+\item{x}{a sparse matrix.}
+
+\item{y}{a sparse matrix (same number of rows as \code{x}).}
+}
+\value{
+a matrix with correlations between columns of the inputs \code{x} and \code{y}.
+}
 \description{
 Pairwise correlation for 2 sparse matrices (with the same number of rows)
 }

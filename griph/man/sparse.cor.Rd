@@ -2,10 +2,17 @@
 % Please edit documentation in R/Helper_Functions.R
 \name{sparse.cor}
 \alias{sparse.cor}
-\title{Correlation for sparse matrices:}
+\title{Correlation for sparse matrices}
 \usage{
 sparse.cor(x)
 }
+\arguments{
+\item{x}{a sparse matrix with n columns}
+}
+\value{
+an n-by-n symmetric matrix with Pearson's correlation coefficients between
+    the columns of the input matrix \code{x}.
+}
 \description{
-Correlation for sparse matrices:
+Correlation for sparse matrices
 }
