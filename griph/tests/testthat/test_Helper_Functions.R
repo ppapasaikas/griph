@@ -12,7 +12,7 @@ test_that("sparsify works properly", {
     set.seed(0)
     M <- as(matrix(abs(rnorm(100)), nrow=10), "sparseMatrix")
     res <- sparsify(M, 0.5)
-    expect_is(res, "matrix")
+    expect_is(res, "Matrix")
     expect_equal(sum(res > 0), 50)
 })
 
