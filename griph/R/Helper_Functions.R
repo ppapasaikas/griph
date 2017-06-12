@@ -8,7 +8,7 @@
 #' @return A \code{k} by \code{ncol(S)} matrix.
 get.knn <- function(S, k = round(sqrt(nrow(S)) ) ) {
     diag(S) <- 0
-    kN <- sapply(1:nrow(S), function(x) bigmemory::tail(order(S[,x]),k ))
+    kN <- sapply(1:nrow(S), function(x) utils::tail(order(S[,x]), k))
     return(kN)
 }
 
