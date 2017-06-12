@@ -33,6 +33,6 @@ useDynLib(griph, .registration = TRUE)
 
 
 export(SC_cluster, griph_cluster, plotGraph, predictCellCycle, plotTsne, plotLVis,
-       clusteringScore, PHellingerMat, PCanberraMat)
+       clusteringScore, PHellingerMat, PHellingerMatOMP, PCanberraMat)
 
 

@@ -296,6 +296,21 @@ res$ConfMatrix
 res$miscl
 
 # benchmark
+library(microbenchmark)
+
+set.seed(0)
+M1 <- matrix(rpois(5000*300, 8), ncol=300)
+M2 <- matrix(rpois(5000*300, 8), ncol=300)
+bres <- microbenchmark(
+    { res1 <- griph:::PHellingerMat(M1,M2) },
+    { res2 <- griph:::PHellingerMatOMP(M1,M2) },
+    times = 10
+)
+identical(res1, res2)
+bres
+sbres <- summary(bres)
+sbres[1,"median"] / sbres[2,"median"] # speed-up (near linear :-)
+
 #library(microbenchmark)
 #x <- matrix(rpois(5000*300, 5), ncol = 300) # 5000 genes by 300 cells
 #microbenchmark(

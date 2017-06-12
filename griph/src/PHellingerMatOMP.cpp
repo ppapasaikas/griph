@@ -1,9 +1,12 @@
 #include <Rcpp.h>
 #include <cmath>
+#include <omp.h>
+// [[Rcpp::plugins(openmp)]]
+
 using namespace Rcpp;
 
 
-//' @title Hellinger distance between columns of two matrices.
+//' @title Hellinger distance between columns of two matrices (OpenMP version).
 //'
 //' @description
 //' \code{PHellingerMat} returns a matrix of Hellinger distances between
@@ -26,7 +29,7 @@ using namespace Rcpp;
 //' PHellingerMat(x, y)
 //'
 // [[Rcpp::export]]
-NumericMatrix PHellingerMat(NumericMatrix A,NumericMatrix B) {
+NumericMatrix PHellingerMatOMP(NumericMatrix A, NumericMatrix B) {
     NumericMatrix A2=clone(A); // don't overwrite inputs
     NumericMatrix B2=clone(B); // don't overwrite inputs
     
@@ -36,7 +39,13 @@ NumericMatrix PHellingerMat(NumericMatrix A,NumericMatrix B) {
     
     NumericMatrix answer(Acols,Bcols);
     
+    // set the number of threads
+    int nt_old = omp_get_num_threads();
+    int nt_use = 4; // omp_get_max_threads(); // TODO: how to best set the number of threads?
+    omp_set_num_threads(nt_use);
+
     // reweight matrix A so each column sums to one, and take sqrt of each value
+#pragma omp parallel for
     for( unsigned int k = 0; k < Acols; k++){
         double Acol_tot = 0.0;
         
@@ -54,6 +63,7 @@ NumericMatrix PHellingerMat(NumericMatrix A,NumericMatrix B) {
     }
     
     // same for matrix B
+#pragma omp parallel for
     for( unsigned int k = 0; k < Bcols; k++){
         double Bcol_tot = 0.0;
         
@@ -75,6 +85,7 @@ NumericMatrix PHellingerMat(NumericMatrix A,NumericMatrix B) {
     
     // Do the main calculations
     const double sqrtHalf = std::sqrt(double(0.5));
+#pragma omp parallel for
     for( unsigned int j = 0; j < Acols; j++){
         
         for( unsigned int k = 0; k < Bcols; k++){
@@ -90,5 +101,8 @@ NumericMatrix PHellingerMat(NumericMatrix A,NumericMatrix B) {
         }
     }
     
+    // reset threads
+    omp_set_num_threads(nt_old);
+
     return(answer);
 }
