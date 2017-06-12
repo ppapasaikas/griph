@@ -4,13 +4,13 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("i","M")) # let codetool
 # Fast, memory efficient computation of Shrinked Correlation Estimates for big matrices using BLAS implementations, parallelization and bigmemory objects 
 # More optimized BLAS versions (ATLAS, openBLAS) should offer further improvements.
 # Input is a matrix, the desired number of cores and the lambda parameter controlling shrinkage intensity
-FlashShrinkCor <- function (DM, ncores="all", lambda=0, w=rep(1,nrow(DM)), verbose=FALSE) { 
+FlashShrinkCor <- function (DM, ncores=NULL, lambda=0, w=rep(1,nrow(DM)), verbose=FALSE) { 
   
   DM   <- as.big.matrix(DM)
   desc <- describe(DM)
   NCOL <- desc@description["totalCols"][[1]]
   
-  ncores <- getDoParWorkers()
+  ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
   nblocks <- ncores 
 
   corMAT <- matrix(data = 0, nrow = NCOL, ncol = NCOL)
@@ -43,7 +43,7 @@ FlashShrinkCor <- function (DM, ncores="all", lambda=0, w=rep(1,nrow(DM)), verbo
 
 
 # Parallel regularized estimates of the inverse covarinace matrix using the QUIC implementation.
-FlashGlasso <- function (DM, ncores="all", rho=0.3, tol=1e-3, maxIter=100, msg=0) {
+FlashGlasso <- function (DM, ncores=NULL, rho=0.3, tol=1e-3, maxIter=100, msg=0) {
   DM   <- as.big.matrix(DM)
   desc <- describe(DM)
   NCOL <- desc@description["totalCols"][[1]]
@@ -53,7 +53,7 @@ FlashGlasso <- function (DM, ncores="all", rho=0.3, tol=1e-3, maxIter=100, msg=0
   if (is.vector(rho)) { rho <- matrix(sqrt(rho)) %*% sqrt(rho) }
   if (length(rho) == 1) {rho <- matrix(rho, ncol = NCOL, nrow = NCOL)}
 
-  ncores <- getDoParWorkers()
+  ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
   nblocks <- 4*ncores 
   
   PrecMAT <- matrix(data = 0, nrow = NCOL, ncol = NCOL)
@@ -87,7 +87,7 @@ FlashGlasso <- function (DM, ncores="all", rho=0.3, tol=1e-3, maxIter=100, msg=0
 
 
 #Parallel computation of personalized-pagerank based distances
-FlashPPR <- function (G, ncores="all", df=0.75) { 
+FlashPPR <- function (G, ncores=NULL, df=0.75) { 
   if (!isTRUE(is.igraph(G))) {  
     if (!isSymmetric(G) )  { stop("!! G should be either a graph object or a symmetric matrix !!") }
     G <- igraph::graph.adjacency(G[1:nrow(G), 1:nrow(G)], mode = "max", weighted = TRUE, diag = FALSE)
@@ -95,7 +95,7 @@ FlashPPR <- function (G, ncores="all", df=0.75) {
   
   NCOL <- length(V(G))
   L <- length(V(G))
-  ncores <- getDoParWorkers()
+  ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
   nblocks <- ncores 
 
   PR <- diag(nrow = L)
@@ -120,8 +120,8 @@ FlashPPR <- function (G, ncores="all", df=0.75) {
 # Fastcomputation of Pearson's correlation between two big matrices 
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
-FlashPPearsonCor <- function (DM1, DM2, ncores="all") { 
-    ncores  <- getDoParWorkers()
+FlashPPearsonCor <- function (DM1, DM2, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -138,8 +138,8 @@ FlashPPearsonCor <- function (DM1, DM2, ncores="all") {
 # Fastcomputation of Spearman's correlation between two big matrices 
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
-FlashPSpearmanCor <- function (DM1, DM2, ncores="all") { 
-    ncores <- getDoParWorkers()
+FlashPSpearmanCor <- function (DM1, DM2, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -158,8 +158,8 @@ FlashPSpearmanCor <- function (DM1, DM2, ncores="all") {
 # Fastcomputation of Hellinger Distance between two big matrices 
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
-FlashPHellinger <- function (DM1, DM2, ncores="all") { 
-    ncores <- getDoParWorkers()
+FlashPHellinger <- function (DM1, DM2, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -177,8 +177,8 @@ FlashPHellinger <- function (DM1, DM2, ncores="all") {
 # Fastcomputation of Canberra distances between two big matrices 
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
-FlashPCanberra <- function (DM1, DM2, ncores="all") {
-    ncores  <- getDoParWorkers()
+FlashPCanberra <- function (DM1, DM2, ncores=NULL) {
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -195,8 +195,8 @@ FlashPCanberra <- function (DM1, DM2, ncores="all") {
 
 # Fast computation of Pearson's correlation for sparse matrices
 # Input is a sparse matrix (see package "Matrix") and the desired number of cores
-FlashSPearsonCor <- function (DM, ncores="all") { 
-    ncores  <- getDoParWorkers()
+FlashSPearsonCor <- function (DM, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     nblocks <- 2 * ncores 
     SPLIT <- split(1:ncol(DM), ceiling(seq_along(1:ncol(DM)) / ceiling(ncol(DM) / nblocks)))
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
