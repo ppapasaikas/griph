@@ -7,6 +7,13 @@ test_that("PHellingerMat works properly", {
     expect_equal(sum(is.finite(res2)), 9)
 })
 
+test_that("PHellingerMatOMP works properly", {
+    x <- matrix(0:8, nrow = 3)
+    res1 <- PHellingerMat(x, x)
+    res2 <- PHellingerMatOMP(x, x)
+    expect_identical(res1, res2)
+})
+
 test_that("PCanberraMat works properly", {
     x <- matrix(0:8, nrow = 3)
     res1 <- PCanberraMat(x, x)

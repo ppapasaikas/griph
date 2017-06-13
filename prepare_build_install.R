@@ -302,14 +302,21 @@ set.seed(0)
 M1 <- matrix(rpois(5000*300, 8), ncol=300)
 M2 <- matrix(rpois(5000*300, 8), ncol=300)
 bres <- microbenchmark(
-    { res1 <- griph:::PHellingerMat(M1,M2) },
-    { res2 <- griph:::PHellingerMatOMP(M1,M2) },
-    times = 10
+    { res1 <- griph:::PHellingerMat(M1, M2) },
+    { res2 <- griph:::PHellingerMatOMP(M1, M2) },
+    { res3 <- griph:::PHellingerMatOMP(M1, M2, 1) },
+    { res4 <- griph:::PHellingerMatOMP(M1, M2, 2) },
+    { res5 <- griph:::PHellingerMatOMP(M1, M2, 4) },
+    { res5 <- griph:::PHellingerMatOMP(M1, M2, 6) },
+    { res6 <- griph:::PHellingerMatOMP(M1, M2, 8) },
+    times = 5
 )
 identical(res1, res2)
+identical(res1, res6)
 bres
 sbres <- summary(bres)
-sbres[1,"median"] / sbres[2,"median"] # speed-up (near linear :-)
+sbres[1,"min"] / sbres[4,"min"] # speed-up
+plot(c(NA,NA,1,2,4,6,8), sbres[1,"min"] / sbres[,"min"], xlab="No. threads", ylab="Speedup"); abline(a=0, b=1)
 
 #library(microbenchmark)
 #x <- matrix(rpois(5000*300, 5), ncol = 300) # 5000 genes by 300 cells

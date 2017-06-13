@@ -23,7 +23,7 @@ extern SEXP griph_fastDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_fastSDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_PCanberraMat(SEXP, SEXP);
 extern SEXP griph_PHellingerMat(SEXP, SEXP);
-extern SEXP griph_PHellingerMatOMP(SEXP, SEXP);
+extern SEXP griph_PHellingerMatOMP(SEXP, SEXP, SEXP);
 extern SEXP griph_referenceWij(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_searchTrees(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_searchTreesCSparse(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -38,7 +38,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"griph_fastSDistance",      (DL_FUNC) &griph_fastSDistance,       8},
     {"griph_PCanberraMat",       (DL_FUNC) &griph_PCanberraMat,        2},
     {"griph_PHellingerMat",      (DL_FUNC) &griph_PHellingerMat,       2},
-    {"griph_PHellingerMatOMP",   (DL_FUNC) &griph_PHellingerMatOMP,    2},
+    {"griph_PHellingerMatOMP",   (DL_FUNC) &griph_PHellingerMatOMP,    3},
     {"griph_referenceWij",       (DL_FUNC) &griph_referenceWij,        5},
     {"griph_searchTrees",        (DL_FUNC) &griph_searchTrees,         9},
     {"griph_searchTreesCSparse", (DL_FUNC) &griph_searchTreesCSparse, 11},
