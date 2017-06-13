@@ -13,7 +13,7 @@ using namespace Rcpp;
 //'
 //' @description
 //' \code{PHellingerMat} returns a matrix of Hellinger distances between
-//' the columns of the matrix passed as argument.
+//' the columns of the two matrices passed as arguments.
 //'
 //' @details
 //' This function calculates the Hellinger distances between the columns of two
@@ -90,9 +90,6 @@ NumericMatrix PHellingerMatOMP(NumericMatrix A, NumericMatrix B, int nthreads = 
             B2(j , k) = std::sqrt(double(B2(j , k)));
         }
     }
-    
-    
-    
     
     // Do the main calculations
     const double sqrtHalf = std::sqrt(double(0.5));

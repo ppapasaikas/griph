@@ -18,6 +18,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// PCanberraMatOMP
+NumericMatrix PCanberraMatOMP(NumericMatrix A, NumericMatrix B, int nthreads);
+RcppExport SEXP griph_PCanberraMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(PCanberraMatOMP(A, B, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // PHellingerMat
 NumericMatrix PHellingerMat(NumericMatrix A, NumericMatrix B);
 RcppExport SEXP griph_PHellingerMat(SEXP ASEXP, SEXP BSEXP) {

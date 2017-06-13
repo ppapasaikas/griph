@@ -24,7 +24,36 @@
 #' PHellingerMat(x, y)
 #'
 PCanberraMat <- function(A, B) {
-    .Call(griph_PCanberraMat, A, B)
+    .Call('griph_PCanberraMat', PACKAGE = 'griph', A, B)
+}
+
+#' @title Canberra distance between columns of two matrices (OpenMP version).
+#'
+#' @description
+#' \code{PCanberraMat} returns a matrix of Canberra distances between
+#' the columns of the two matrices passed as arguments.
+#'
+#' @details
+#' This function calculates the Canberra distances between the columns of two
+#' matrices given as argument. It is implemented in C++ for efficiency. For two
+#' argument matrices with the same number of r rows and c1 , c2 columns, the
+#' return value is an c1-by-c2 matrix with the pairwise c1i c2j distances.
+#'
+#' @param A  Numeric matrix (variables by features)
+#' @param B  Numeric matrix (variables by features)
+#' @param nthreads Integer specifying the number of OpenMP threads to use in
+#'     parallel parts (defaults to two, ignored on systems not supporting
+#'     OpenMP).
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(1:12, nrow=3, ncol=4)
+#' y <- matrix(1:15, nrow=3, ncol=5)
+#' PHellingerMatOMP(x, y)
+#'
+PCanberraMatOMP <- function(A, B, nthreads = 2L) {
+    .Call('griph_PCanberraMatOMP', PACKAGE = 'griph', A, B, nthreads)
 }
 
 #' @title Hellinger distance between columns of two matrices.
@@ -50,14 +79,14 @@ PCanberraMat <- function(A, B) {
 #' PHellingerMat(x, y)
 #'
 PHellingerMat <- function(A, B) {
-    .Call(griph_PHellingerMat, A, B)
+    .Call('griph_PHellingerMat', PACKAGE = 'griph', A, B)
 }
 
 #' @title Hellinger distance between columns of two matrices (OpenMP version).
 #'
 #' @description
 #' \code{PHellingerMat} returns a matrix of Hellinger distances between
-#' the columns of the matrix passed as argument.
+#' the columns of the two matrices passed as arguments.
 #'
 #' @details
 #' This function calculates the Hellinger distances between the columns of two
@@ -79,46 +108,46 @@ PHellingerMat <- function(A, B) {
 #' PHellingerMatOMP(x, y)
 #'
 PHellingerMatOMP <- function(A, B, nthreads = 2L) {
-    .Call(griph_PHellingerMatOMP, A, B, nthreads)
+    .Call('griph_PHellingerMatOMP', PACKAGE = 'griph', A, B, nthreads)
 }
 
 checkBits <- function() {
-    .Call(griph_checkBits)
+    .Call('griph_checkBits', PACKAGE = 'griph')
 }
 
 checkOpenMP <- function() {
-    .Call(griph_checkOpenMP)
+    .Call('griph_checkOpenMP', PACKAGE = 'griph')
 }
 
 searchTrees <- function(threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose) {
-    .Call(griph_searchTrees, threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
+    .Call('griph_searchTrees', PACKAGE = 'griph', threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
 }
 
 fastDistance <- function(is, js, data, distMethod, threads, verbose) {
-    .Call(griph_fastDistance, is, js, data, distMethod, threads, verbose)
+    .Call('griph_fastDistance', PACKAGE = 'griph', is, js, data, distMethod, threads, verbose)
 }
 
 fastCDistance <- function(is, js, i_locations, p_locations, x, distMethod, threads, verbose) {
-    .Call(griph_fastCDistance, is, js, i_locations, p_locations, x, distMethod, threads, verbose)
+    .Call('griph_fastCDistance', PACKAGE = 'griph', is, js, i_locations, p_locations, x, distMethod, threads, verbose)
 }
 
 fastSDistance <- function(is, js, i_locations, j_locations, x, distMethod, threads, verbose) {
-    .Call(griph_fastSDistance, is, js, i_locations, j_locations, x, distMethod, threads, verbose)
+    .Call('griph_fastSDistance', PACKAGE = 'griph', is, js, i_locations, j_locations, x, distMethod, threads, verbose)
 }
 
 referenceWij <- function(i, j, d, threads, perplexity) {
-    .Call(griph_referenceWij, i, j, d, threads, perplexity)
+    .Call('griph_referenceWij', PACKAGE = 'griph', i, j, d, threads, perplexity)
 }
 
 sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose) {
-    .Call(griph_sgd, coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
+    .Call('griph_sgd', PACKAGE = 'griph', coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
 }
 
 searchTreesCSparse <- function(threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose) {
-    .Call(griph_searchTreesCSparse, threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
+    .Call('griph_searchTreesCSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
 }
 
 searchTreesTSparse <- function(threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose) {
-    .Call(griph_searchTreesTSparse, threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
+    .Call('griph_searchTreesTSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
 }
 

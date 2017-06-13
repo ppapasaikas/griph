@@ -311,11 +311,21 @@ bres <- microbenchmark(
     { res6 <- griph:::PHellingerMatOMP(M1, M2, 8) },
     times = 5
 )
+bres <- microbenchmark(
+    { res1 <- griph:::PCanberraMat(M1, M2) },
+    { res2 <- griph:::PCanberraMatOMP(M1, M2) },
+    { res3 <- griph:::PCanberraMatOMP(M1, M2, 1) },
+    { res4 <- griph:::PCanberraMatOMP(M1, M2, 2) },
+    { res5 <- griph:::PCanberraMatOMP(M1, M2, 4) },
+    { res5 <- griph:::PCanberraMatOMP(M1, M2, 6) },
+    { res6 <- griph:::PCanberraMatOMP(M1, M2, 8) },
+    times = 5
+)
 identical(res1, res2)
 identical(res1, res6)
 bres
 sbres <- summary(bres)
-sbres[1,"min"] / sbres[4,"min"] # speed-up
+sbres[1,"min"] / sbres[4,"min"] # expect a two-fold speed-up
 plot(c(NA,NA,1,2,4,6,8), sbres[1,"min"] / sbres[,"min"], xlab="No. threads", ylab="Speedup"); abline(a=0, b=1)
 
 #library(microbenchmark)

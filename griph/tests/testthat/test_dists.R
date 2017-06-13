@@ -22,3 +22,10 @@ test_that("PCanberraMat works properly", {
     expect_equal(sum(res1), 10.4308025308, tolerance = 1.0e-8)
     expect_equal(sum(is.finite(res2)), 7)
 })
+
+test_that("PCanberraMatOMP works properly", {
+    x <- matrix(0:8, nrow = 3)
+    res1 <- PCanberraMat(x, x)
+    res2 <- PCanberraMatOMP(x, x)
+    expect_identical(res1, res2)
+})

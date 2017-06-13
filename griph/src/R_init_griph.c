@@ -22,6 +22,7 @@ extern SEXP griph_fastCDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_fastDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_fastSDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_PCanberraMat(SEXP, SEXP);
+extern SEXP griph_PCanberraMatOMP(SEXP, SEXP, SEXP);
 extern SEXP griph_PHellingerMat(SEXP, SEXP);
 extern SEXP griph_PHellingerMatOMP(SEXP, SEXP, SEXP);
 extern SEXP griph_referenceWij(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -37,6 +38,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"griph_fastDistance",       (DL_FUNC) &griph_fastDistance,        6},
     {"griph_fastSDistance",      (DL_FUNC) &griph_fastSDistance,       8},
     {"griph_PCanberraMat",       (DL_FUNC) &griph_PCanberraMat,        2},
+    {"griph_PCanberraMatOMP",    (DL_FUNC) &griph_PCanberraMatOMP,     3},
     {"griph_PHellingerMat",      (DL_FUNC) &griph_PHellingerMat,       2},
     {"griph_PHellingerMatOMP",   (DL_FUNC) &griph_PHellingerMatOMP,    3},
     {"griph_referenceWij",       (DL_FUNC) &griph_referenceWij,        5},
