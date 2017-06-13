@@ -5,9 +5,8 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c("i","M")) # let codetool
 # More optimized BLAS versions (ATLAS, openBLAS) should offer further improvements.
 # Input is a matrix, the desired number of cores and the lambda parameter controlling shrinkage intensity
 FlashShrinkCor <- function (DM, ncores=NULL, lambda=0, w=rep(1,nrow(DM)), verbose=FALSE) { 
-  
   DM   <- as.big.matrix(DM)
-  desc <- describe(DM)
+  desc <- bigmemory::describe(DM)
   NCOL <- desc@description["totalCols"][[1]]
   
   ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
@@ -15,21 +14,20 @@ FlashShrinkCor <- function (DM, ncores=NULL, lambda=0, w=rep(1,nrow(DM)), verbos
 
   corMAT <- matrix(data = 0, nrow = NCOL, ncol = NCOL)
   corMAT <- as.big.matrix(corMAT, type="double")
-  bigCOR <- describe(corMAT)
+  bigCOR <- bigmemory::describe(corMAT)
   ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
   SPLIT <- split(1:NCOL, ceiling(seq_along(1:NCOL) / ceiling(NCOL / nblocks)))
   COMBS <- expand.grid(1:length(SPLIT), 1:length(SPLIT))
   COMBS <- t(apply(COMBS, 1, sort))
   if (nrow(COMBS)>1) { COMBS <- COMBS[-which(COMBS[,1] == COMBS[,2]),] }
   COMBS <- unique(COMBS)
-  
   ## iterate through each block combination, calculate correlation matrix between blocks and store them:
   results <- foreach(i = 1:nrow(COMBS), .export=c('cor.shrink'), .packages=('bigmemory')) %dopar% {
     COMB <- COMBS[i, ]
     G1 <- SPLIT[[COMB[1]]]
     G2 <- SPLIT[[COMB[2]]]
-    x <- attach.big.matrix(desc)
-    corMAT < -attach.big.matrix(bigCOR)
+    x <- bigmemory::attach.big.matrix(desc)
+    corMAT <- bigmemory::attach.big.matrix(bigCOR)
     v <- unique(c(G1, G2))
     COR <- cor.shrink(x[,v], verbose = verbose, lambda = lambda, w = w)
     corMAT[v, v] <- COR
@@ -119,7 +117,7 @@ FlashPPR <- function (G, ncores=NULL, df=0.75) {
 
 # Fastcomputation of Pearson's correlation between two big matrices 
 # Inputs are the two matrices and the desired number of cores
-# The function assumes that matrix with the largest dimension is
+# The function assumes that matrix with the largest dimension is DM2
 FlashPPearsonCor <- function (DM1, DM2, ncores=NULL) { 
     ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     nblocks <- 2*ncores 
