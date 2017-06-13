@@ -45,8 +45,9 @@ rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}.}
 
 \item{comm.method}{Community detection algorithm. See igraph "communities"}
 
-\item{ncom}{Forces the community detection algorithm to a fixed number of communities. Only possible with hierarchical methods (like fast_greedy).
-If \code{NULL} (default) then the optimal determined number of clusters of the used  community detection algorithm.}
+\item{ncom}{Forces the community detection algorithm to a fixed number of communities.
+If \code{NULL} (default) then the optimal determined number of clusters of
+the used  community detection algorithm.}
 
 \item{ClassAssignment}{If available a numeric vector of length \code{k} with numeric
 class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}

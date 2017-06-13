@@ -15,7 +15,7 @@ PHellingerMat(A, B)
 A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
 }
 \description{
-\code{HellingerMat} returns a matrix of Hellinger distances between
+\code{PHellingerMat} returns a matrix of Hellinger distances between
 the columns of the matrix passed as argument.
 }
 \details{
@@ -26,7 +26,7 @@ the pairwise c1i c2j distances.
 }
 \examples{
 x <- matrix(1:12, nrow=3, ncol=4)
-y <- matrix(1:12, nrow=3, ncol=5)
+y <- matrix(1:15, nrow=3, ncol=5)
 PHellingerMat(x, y)
 
 }

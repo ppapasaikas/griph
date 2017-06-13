@@ -4,12 +4,19 @@
 \alias{WScor}
 \title{Combined distance calculations.}
 \usage{
-WScor(M, PearsonCor = PearsonCor, ShrinkCor = ShrinkCor)
+WScor(M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra,
+  ShrinkCor = ShrinkCor)
 }
 \arguments{
 \item{M}{gene-by-cell count matrix.}
 
-\item{PearsonCor}{Function to calculate Pearson correlation.}
+\item{PPearsonCor}{Function to calculate Pearson correlation between the columns of two matrices.}
+
+\item{PSpearmanCor}{Function to calculate Spearman correlation between the columns of two matrices.}
+
+\item{PHellinger}{Function to calculate Hellinger Distance between the columns of two matrices.}
+
+\item{PCanberra}{Function to calculate Canberra Distance between the columns of two matrices.}
 
 \item{ShrinkCor}{Function to calculate shrinkage correlation.}
 }

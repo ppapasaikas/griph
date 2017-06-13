@@ -22,11 +22,11 @@ using namespace Rcpp;
 //'
 //' @examples
 //' x <- matrix(1:12, nrow=3, ncol=4)
-//' y <- matrix(1:12, nrow=3, ncol=5)
+//' y <- matrix(1:15, nrow=3, ncol=5)
 //' PHellingerMat(x, y)
 //'
 // [[Rcpp::export]]
-NumericMatrix PCanberraMat(NumericMatrix A,NumericMatrix B) {
+NumericMatrix PCanberraMat(NumericMatrix A, NumericMatrix B) {
     NumericMatrix A2 = clone(A); // don't overwrite inputs
     NumericMatrix B2 = clone(B); // don't overwrite inputs
     

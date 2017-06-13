@@ -4,12 +4,21 @@
 \alias{WScorFB}
 \title{Combined distance calculations.}
 \usage{
-WScorFB(M, FB, ShrinkCor = ShrinkCor)
+WScorFB(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra,
+  ShrinkCor = ShrinkCor)
 }
 \arguments{
 \item{M}{gene-by-cell count matrix.}
 
 \item{FB}{gene-by-FakeBulks gene sums count matrix.}
+
+\item{PSpearmanCor}{Function to calculate Spearman correlation between the columns of two matrices.}
+
+\item{PPearsonCor}{Function to calculate Pearson correlation between the columns of two matrices.}
+
+\item{PHellinger}{Function to calculate Hellinger Distance between the columns of two matrices.}
+
+\item{PCanberra}{Function to calculate Canberra Distance between the columns of two matrices.}
 
 \item{ShrinkCor}{Function to calculate shrinkage correlation.}
 }

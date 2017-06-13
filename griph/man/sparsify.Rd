@@ -4,15 +4,15 @@
 \alias{sparsify}
 \title{Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors}
 \usage{
-sparsify(x, pct = 0.1)
+sparsify(S, pct = 0.1)
 }
 \arguments{
-\item{x}{weighted adjacency matrix represting the grpah to be pruned.}
+\item{S}{a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix.}
 
 \item{pct}{fraction of edges to keep.}
 }
 \value{
-a matrix with the same dimensions as \code{x}, with only \code{pct} fraction of non-zero values.
+a sparse Matrix of class CsparseMatrix with a fraction of \code{pct} non-zero elements per column.
 }
 \description{
 Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors

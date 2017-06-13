@@ -4,18 +4,17 @@
 \alias{get.knn}
 \title{Get k nearest neighbors of variables given a feature matrix.}
 \usage{
-get.knn(S, k = rep(round(sqrt(nrow(S))), nrow(S)))
+get.knn(S, k = round(sqrt(nrow(S))))
 }
 \arguments{
-\item{S}{feature matrix (here: always square)}
+\item{S}{similarity matrix (here: always square)}
 
-\item{k}{numeric vector of length \code{nrow(S)} giving the number of nearest
-neighbors to be returned for each column in \code{S}. Defaults to the
+\item{k}{integer giving the number of nearest
+neighbors to be returned. Defaults to the
 rounded square root of the number of rows (columns).}
 }
 \value{
-If all elements of \code{k} have the same value, a \code{k} by \code{ncol(S)}
-    matrix, else a \code{ncol(S)}-element \code{list}.
+A \code{k} by \code{ncol(S)} matrix.
 }
 \description{
 Get k nearest neighbors of variables given a feature matrix.
