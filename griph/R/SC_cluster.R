@@ -12,7 +12,7 @@
 #' 
 #' @return cell-by-cell distance matrix.
 WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
-    nBulks=min(1250, ceiling(5*ncol(M)) )
+    nBulks=min(1500, ceiling(5*ncol(M)) )
     FBsize=2
     Gcounts=colSums(M)
     HighQual=c(1:ncol(M))[-which(Gcounts <  quantile(Gcounts,0.001)  )]

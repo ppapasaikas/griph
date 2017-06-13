@@ -597,7 +597,7 @@ plotLVis <- function(gr,
     
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
-    my.pt.cex <- 2.5
+    my.pt.cex <- 1.5
     my.pt.lwd <- if(line.type == "none") 1.0 else 2.5
     
     # get largeVis projection
@@ -607,13 +607,13 @@ plotLVis <- function(gr,
     set.seed(seed = seed)
     
     if (!is.element('sgd_batches',names(add.args))){
-        add.args$sgd_batches=max(0.025*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e6)  #!!!!!!Use GRAO instead!!! 
+        add.args$sgd_batches=max(0.1*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e7)  #!!!!!!Use GRAO instead!!! 
     }
     if (!is.element('M',names(add.args))){
         add.args$M=4    
     }
     if (!is.element('gamma',names(add.args))){
-        add.args$gamma=10    
+        add.args$gamma=20    
     }
     if (!is.element('alpha',names(add.args))){
         add.args$alpha=0.2

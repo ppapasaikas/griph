@@ -142,7 +142,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     
     
     if (is.null(SamplingSize)){
-    params$SamplingSize=1000    
+    params$SamplingSize=2000    
     }
     
     #######Define functions if use.par=FALSE
