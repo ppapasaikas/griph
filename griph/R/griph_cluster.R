@@ -134,8 +134,9 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     params <-as.list(environment())
     params$plotG=FALSE 
     
-    #Make sure DM comes with rownames:
+    #Make sure DM comes with rownames/colnames:
     if (is.null(rownames(DM))) {rownames(DM)=c(1:nrow(DM)); params$DM=DM} 
+    if (is.null(colnames(DM))) {colnames(DM)=c(1:ncol(DM)); params$DM=DM} 
     
     
     if (ncol(DM)<300) {use.par=FALSE; params$use.par=FALSE} 
