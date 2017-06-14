@@ -12,7 +12,7 @@ using namespace Rcpp;
 //' @title Hellinger distance between columns of two matrices (OpenMP version).
 //'
 //' @description
-//' \code{PHellingerMat} returns a matrix of Hellinger distances between
+//' \code{PHellingerMatOMP} returns a matrix of Hellinger distances between
 //' the columns of the two matrices passed as arguments.
 //'
 //' @details

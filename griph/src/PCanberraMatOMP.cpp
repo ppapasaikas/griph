@@ -12,7 +12,7 @@ using namespace Rcpp;
 //' @title Canberra distance between columns of two matrices (OpenMP version).
 //'
 //' @description
-//' \code{PCanberraMat} returns a matrix of Canberra distances between
+//' \code{PCanberraMatOMP} returns a matrix of Canberra distances between
 //' the columns of the two matrices passed as arguments.
 //'
 //' @details
