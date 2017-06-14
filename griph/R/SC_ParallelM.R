@@ -172,6 +172,17 @@ FlashPHellinger <- function (DM1, DM2, ncores=NULL) {
 
 
 
+# Fastcomputation of Hellinger Distance between two big matrices (OpenMP version)
+# Inputs are the two matrices and the desired number of cores
+FlashPHellingerOMP <- function (DM1, DM2, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    resMAT <- PHellingerMatOMP(DM1, DM2, ncores)
+    return(resMAT)
+}
+
+
+
+
 # Fastcomputation of Canberra distances between two big matrices 
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
@@ -186,6 +197,17 @@ FlashPCanberra <- function (DM1, DM2, ncores=NULL) {
         vals <- PCanberraMat(DM1, M)
     }
     return(as.matrix(resMAT))
+}
+
+
+
+
+# Fastcomputation of Canberra distances between two big matrices (OpenMP version)
+# Inputs are the two matrices and the desired number of cores
+FlashPCanberraOMP <- function (DM1, DM2, ncores=NULL) {
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    resMAT <- PCanberraMatOMP(DM1, DM2, ncores)
+    return(resMAT)
 }
 
 

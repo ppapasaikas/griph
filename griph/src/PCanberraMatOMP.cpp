@@ -36,12 +36,9 @@ using namespace Rcpp;
 //'
 // [[Rcpp::export]]
 NumericMatrix PCanberraMatOMP(NumericMatrix A, NumericMatrix B, int nthreads = 2) {
-    NumericMatrix A2 = clone(A); // don't overwrite inputs
-    NumericMatrix B2 = clone(B); // don't overwrite inputs
-    
-    unsigned int rows = A2.nrow();
-    unsigned int Acols = A2.ncol();
-    unsigned int Bcols = B2.ncol();
+    unsigned int rows = A.nrow();
+    unsigned int Acols = A.ncol();
+    unsigned int Bcols = B.ncol();
     
     NumericMatrix answer(Acols,Bcols);
     
@@ -64,10 +61,10 @@ NumericMatrix PCanberraMatOMP(NumericMatrix A, NumericMatrix B, int nthreads = 2
             result = 0;
             
             for( unsigned int i = 0; i < rows; i++){
-                denominator=  A2(i, j)  +  B2(i, k)   ; //Only for speedup in case of log2 transformed count matrices with pseudocount. Safer if line above
-                //result += denominator > 0 ? (std::abs(A2(i, j) - B2(i, k)) / ( denominator )  ) : 0;
+                denominator=  A(i, j)  +  B(i, k)   ; //Only for speedup in case of log2 transformed count matrices with pseudocount. Safer if line above
+                //result += denominator > 0 ? (std::abs(A(i, j) - B(i, k)) / ( denominator )  ) : 0;
                 denominator += denominator <= 0; //Same as line above but avoids branching (see: https://stackoverflow.com/questions/16777456/what-is-the-fastest-integer-division-supporting-division-by-zero-no-matter-what)
-                result +=  (std::abs(A2(i, j) - B2(i, k)) /  denominator   ) ;
+                result +=  (std::abs(A(i, j) - B(i, k)) /  denominator   ) ;
             }
             answer(j , k) =  result;
         }
