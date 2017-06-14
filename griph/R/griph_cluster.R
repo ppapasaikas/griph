@@ -147,12 +147,12 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     }
     
     #######Define functions if use.par=FALSE
-    SPearsonCor=sparse.cor
-    PPearsonCor=stats::cor
-    PSpearmanCor=PSpcor
-    PHellinger=PHellingerMat
-    PCanberra=PCanberraMat
-    ShrinkCor=corpcor::cor.shrink
+    SPearsonCor <- sparse.cor
+    PPearsonCor <- stats::cor
+    PSpearmanCor <- PSpcor
+    PHellinger <- PHellingerMat
+    PCanberra <- PCanberraMat
+    ShrinkCor <- corpcor::cor.shrink
     
     if (length(ClassAssignment) != ncol(DM))
         stop ("length(ClassAssignment) must be equal to ncol(DM)")
@@ -162,12 +162,12 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     # Register cluster here, remove registration block from SC_cluster
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
-        SPearsonCor=FlashSPearsonCor
-        PPearsonCor=FlashPPearsonCor
-        PSpearmanCor=FlashPSpearmanCor
-        PHellinger=FlashPHellinger
-        PCanberra=FlashPCanberra 
-        ShrinkCor=FlashShrinkCor
+        SPearsonCor <- FlashSPearsonCor
+        PPearsonCor <- FlashPPearsonCor
+        PSpearmanCor <- FlashPSpearmanCor
+        PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
+        PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 
+        ShrinkCor <- FlashShrinkCor
         
         if(ncores=="all"){
             ncores = parallel::detectCores()

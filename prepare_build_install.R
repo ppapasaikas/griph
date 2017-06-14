@@ -311,6 +311,37 @@ bres <- microbenchmark(
     { res6 <- griph:::PHellingerMatOMP(M1, M2, 8) },
     times = 5
 )
+bres <- microbenchmark(
+    { res1 <- griph:::PCanberraMat(M1, M2) },
+    { res2 <- griph:::PCanberraMatOMP(M1, M2) },
+    { res3 <- griph:::PCanberraMatOMP(M1, M2, 1) },
+    { res4 <- griph:::PCanberraMatOMP(M1, M2, 2) },
+    { res5 <- griph:::PCanberraMatOMP(M1, M2, 4) },
+    { res5 <- griph:::PCanberraMatOMP(M1, M2, 6) },
+    { res6 <- griph:::PCanberraMatOMP(M1, M2, 8) },
+    times = 5
+)
+cl <- makeCluster(4)
+registerDoParallel(cl)
+bres <- microbenchmark(
+    #{ registerDoParallel(cl) }, # negletable, takes ~0.1 millisec
+    { registerDoParallel(cl[1]); res1 <- griph:::FlashPHellinger(M1, M2) },
+    { res2 <- griph:::FlashPHellingerOMP(M1, M2, 1) },
+    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPHellinger(M1, M2) },
+    { res4 <- griph:::FlashPHellingerOMP(M1, M2, 2) },
+    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPHellinger(M1, M2) },
+    { res6 <- griph:::FlashPHellingerOMP(M1, M2, 4) },
+    times = 5
+)
+bres <- microbenchmark(
+    { registerDoParallel(cl[1]); res1 <- griph:::FlashPCanberra(M1, M2) },
+    { res2 <- griph:::FlashPCanberraOMP(M1, M2, 1) },
+    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPCanberra(M1, M2) },
+    { res4 <- griph:::FlashPCanberraOMP(M1, M2, 2) },
+    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPCanberra(M1, M2) },
+    { res6 <- griph:::FlashPCanberraOMP(M1, M2, 4) },
+    times = 3
+)
 identical(res1, res2)
 identical(res1, res6)
 bres

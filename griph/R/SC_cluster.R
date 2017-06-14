@@ -189,22 +189,22 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     colnames(DM)=NULL
     
     #######Switch to parallelized functions if use.par=TRUE
-    PPearsonCor=stats::cor
-    PSpearmanCor=PSpcor
-    PHellinger=PHellingerMat
-    PCanberra=PCanberraMat
-    ShrinkCor=corpcor::cor.shrink
-    Glasso=Qglasso
-    PPRank=PPR
+    PPearsonCor <- stats::cor
+    PSpearmanCor <- PSpcor
+    PHellinger <- PHellingerMat
+    PCanberra <- PCanberraMat
+    ShrinkCor <- corpcor::cor.shrink
+    Glasso <- Qglasso
+    PPRank <- PPR
     
     if (isTRUE(use.par)) {  
-        PPearsonCor=FlashPPearsonCor
-        PSpearmanCor=FlashPSpearmanCor
-        PHellinger=FlashPHellinger
-        PCanberra=FlashPCanberra 
-        ShrinkCor=FlashShrinkCor
-        Glasso=FlashGlasso
-        PPRank=FlashPPR 
+        PPearsonCor <- FlashPPearsonCor
+        PSpearmanCor <- FlashPSpearmanCor
+        PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
+        PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 
+        ShrinkCor <- FlashShrinkCor
+        Glasso <- FlashGlasso
+        PPRank <- FlashPPR 
     }
     
     

@@ -9,7 +9,9 @@ FlashShrinkCor <- function (DM, ncores=NULL, lambda=0, w=rep(1,nrow(DM)), verbos
   desc <- bigmemory::describe(DM)
   NCOL <- desc@description["totalCols"][[1]]
   
-  ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+  if (!is.null(ncores))
+      warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+  ncores <- getDoParWorkers()
   nblocks <- ncores 
 
   corMAT <- matrix(data = 0, nrow = NCOL, ncol = NCOL)
@@ -51,7 +53,9 @@ FlashGlasso <- function (DM, ncores=NULL, rho=0.3, tol=1e-3, maxIter=100, msg=0)
   if (is.vector(rho)) { rho <- matrix(sqrt(rho)) %*% sqrt(rho) }
   if (length(rho) == 1) {rho <- matrix(rho, ncol = NCOL, nrow = NCOL)}
 
-  ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+  if (!is.null(ncores))
+      warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+  ncores <- getDoParWorkers()
   nblocks <- 4*ncores 
   
   PrecMAT <- matrix(data = 0, nrow = NCOL, ncol = NCOL)
@@ -93,7 +97,10 @@ FlashPPR <- function (G, ncores=NULL, df=0.75) {
   
   NCOL <- length(V(G))
   L <- length(V(G))
-  ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+
+  if (!is.null(ncores))
+      warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+  ncores <- getDoParWorkers()
   nblocks <- ncores 
 
   PR <- diag(nrow = L)
@@ -119,7 +126,9 @@ FlashPPR <- function (G, ncores=NULL, df=0.75) {
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is DM2
 FlashPPearsonCor <- function (DM1, DM2, ncores=NULL) { 
-    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    if (!is.null(ncores))
+        warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+    ncores <- getDoParWorkers()
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -137,7 +146,9 @@ FlashPPearsonCor <- function (DM1, DM2, ncores=NULL) {
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
 FlashPSpearmanCor <- function (DM1, DM2, ncores=NULL) { 
-    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    if (!is.null(ncores))
+        warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+    ncores <- getDoParWorkers()
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -157,7 +168,9 @@ FlashPSpearmanCor <- function (DM1, DM2, ncores=NULL) {
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
 FlashPHellinger <- function (DM1, DM2, ncores=NULL) { 
-    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    if (!is.null(ncores))
+        warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+    ncores <- getDoParWorkers()
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -172,11 +185,24 @@ FlashPHellinger <- function (DM1, DM2, ncores=NULL) {
 
 
 
+# Fastcomputation of Hellinger Distance between two big matrices (OpenMP version)
+# Inputs are the two matrices and the desired number of cores
+FlashPHellingerOMP <- function (DM1, DM2, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    resMAT <- PHellingerMatOMP(DM1, DM2, ncores)
+    return(resMAT)
+}
+
+
+
+
 # Fastcomputation of Canberra distances between two big matrices 
 # Inputs are the two matrices and the desired number of cores
 # The function assumes that matrix with the largest dimension is
 FlashPCanberra <- function (DM1, DM2, ncores=NULL) {
-    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    if (!is.null(ncores))
+        warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+    ncores <- getDoParWorkers()
     nblocks <- 2*ncores 
     ## split column numbers into 'nblocks' groups and create all unique combinations of blocks
     SPLIT <- split(1:ncol(DM2), ceiling(seq_along(1:ncol(DM2)) / ceiling(ncol(DM2) / nblocks)))
@@ -191,10 +217,23 @@ FlashPCanberra <- function (DM1, DM2, ncores=NULL) {
 
 
 
+# Fastcomputation of Canberra distances between two big matrices (OpenMP version)
+# Inputs are the two matrices and the desired number of cores
+FlashPCanberraOMP <- function (DM1, DM2, ncores=NULL) {
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    resMAT <- PCanberraMatOMP(DM1, DM2, ncores)
+    return(resMAT)
+}
+
+
+
+
 # Fast computation of Pearson's correlation for sparse matrices
 # Input is a sparse matrix (see package "Matrix") and the desired number of cores
 FlashSPearsonCor <- function (DM, ncores=NULL) { 
-    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    if (!is.null(ncores))
+        warning("Ignoring 'ncores' argument - using the value from getDoParWorkers().")
+    ncores <- getDoParWorkers()
     nblocks <- 2 * ncores 
     SPLIT <- split(1:ncol(DM), ceiling(seq_along(1:ncol(DM)) / ceiling(ncol(DM) / nblocks)))
     ## iterate through each block combination, calculate correlation matrix between blocks and store them:
