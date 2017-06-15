@@ -32,7 +32,6 @@ import(RColorBrewer)
 useDynLib(griph, .registration = TRUE)
 
 
-export(SC_cluster, griph_cluster, plotGraph, predictCellCycle, plotTsne, plotLVis,
-       clusteringScore, PHellingerMat, PHellingerMatOMP, PCanberraMat)
+export(SC_cluster, griph_cluster, plotGraph, predictCellCycle, plotTsne, plotLVis)
 
 
