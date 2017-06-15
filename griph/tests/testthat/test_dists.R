@@ -38,3 +38,12 @@ test_that("PPearsonMatOMP works properly", {
     res2 <- PPearsonMatOMP(x, y)
     expect_identical(res1, res2)
 })
+
+test_that("FlashPSpearmanCorOMP works properly", {
+    set.seed(0)
+    x <- matrix(rnorm(42), nrow = 6)
+    y <- matrix(rnorm(30), nrow = 6)
+    res1 <- cor(x, y, method = "spearman")
+    res2 <- FlashPSpearmanCorOMP(x, y)
+    expect_identical(res1, res2)
+})

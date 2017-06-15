@@ -199,7 +199,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     if (isTRUE(use.par)) {  
         PPearsonCor <- if (checkOpenMP()) FlashPPearsonCorOMP else FlashPPearsonCor
-        PSpearmanCor <- FlashPSpearmanCor
+        PSpearmanCor <- if (checkOpenMP()) FlashPSpearmanCorOMP else FlashPSpearmanCor
         PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
         PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 
         ShrinkCor <- FlashShrinkCor

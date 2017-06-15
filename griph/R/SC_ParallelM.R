@@ -144,7 +144,6 @@ FlashPPearsonCor <- function (DM1, DM2, ncores=NULL) {
 
 # Fastcomputation of Pearson's correlation between two big matrices (OpenMP version)
 # Inputs are the two matrices and the desired number of cores
-# The function assumes that matrix with the largest dimension is DM2
 FlashPPearsonCorOMP <- function (DM1, DM2, ncores=NULL) { 
     ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
     resMAT <- PPearsonMatOMP(DM1, DM2, ncores)
@@ -170,6 +169,19 @@ FlashPSpearmanCor <- function (DM1, DM2, ncores=NULL) {
         vals <- PSpcor(DM1, M)
     }
     return(as.matrix(resMAT))
+}
+
+
+
+
+# Fastcomputation of Spearman's correlation between two big matrices (OpenMP version)
+# Inputs are the two matrices and the desired number of cores
+FlashPSpearmanCorOMP <- function (DM1, DM2, ncores=NULL) { 
+    ncores <- if (is.null(ncores)) getDoParWorkers() else ncores
+    R1 <- vapply(c(1:ncol(DM1)), function (x) rank(DM1[,x]), FUN.VALUE=double(length=nrow(DM1)))
+    R2 <- vapply(c(1:ncol(DM2)), function (x) rank(DM2[,x]), FUN.VALUE=double(length=nrow(DM2)))
+    resMAT <- PPearsonMatOMP(R1, R2, ncores)
+    return(resMAT)
 }
 
 

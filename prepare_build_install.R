@@ -361,6 +361,15 @@ bres <- microbenchmark(
     { res6 <- griph:::FlashPPearsonCorOMP(M1, M2, 4) },
     times = 3
 )
+bres <- microbenchmark(
+    { registerDoParallel(cl[1]); res1 <- griph:::FlashPSpearmanCor(M1, M2) },
+    { res2 <- griph:::FlashPSpearmanCorOMP(M1, M2, 1) },
+    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPSpearmanCor(M1, M2) },
+    { res4 <- griph:::FlashPSpearmanCorOMP(M1, M2, 2) },
+    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPSpearmanCor(M1, M2) },
+    { res6 <- griph:::FlashPSpearmanCorOMP(M1, M2, 4) },
+    times = 3
+)
 identical(res1, res2) # summary(as.vector(res1 - res2))
 identical(res1, res3)
 identical(res1, res4)

@@ -5,16 +5,16 @@
 \title{Pearson's correlation coefficient between columns of two matrices
     (OpenMP version).}
 \usage{
-PPearsonMatOMP(xx_, yy_, nthreads = 2L)
+PPearsonMatOMP(A, B, nthreads = 2L)
 }
 \arguments{
-\item{nthreads}{Integer specifying the number of OpenMP threads to use in
-parallel parts (defaults to two, ignored on systems not supporting
-OpenMP).}
-
 \item{A}{Numeric matrix (variables by features).}
 
 \item{B}{Numeric matrix (variables by features).}
+
+\item{nthreads}{Integer specifying the number of OpenMP threads to use in
+parallel parts (defaults to two, ignored on systems not supporting
+OpenMP).}
 }
 \value{
 A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.

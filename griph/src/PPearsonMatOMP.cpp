@@ -44,22 +44,22 @@ using namespace Rcpp;
 //' PPearsonMatOMP(x, y)
 //'
 // [[Rcpp::export]]
-SEXP PPearsonMatOMP(SEXP xx_, SEXP yy_, int nthreads = 2) {
-    xx_ = PROTECT(Rf_coerceVector(xx_, REALSXP));
-    yy_ = PROTECT(Rf_coerceVector(yy_, REALSXP));
+SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
+    A = PROTECT(Rf_coerceVector(A, REALSXP));
+    B = PROTECT(Rf_coerceVector(B, REALSXP));
     
-    int n = Rf_nrows(xx_), ncx = Rf_ncols(xx_), ncy = Rf_ncols(yy_);
+    int n = Rf_nrows(A), ncx = Rf_ncols(A), ncy = Rf_ncols(B);
     int i, j, k, n1 = n - 1;
     double *x, *y, *xm, *ym, *xx, *yy, *ans;
     long double sum, tmp, xxm, yym;
     SEXP ans_;
     
-    if (n != Rf_nrows(yy_))
+    if (n != Rf_nrows(B))
         Rf_error("incompatible dimensions");
 
     // get data pointers and allocate memory
-    x = REAL(xx_);
-    y = REAL(yy_);
+    x = REAL(A);
+    y = REAL(B);
     PROTECT(ans_ = Rf_allocMatrix(REALSXP, ncx, ncy));
     ans = REAL(ans_);
     xm = (double *) malloc(ncx * sizeof(double));
@@ -125,7 +125,7 @@ SEXP PPearsonMatOMP(SEXP xx_, SEXP yy_, int nthreads = 2) {
 #ifdef _OPENMP
 #pragma omp parallel for private(sum, xx, xxm)
 #endif
-    for (i = 0 ; i < ncx ; i++) { /* sd(xx_[,i]) */
+    for (i = 0 ; i < ncx ; i++) { /* sd(A[,i]) */
         xx = &x[i * n];
         sum = 0.;
         xxm = xm [i];
@@ -138,7 +138,7 @@ SEXP PPearsonMatOMP(SEXP xx_, SEXP yy_, int nthreads = 2) {
 #ifdef _OPENMP
 #pragma omp parallel for private(sum, yy, yym)
 #endif
-    for (i = 0 ; i < ncy ; i++) { /* sd(yy_[,i]) */
+    for (i = 0 ; i < ncy ; i++) { /* sd(B[,i]) */
         yy = &y[i * n];
         sum = 0.;
         yym = ym [i];
