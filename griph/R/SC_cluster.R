@@ -242,8 +242,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         kN<-NULL
     
         if(!is.null(BatchAssignment)){
-            rL=min(1,rho^(1-batch.penalty))
-            rS=rho^(1+batch.penalty)
+            rL=min(1.0,rho^(1-batch.penalty))
+            rS=max(rho-0.1,rho^(1+batch.penalty))
             RHO=mapply (  function(r,c) {if (BatchAssignment[r]==BatchAssignment[c]) {rL} else { rS } },row(Cuse),col(Cuse) )
             RHO=matrix(RHO,nrow=nrow(Cuse),ncol=ncol(Cuse) )
             ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
@@ -261,7 +261,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
         if (ncol(Cuse)<200) {tol=1e-02;maxIter=80}
         if (ncol(Cuse)>800) {tol=1e-01;maxIter=20}
         X<-Glasso(Cuse,rho=RHO,tol=tol,maxIter=maxIter,msg=0)  
-        #Coerce Cuse to a sparse matrix in the triplet representation
+        #Coerce Cuse to a sparse matrix
         Cuse[X>=0]=0
         Cuse=as(  Cuse ,"dgCMatrix")
         ADJ=Cuse
@@ -274,19 +274,18 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     #####Assumes Cuse comes as a  sparse matrix  (dgCmatrix) object...    
     ADJ=Cuse
     ADJ@x[ADJ@x < 0]=0
-    ADJ=Matrix::drop0((ADJ))
-        #if(!is.null(BatchAssignment)){
-        #ADJ@x=ADJ@x
-        #n <- diff(ADJ@p)
-        #ADJdgT <- as (ADJ, "dgTMatrix")
-        #lst <- split(ADJ@x, rep.int(1:ncol(S), n))
-        
-        #o<-sapply(ADJ@x, function(y) BatchAssignment[ADJ@i[y]+1]!=BatchAssignment[ADJ@j[y]+1]  )
-        #o=unlist(o)
-        #S@x[o > k]=0
-        
-        #S@x=pmin(S@x, t(S)@x)
-        #}
+    ADJ=Matrix::drop0((ADJ),1e-20)
+        if(!is.null(BatchAssignment)){
+        ADJdgT <- as (ADJ, "dgTMatrix")
+        multp=1-batch.penalty
+        BatchAssignmentN=as.numeric(BatchAssignment)
+        q=BatchAssignmentN[ADJdgT@i+1]==BatchAssignmentN[ADJdgT@j+1]
+        ADJ@x[q]=ADJ@x[q]*multp
+        ADJ=Matrix::drop0((ADJ),1e-20)
+        ADJdgT<-NULL
+        BatchAssignmentN<-NULL
+        q<-NULL
+        }
     }
     
     
@@ -295,7 +294,8 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
     ave=mean(Cuse@x)
     ADJ@x=exp(- ( ((1-Cuse@x)^2) / ((1-ave)^2) ) )   #Kernelize distance according to Haren and Koren 2001 section 3
-
+    ADJ=Matrix::drop0((ADJ),1e-20)
+    
     ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
     k=min(max( floor(5*sqrt(ncol(ADJ))) ,100) ,floor(ncol( ADJ))/1.5)  
     ADJ=keep.mknn(ADJ,k=round(k) )
@@ -331,7 +331,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
             ADJ=ADJ*PR #Reweighing
             
             ADJ=as(  ADJ ,"dgCMatrix")
-            
+            ADJ=Matrix::drop0((ADJ),1e-20)
             GRAO<-igraph::graph.adjacency(ADJ,mode=c("max"),weighted=TRUE,diag=FALSE)
             PR<-NULL
         }
