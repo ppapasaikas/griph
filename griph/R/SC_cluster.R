@@ -272,7 +272,21 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     
     else{
     #####Assumes Cuse comes as a  sparse matrix  (dgCmatrix) object...    
-    ADJ=Cuse    
+    ADJ=Cuse
+    ADJ@x[ADJ@x < 0]=0
+    ADJ=Matrix::drop0((ADJ))
+        #if(!is.null(BatchAssignment)){
+        #ADJ@x=ADJ@x
+        #n <- diff(ADJ@p)
+        #ADJdgT <- as (ADJ, "dgTMatrix")
+        #lst <- split(ADJ@x, rep.int(1:ncol(S), n))
+        
+        #o<-sapply(ADJ@x, function(y) BatchAssignment[ADJ@i[y]+1]!=BatchAssignment[ADJ@j[y]+1]  )
+        #o=unlist(o)
+        #S@x[o > k]=0
+        
+        #S@x=pmin(S@x, t(S)@x)
+        #}
     }
     
     
