@@ -198,10 +198,10 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     PPRank <- PPR
     
     if (isTRUE(use.par)) {  
-        PPearsonCor <- if (checkOpenMP()) FlashPPearsonCorOMP else FlashPPearsonCor
-        PSpearmanCor <- if (checkOpenMP()) FlashPSpearmanCorOMP else FlashPSpearmanCor
-        PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
-        PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 
+        PPearsonCor <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin" ) FlashPPearsonCorOMP else FlashPPearsonCor
+        PSpearmanCor <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPSpearmanCorOMP else FlashPSpearmanCor
+        PHellinger <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPHellingerOMP else FlashPHellinger
+        PCanberra <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPCanberraOMP else FlashPCanberra 
         ShrinkCor <- FlashShrinkCor
         Glasso <- FlashGlasso
         PPRank <- FlashPPR 

@@ -163,10 +163,10 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
         SPearsonCor <- FlashSPearsonCor
-        PPearsonCor <- if (checkOpenMP()) FlashPPearsonCorOMP else FlashPPearsonCor
-        PSpearmanCor <- if (checkOpenMP()) FlashPSpearmanCorOMP else FlashPSpearmanCor
-        PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
-        PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 
+        PPearsonCor <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPPearsonCorOMP else FlashPPearsonCor
+        PSpearmanCor <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPSpearmanCorOMP else FlashPSpearmanCor
+        PHellinger <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPHellingerOMP else FlashPHellinger
+        PCanberra <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPCanberraOMP else FlashPCanberra 
         ShrinkCor <- FlashShrinkCor
         
         if(ncores=="all"){
