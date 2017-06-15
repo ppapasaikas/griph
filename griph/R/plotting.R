@@ -610,7 +610,7 @@ plotLVis <- function(gr,
         add.args$sgd_batches=max(0.1*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e7)  #!!!!!!Use GRAO instead!!! 
     }
     if (!is.element('M',names(add.args))){
-        add.args$M=4    
+        add.args$M=2    
     }
     if (!is.element('gamma',names(add.args))){
         add.args$gamma=20    
