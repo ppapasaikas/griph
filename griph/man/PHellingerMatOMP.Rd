@@ -19,7 +19,7 @@ OpenMP).}
 A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
 }
 \description{
-\code{PHellingerMat} returns a matrix of Hellinger distances between
+\code{PHellingerMatOMP} returns a matrix of Hellinger distances between
 the columns of the two matrices passed as arguments.
 }
 \details{

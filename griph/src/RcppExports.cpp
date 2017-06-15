@@ -56,6 +56,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// PPearsonMatOMP
+SEXP PPearsonMatOMP(SEXP xx_, SEXP yy_, int nthreads);
+RcppExport SEXP griph_PPearsonMatOMP(SEXP xx_SEXP, SEXP yy_SEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type xx_(xx_SEXP);
+    Rcpp::traits::input_parameter< SEXP >::type yy_(yy_SEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(PPearsonMatOMP(xx_, yy_, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
 // checkBits
 bool checkBits();
 RcppExport SEXP griph_checkBits() {

@@ -162,7 +162,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
         SPearsonCor <- FlashSPearsonCor
-        PPearsonCor <- FlashPPearsonCor
+        PPearsonCor <- if (checkOpenMP()) FlashPPearsonCorOMP else FlashPPearsonCor
         PSpearmanCor <- FlashPSpearmanCor
         PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
         PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 

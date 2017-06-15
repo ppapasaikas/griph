@@ -30,7 +30,7 @@ PCanberraMat <- function(A, B) {
 #' @title Canberra distance between columns of two matrices (OpenMP version).
 #'
 #' @description
-#' \code{PCanberraMat} returns a matrix of Canberra distances between
+#' \code{PCanberraMatOMP} returns a matrix of Canberra distances between
 #' the columns of the two matrices passed as arguments.
 #'
 #' @details
@@ -85,7 +85,7 @@ PHellingerMat <- function(A, B) {
 #' @title Hellinger distance between columns of two matrices (OpenMP version).
 #'
 #' @description
-#' \code{PHellingerMat} returns a matrix of Hellinger distances between
+#' \code{PHellingerMatOMP} returns a matrix of Hellinger distances between
 #' the columns of the two matrices passed as arguments.
 #'
 #' @details
@@ -109,6 +109,37 @@ PHellingerMat <- function(A, B) {
 #'
 PHellingerMatOMP <- function(A, B, nthreads = 2L) {
     .Call('griph_PHellingerMatOMP', PACKAGE = 'griph', A, B, nthreads)
+}
+
+#' @title Pearson's correlation coefficient between columns of two matrices
+#'     (OpenMP version).
+#'
+#' @description
+#' \code{PPearsonMatOMP} returns a matrix of Pearson's correlation coefficients
+#' between the columns of the two matrices passed as arguments.
+#'
+#' @details
+#' This function calculates the Pearson's correlation coefficients between the
+#' columns of two matrices given as argument. It is implemented in C++ for
+#' efficiency. For two argument matrices with the same number of r rows and c1 ,
+#' c2 columns, the return value is an c1-by-c2 matrix with the pairwise c1i c2j
+#' correlation coefficients.
+#'
+#' @param A  Numeric matrix (variables by features).
+#' @param B  Numeric matrix (variables by features).
+#' @param nthreads Integer specifying the number of OpenMP threads to use in
+#'     parallel parts (defaults to two, ignored on systems not supporting
+#'     OpenMP).
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(1:12, nrow=3, ncol=4)
+#' y <- matrix(1:15, nrow=3, ncol=5)
+#' PPearsonMatOMP(x, y)
+#'
+PPearsonMatOMP <- function(xx_, yy_, nthreads = 2L) {
+    .Call('griph_PPearsonMatOMP', PACKAGE = 'griph', xx_, yy_, nthreads)
 }
 
 checkBits <- function() {
