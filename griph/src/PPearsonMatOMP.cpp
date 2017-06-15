@@ -73,7 +73,7 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     
     // calculate column means -> xm[] and ym[] (two passes for better accuarcy)
 #ifdef _OPENMP
-#pragma omp parallel for private(sum, tmp, xx)
+#pragma omp parallel for private(sum, tmp, xx, i, k)
 #endif
     for (i = 0 ; i < ncx ; i++) {
         xx = &x[i * n];
@@ -88,7 +88,7 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
         xm [i] = (double)tmp;
     }
 #ifdef _OPENMP
-#pragma omp parallel for private(sum, tmp, yy)
+#pragma omp parallel for private(sum, tmp, yy, i, k)
 #endif
     for (i = 0 ; i < ncy ; i++) {
         yy = &y[i * n];
@@ -106,7 +106,7 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     // calculate correlation coefficients
 #define ANS(I,J)  ans[I + J * ncx]
 #ifdef _OPENMP
-#pragma omp parallel for private(sum, xx, yy, xxm, yym)
+#pragma omp parallel for private(sum, xx, yy, xxm, yym, i, j, k)
 #endif
     for (i = 0 ; i < ncx ; i++) {
         xx = &x[i * n];
@@ -123,7 +123,7 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     
     // calculate standard deviations --> xm[] and ym[]
 #ifdef _OPENMP
-#pragma omp parallel for private(sum, xx, xxm)
+#pragma omp parallel for private(sum, xx, xxm, i, k)
 #endif
     for (i = 0 ; i < ncx ; i++) { /* sd(A[,i]) */
         xx = &x[i * n];
@@ -136,7 +136,7 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     }
     
 #ifdef _OPENMP
-#pragma omp parallel for private(sum, yy, yym)
+#pragma omp parallel for private(sum, yy, yym, i, k)
 #endif
     for (i = 0 ; i < ncy ; i++) { /* sd(B[,i]) */
         yy = &y[i * n];
@@ -150,7 +150,7 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
 
 #define CLAMP(X)  (X >= 1. ? 1. : (X <= -1. ? -1. : X))
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for private(i, j)
 #endif
     for (i = 0 ; i < ncx ; i++) {
         for (j = 0 ; j < ncy ; j++) {
