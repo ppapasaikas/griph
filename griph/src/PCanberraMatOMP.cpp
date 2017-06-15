@@ -52,7 +52,7 @@ NumericMatrix PCanberraMatOMP(NumericMatrix A, NumericMatrix B, int nthreads = 2
     double denominator=0;
     double result=0;
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for private(denominator, result)
 #endif
     for( unsigned int j = 0; j < Acols; j++){
         
