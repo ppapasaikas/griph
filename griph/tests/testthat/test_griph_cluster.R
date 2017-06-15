@@ -1,13 +1,21 @@
 test_that("griph_cluster works properly", {
+    set.seed(1)
     M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
-    lab <- attr(M, "label")
-    res1 <- griph_cluster(M, ClassAssignment = lab, plotG = FALSE, ref.iter=2)
-    expect_is(res1, "list")
-    #Inonsistencies in code below due to random sampling
-    #expect_equal(griph:::classError(res1$MEMB, lab), 61/288)
-    # currently, check does freeze if running with use.par=TRUE
-    #res2 <- griph_cluster(M, ClassAssignment = lab, plotG = FALSE, ref.iter=2, use.par = TRUE, ncores = 4)
-    #expect_identical(res1$MEMB, res2$MEMB)
-    #expect_equal(res1$DISTM, res2$DISTM)
-    #expect_true(igraph::isomorphic(res1$GRAO, res2$GRAO))
+    label <- attr(M, "label")
+    i <- sample(ncol(M), 50)
+    # serial
+    set.seed(2)
+    res <- griph_cluster(M[,i], ClassAssignment = label[i], ref.iter = 1,
+                         use.par = FALSE, filter = TRUE, plotG = FALSE)
+    expect_is(res, "list")
+    expect_is(res$GRAO, "igraph")
+    expect_length(res$MEMB, length(i))
+    expect_length(res$MEMB.true, length(i))
+    # expect_lt(res$miscl, 0.3)
+    expect_equal(dim(res$ConfMatrix), c(length(unique(res$MEMB)), nlevels(label)))
+    # parallel
+    set.seed(2)
+    resP <- griph_cluster(M[,i], ClassAssignment = label[i], ref.iter = 1,
+                          use.par = TRUE, filter = TRUE, plotG = FALSE)
+    expect_equal(res$MEMB, resP$MEMB)
 })
