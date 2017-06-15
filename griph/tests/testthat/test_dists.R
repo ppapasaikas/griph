@@ -29,3 +29,12 @@ test_that("PCanberraMatOMP works properly", {
     res2 <- PCanberraMatOMP(x, x)
     expect_identical(res1, res2)
 })
+
+test_that("PPearsonMatOMP works properly", {
+    set.seed(0)
+    x <- matrix(rnorm(42), nrow = 6)
+    y <- matrix(rnorm(30), nrow = 6)
+    res1 <- cor(x, y)
+    res2 <- PPearsonMatOMP(x, y)
+    expect_identical(res1, res2)
+})

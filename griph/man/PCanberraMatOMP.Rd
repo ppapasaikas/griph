@@ -19,7 +19,7 @@ OpenMP).}
 A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
 }
 \description{
-\code{PCanberraMat} returns a matrix of Canberra distances between
+\code{PCanberraMatOMP} returns a matrix of Canberra distances between
 the columns of the two matrices passed as arguments.
 }
 \details{

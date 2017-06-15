@@ -321,6 +321,16 @@ bres <- microbenchmark(
     { res6 <- griph:::PCanberraMatOMP(M1, M2, 8) },
     times = 5
 )
+bres <- microbenchmark(
+    { res1 <- cor(M1, M2) },
+    { res2 <- griph:::PPearsonMatOMP(M1, M2) },
+    { res3 <- griph:::PPearsonMatOMP(M1, M2, 1) },
+    { res4 <- griph:::PPearsonMatOMP(M1, M2, 2) },
+    { res5 <- griph:::PPearsonMatOMP(M1, M2, 4) },
+    { res5 <- griph:::PPearsonMatOMP(M1, M2, 6) },
+    { res6 <- griph:::PPearsonMatOMP(M1, M2, 8) },
+    times = 3
+)
 cl <- makeCluster(4)
 registerDoParallel(cl)
 bres <- microbenchmark(
@@ -342,7 +352,19 @@ bres <- microbenchmark(
     { res6 <- griph:::FlashPCanberraOMP(M1, M2, 4) },
     times = 3
 )
-identical(res1, res2)
+bres <- microbenchmark(
+    { registerDoParallel(cl[1]); res1 <- griph:::FlashPPearsonCor(M1, M2) },
+    { res2 <- griph:::FlashPPearsonCorOMP(M1, M2, 1) },
+    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPPearsonCor(M1, M2) },
+    { res4 <- griph:::FlashPPearsonCorOMP(M1, M2, 2) },
+    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPPearsonCor(M1, M2) },
+    { res6 <- griph:::FlashPPearsonCorOMP(M1, M2, 4) },
+    times = 3
+)
+identical(res1, res2) # summary(as.vector(res1 - res2))
+identical(res1, res3)
+identical(res1, res4)
+identical(res1, res5)
 identical(res1, res6)
 bres
 sbres <- summary(bres)
