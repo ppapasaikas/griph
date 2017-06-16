@@ -100,7 +100,11 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' @param ncores a numeric(1) or character(1), either specifying the number of
 #'     parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 #'     the available cores. Ignored if \code{use.par==FALSE}.
-#' @param filter T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
+#' @param filter TRUE/FALSE or a positive numeric values. Determines  whether filtering for reaining only overdispersed genes should be performed.
+#'     If FALSE no gene filtering is performed. If TRUE (default) only the top 25% overdispersed genes are retained.
+#'     If set to a number between 0 and 1 than this fraction of genes is retained.
+#'     If set to an integer > 1 than this numbeer of genes is retained
+#### Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
 #' @param rho Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 #'     Default=0.25.  The parameter is then automatically scaled to account for
 #'     number of variables or converted into a matrix and adjusted according to
@@ -219,17 +223,19 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 if(length(AllZeroRows)>0){
                 params$DM=params$DM[-AllZeroRows , ] 
                 }
-                ##########  Remove invariant genes:
+                ##########  Remove invariant  (completely flat) genes:
                 meanDM=mean( params$DM )
                 nSD=apply(params$DM,1,function(x) sd(x)/meanDM)
-                ConstRows=which   ( nSD < 0.25 )
+                ConstRows=which   ( nSD < 1e-3 )
                 if(length(ConstRows)>0){
                 params$DM=params$DM[-ConstRows , ]
                 }
+
                 message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (invariant/no-show) gene(s)...\n", appendLF = FALSE)
 
                 
                 ##########  Remove promiscuous cells (this only affects the sampling iteration):
+                if (ncol(params$DM) > 1000) {
                 DMS=as(params$DM,"dgCMatrix") #filteredGenes x SMPL
                 DMS@x=log2(DMS@x+1)
                 cM=SPearsonCor(DMS)
@@ -242,31 +248,24 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 fraction=min( (ncol(DM)^2)/1e07,0.9)
                 exclude=sample(exclude, ceiling(length(exclude)*fraction) )
                 SMPL=SMPL[-c(exclude)]
-                cat("::\n",length(SMPL), "\n")
                 params$DM=params$DM[,-c(exclude)]
-
-                
-                
-                #############CV=f(mean) -based filtering:
-                CellCounts=colSums(  params$DM )
-                nDM=sweep( params$DM ,2,CellCounts,FUN="/")
-                #nDM=params$DM*10000 #Counts per 10K
-                nDM=nDM*1e9 #Counts per Billion
-                
-                if(is.null(filter)){
-                    medianComplexity=median(apply( params$DM ,2,function(x) sum(x>0))) 
-                    filter=ifelse( medianComplexity > 2500,TRUE,FALSE)
-                    message("Median Library Complexity: ",medianComplexity," --> Gene Filtering: ", filter ,"\r")
-                    
                 }
+                
+                #############Filtering to retain only overdispersed genes: 
                 if (filter){
-                    message("\nFiltering Genes...", appendLF = FALSE)
-                    X1=log2(rowMeans(nDM+1/ncol(nDM)))
-                    Y1=apply(nDM,1,function(x) log2(sd(x)/mean(x+1/length(x))+1/length(x) )  )
-                    m=nls(Y1 ~ a*X1+b, start=list(a=-5,b=-10)  )
-                    Yhat=predict(m)
-                    params$DM=params$DM[which(Y1 > 0.9*Yhat),]
-                    message("Removed an additional ",nrow(nDM)-nrow(params$DM), " gene(s) with low variance\n", appendLF = FALSE)
+                    if (!is.numeric(filter)) {keep=ceiling(0.5*nrow(params$DM) )}
+                    else if (filter <  0)   {   stop ("filter cannot be a negative number")  } 
+                    else if (filter <= 1 )  { keep=ceiling(nrow(params$DM)*filter ) }
+                    else if (filter > 1 )   { keep=ceiling(filter) }
+                        if (keep < nrow(params$DM)) {   
+                        message("\nFiltering Genes...", appendLF = FALSE)
+                        norm_GeneDispersion <- select_variable_genes(params$DM)
+                        disp_cut_off <- sort(norm_GeneDispersion,decreasing=TRUE)[keep]
+                        use <- norm_GeneDispersion >= disp_cut_off
+                        fraction=signif((100*sum(use))/nrow(params$DM),digits=3)
+                        params$DM=params$DM[use,]
+                        message("Retained the top ", fraction, "% overdispersed gene(s) \n", appendLF = FALSE)
+                        }
                 }
                 
                 genelist<-rownames(params$DM)
@@ -278,6 +277,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 
                 message("done")
                 
+
                 
                 cluster.res <- do.call(SC_cluster, c( params,list(comm.method=igraph::cluster_louvain,pr.iter=1 ) )     )
             }

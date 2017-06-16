@@ -14,9 +14,8 @@
 WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
     nBulks=min(1500, ceiling(5*ncol(M)) )
     FBsize=2
-    Gcounts=colSums(M)
-    HighQual=c(1:ncol(M))[-which(Gcounts <  quantile(Gcounts,0.001)  )]
-    rep.ind=rep(HighQual, ceiling(nBulks*FBsize/length(HighQual))         )
+    Gcounts=colSums(M>0)
+    rep.ind=rep( c(1:ncol(M)) , ceiling(nBulks*FBsize/ncol(M) )         )
     SMPL=sample(rep.ind,(nBulks*FBsize),replace=FALSE    )
     FB=matrix(0,nrow(M),nBulks)
     if (FBsize>1){
