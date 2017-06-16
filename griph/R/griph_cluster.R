@@ -237,7 +237,6 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
 
                 
                 ##########  Remove promiscuous cells (this only affects the sampling iteration):
-                if (ncol(params$DM) > 1000) {
                 DMS=as(params$DM,"dgCMatrix") #filteredGenes x SMPL
                 DMS@x=log2(DMS@x+1)
                 cM=SPearsonCor(DMS)
@@ -251,7 +250,7 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 exclude=sample(exclude, ceiling(length(exclude)*fraction) )
                 SMPL=SMPL[-c(exclude)]
                 params$DM=params$DM[,-c(exclude)]
-                }
+                
                 
                 #############Filtering to retain only overdispersed genes: 
                 if (filter){
@@ -317,9 +316,9 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                 message("\nBootstrapping to refine clusters...\n", appendLF = FALSE)
                 
                 #Number of boostrapping samples:
-                Nboot.Smpls=min(ceiling(150/(length(good.clust)^2) ), 80)
+                Nboot.Smpls=min(ceiling(250/(length(good.clust)^2) ), 80)
                 Nboot.Smpls=max(Nboot.Smpls,2)
-                bootS.size=Nboot.Smpls^(-0.5)
+                bootS.size=Nboot.Smpls^(-0.4)
                 
                 FakeBulk=matrix(0,length(genelist),length(good.clust)*Nboot.Smpls)
                 r=0
