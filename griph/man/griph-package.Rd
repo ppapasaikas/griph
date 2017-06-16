@@ -12,7 +12,7 @@ that may confound the cell types.
 }
 \details{
 The most important function that combines all the steps of cell type identification
-from \pkg{griph} is \code{\link{SC_cluster}}. Otherwise refer to the vignette
+from \pkg{griph} is \code{\link{griph_cluster}}. Otherwise refer to the vignette
 to see what else is available and how to optimize results for your particular
 dataset.
 }
