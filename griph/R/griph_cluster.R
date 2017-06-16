@@ -128,6 +128,8 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom=NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
+    if (ref.iter==0 && !is.null(SamplingSize) && ncol(DM) > SamplingSize)
+        warning("only ",SamplingSize," of ",ncol(DM)," cells selected for clustering")
     
     ptm=proc.time() #Start clock
     
@@ -163,10 +165,10 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
     if (isTRUE(use.par)) {
         #######Switch to parallelized functions if use.par=TRUE
         SPearsonCor <- FlashSPearsonCor
-        PPearsonCor <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPPearsonCorOMP else FlashPPearsonCor
-        PSpearmanCor <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPSpearmanCorOMP else FlashPSpearmanCor
-        PHellinger <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPHellingerOMP else FlashPHellinger
-        PCanberra <- if (checkOpenMP() && Sys.info()[["sysname"]]!="Darwin") FlashPCanberraOMP else FlashPCanberra 
+        PPearsonCor <- if (checkOpenMP()) FlashPPearsonCorOMP else FlashPPearsonCor
+        PSpearmanCor <- if (checkOpenMP()) FlashPSpearmanCorOMP else FlashPSpearmanCor
+        PHellinger <- if (checkOpenMP()) FlashPHellingerOMP else FlashPHellinger
+        PCanberra <- if (checkOpenMP()) FlashPCanberraOMP else FlashPCanberra 
         ShrinkCor <- FlashShrinkCor
         
         if(ncores=="all"){
