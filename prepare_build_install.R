@@ -7,7 +7,7 @@ Rcpp::compileAttributes(pkgdir = "./griph")
 
 # create to for native routine registration (should be put into R_init_griph.c)
 # (might eventually be obsolete, onece Rcpp::compileAttributes does this, see: https://github.com/RcppCore/Rcpp/issues/636)
-tools::package_native_routine_registration_skeleton("./griph")
+tools::package_native_routine_registration_skeleton("./griph", character_only = FALSE)
 
 # re-create documentation using roxygen2::roxygenize
 # see: browseVignettes("roxygen2")
