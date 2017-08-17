@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // PCanberraMat
 NumericMatrix PCanberraMat(NumericMatrix A, NumericMatrix B);
-RcppExport SEXP griph_PCanberraMat(SEXP ASEXP, SEXP BSEXP) {
+RcppExport SEXP _griph_PCanberraMat(SEXP ASEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -20,7 +20,7 @@ END_RCPP
 }
 // PCanberraMatOMP
 NumericMatrix PCanberraMatOMP(NumericMatrix A, NumericMatrix B, int nthreads);
-RcppExport SEXP griph_PCanberraMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _griph_PCanberraMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,7 +33,7 @@ END_RCPP
 }
 // PHellingerMat
 NumericMatrix PHellingerMat(NumericMatrix A, NumericMatrix B);
-RcppExport SEXP griph_PHellingerMat(SEXP ASEXP, SEXP BSEXP) {
+RcppExport SEXP _griph_PHellingerMat(SEXP ASEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -45,7 +45,7 @@ END_RCPP
 }
 // PHellingerMatOMP
 NumericMatrix PHellingerMatOMP(NumericMatrix A, NumericMatrix B, int nthreads);
-RcppExport SEXP griph_PHellingerMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _griph_PHellingerMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -58,7 +58,7 @@ END_RCPP
 }
 // PPearsonMatOMP
 SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads);
-RcppExport SEXP griph_PPearsonMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+RcppExport SEXP _griph_PPearsonMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -71,7 +71,7 @@ END_RCPP
 }
 // checkBits
 bool checkBits();
-RcppExport SEXP griph_checkBits() {
+RcppExport SEXP _griph_checkBits() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -81,7 +81,7 @@ END_RCPP
 }
 // checkOpenMP
 bool checkOpenMP();
-RcppExport SEXP griph_checkOpenMP() {
+RcppExport SEXP _griph_checkOpenMP() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -91,7 +91,7 @@ END_RCPP
 }
 // searchTrees
 arma::imat searchTrees(const int& threshold, const int& n_trees, const int& K, const int& maxIter, const arma::mat& data, const std::string& distMethod, Rcpp::Nullable< NumericVector > seed, Rcpp::Nullable< NumericVector > threads, bool verbose);
-RcppExport SEXP griph_searchTrees(SEXP thresholdSEXP, SEXP n_treesSEXP, SEXP KSEXP, SEXP maxIterSEXP, SEXP dataSEXP, SEXP distMethodSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_searchTrees(SEXP thresholdSEXP, SEXP n_treesSEXP, SEXP KSEXP, SEXP maxIterSEXP, SEXP dataSEXP, SEXP distMethodSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -110,7 +110,7 @@ END_RCPP
 }
 // fastDistance
 arma::vec fastDistance(const IntegerVector is, const IntegerVector js, const arma::mat& data, const std::string& distMethod, Rcpp::Nullable<Rcpp::NumericVector> threads, bool verbose);
-RcppExport SEXP griph_fastDistance(SEXP isSEXP, SEXP jsSEXP, SEXP dataSEXP, SEXP distMethodSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_fastDistance(SEXP isSEXP, SEXP jsSEXP, SEXP dataSEXP, SEXP distMethodSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -126,7 +126,7 @@ END_RCPP
 }
 // fastCDistance
 arma::vec fastCDistance(const arma::ivec& is, const arma::ivec& js, const arma::uvec& i_locations, const arma::uvec& p_locations, const arma::vec& x, const std::string& distMethod, Rcpp::Nullable<Rcpp::NumericVector> threads, bool verbose);
-RcppExport SEXP griph_fastCDistance(SEXP isSEXP, SEXP jsSEXP, SEXP i_locationsSEXP, SEXP p_locationsSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_fastCDistance(SEXP isSEXP, SEXP jsSEXP, SEXP i_locationsSEXP, SEXP p_locationsSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -144,7 +144,7 @@ END_RCPP
 }
 // fastSDistance
 arma::vec fastSDistance(const arma::ivec& is, const arma::ivec& js, const arma::uvec& i_locations, const arma::uvec& j_locations, const arma::vec& x, const std::string& distMethod, Rcpp::Nullable<Rcpp::NumericVector> threads, bool verbose);
-RcppExport SEXP griph_fastSDistance(SEXP isSEXP, SEXP jsSEXP, SEXP i_locationsSEXP, SEXP j_locationsSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_fastSDistance(SEXP isSEXP, SEXP jsSEXP, SEXP i_locationsSEXP, SEXP j_locationsSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -162,7 +162,7 @@ END_RCPP
 }
 // referenceWij
 arma::sp_mat referenceWij(const arma::ivec& i, const arma::ivec& j, arma::vec& d, Rcpp::Nullable<Rcpp::NumericVector> threads, double perplexity);
-RcppExport SEXP griph_referenceWij(SEXP iSEXP, SEXP jSEXP, SEXP dSEXP, SEXP threadsSEXP, SEXP perplexitySEXP) {
+RcppExport SEXP _griph_referenceWij(SEXP iSEXP, SEXP jSEXP, SEXP dSEXP, SEXP threadsSEXP, SEXP perplexitySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -177,7 +177,7 @@ END_RCPP
 }
 // sgd
 arma::mat sgd(arma::mat& coords, arma::ivec& targets_i, arma::ivec& sources_j, arma::ivec& ps, arma::vec& weights, const double& gamma, const double& rho, const arma::uword& n_samples, const int& M, const double& alpha, const Rcpp::Nullable<Rcpp::NumericVector> momentum, const bool& useDegree, const Rcpp::Nullable<Rcpp::NumericVector> seed, const Rcpp::Nullable<Rcpp::NumericVector> threads, const bool verbose);
-RcppExport SEXP griph_sgd(SEXP coordsSEXP, SEXP targets_iSEXP, SEXP sources_jSEXP, SEXP psSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP rhoSEXP, SEXP n_samplesSEXP, SEXP MSEXP, SEXP alphaSEXP, SEXP momentumSEXP, SEXP useDegreeSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_sgd(SEXP coordsSEXP, SEXP targets_iSEXP, SEXP sources_jSEXP, SEXP psSEXP, SEXP weightsSEXP, SEXP gammaSEXP, SEXP rhoSEXP, SEXP n_samplesSEXP, SEXP MSEXP, SEXP alphaSEXP, SEXP momentumSEXP, SEXP useDegreeSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -202,7 +202,7 @@ END_RCPP
 }
 // searchTreesCSparse
 arma::imat searchTreesCSparse(const int& threshold, const int& n_trees, const int& K, const int& maxIter, const arma::uvec& i, const arma::uvec& p, const arma::vec& x, const std::string& distMethod, Rcpp::Nullable< Rcpp::NumericVector> seed, Rcpp::Nullable< Rcpp::NumericVector> threads, bool verbose);
-RcppExport SEXP griph_searchTreesCSparse(SEXP thresholdSEXP, SEXP n_treesSEXP, SEXP KSEXP, SEXP maxIterSEXP, SEXP iSEXP, SEXP pSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_searchTreesCSparse(SEXP thresholdSEXP, SEXP n_treesSEXP, SEXP KSEXP, SEXP maxIterSEXP, SEXP iSEXP, SEXP pSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -223,7 +223,7 @@ END_RCPP
 }
 // searchTreesTSparse
 arma::imat searchTreesTSparse(const int& threshold, const int& n_trees, const int& K, const int& maxIter, const arma::uvec& i, const arma::uvec& j, const arma::vec& x, const std::string& distMethod, Rcpp::Nullable< NumericVector> seed, Rcpp::Nullable< NumericVector> threads, bool verbose);
-RcppExport SEXP griph_searchTreesTSparse(SEXP thresholdSEXP, SEXP n_treesSEXP, SEXP KSEXP, SEXP maxIterSEXP, SEXP iSEXP, SEXP jSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _griph_searchTreesTSparse(SEXP thresholdSEXP, SEXP n_treesSEXP, SEXP KSEXP, SEXP maxIterSEXP, SEXP iSEXP, SEXP jSEXP, SEXP xSEXP, SEXP distMethodSEXP, SEXP seedSEXP, SEXP threadsSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
