@@ -27,10 +27,13 @@ extern SEXP griph_PHellingerMat(SEXP, SEXP);
 extern SEXP griph_PHellingerMatOMP(SEXP, SEXP, SEXP);
 extern SEXP griph_PPearsonMatOMP(SEXP, SEXP, SEXP);
 extern SEXP griph_referenceWij(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP griph_sdPCanberraMatOMP(SEXP, SEXP, SEXP);
 extern SEXP griph_searchTrees(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_searchTreesCSparse(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_searchTreesTSparse(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP griph_sgd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP griph_SPearsonMatOMP(SEXP, SEXP);
+extern SEXP griph_ssPCanberraMatOMP(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"griph_checkBits",          (DL_FUNC) &griph_checkBits,           0},
@@ -44,10 +47,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"griph_PHellingerMatOMP",   (DL_FUNC) &griph_PHellingerMatOMP,    3},
     {"griph_PPearsonMatOMP",     (DL_FUNC) &griph_PPearsonMatOMP,      3},
     {"griph_referenceWij",       (DL_FUNC) &griph_referenceWij,        5},
+    {"griph_sdPCanberraMatOMP",  (DL_FUNC) &griph_sdPCanberraMatOMP,   3},
     {"griph_searchTrees",        (DL_FUNC) &griph_searchTrees,         9},
     {"griph_searchTreesCSparse", (DL_FUNC) &griph_searchTreesCSparse, 11},
     {"griph_searchTreesTSparse", (DL_FUNC) &griph_searchTreesTSparse, 11},
     {"griph_sgd",                (DL_FUNC) &griph_sgd,                15},
+    {"griph_SPearsonMatOMP",     (DL_FUNC) &griph_SPearsonMatOMP,      2},
+    {"griph_ssPCanberraMatOMP",  (DL_FUNC) &griph_ssPCanberraMatOMP,   3},
     {NULL, NULL, 0}
 };
 

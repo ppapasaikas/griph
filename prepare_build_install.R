@@ -296,89 +296,131 @@ res$ConfMatrix
 res$miscl
 
 # benchmark
-library(microbenchmark)
+# library(microbenchmark)
+# 
+# set.seed(0)
+# M1 <- matrix(rpois(5000*300, 8), ncol=300)
+# M2 <- matrix(rpois(5000*300, 8), ncol=300)
+# bres <- microbenchmark(
+#     { res1 <- griph:::PHellingerMat(M1, M2) },
+#     { res2 <- griph:::PHellingerMatOMP(M1, M2) },
+#     { res3 <- griph:::PHellingerMatOMP(M1, M2, 1) },
+#     { res4 <- griph:::PHellingerMatOMP(M1, M2, 2) },
+#     { res5 <- griph:::PHellingerMatOMP(M1, M2, 4) },
+#     { res5 <- griph:::PHellingerMatOMP(M1, M2, 6) },
+#     { res6 <- griph:::PHellingerMatOMP(M1, M2, 8) },
+#     times = 5
+# )
+# bres <- microbenchmark(
+#     { res1 <- griph:::PCanberraMat(M1, M2) },
+#     { res2 <- griph:::PCanberraMatOMP(M1, M2) },
+#     { res3 <- griph:::PCanberraMatOMP(M1, M2, 1) },
+#     { res4 <- griph:::PCanberraMatOMP(M1, M2, 2) },
+#     { res5 <- griph:::PCanberraMatOMP(M1, M2, 4) },
+#     { res5 <- griph:::PCanberraMatOMP(M1, M2, 6) },
+#     { res6 <- griph:::PCanberraMatOMP(M1, M2, 8) },
+#     times = 5
+# )
+# bres <- microbenchmark(
+#     { res1 <- cor(M1, M2) },
+#     { res2 <- griph:::PPearsonMatOMP(M1, M2) },
+#     { res3 <- griph:::PPearsonMatOMP(M1, M2, 1) },
+#     { res4 <- griph:::PPearsonMatOMP(M1, M2, 2) },
+#     { res5 <- griph:::PPearsonMatOMP(M1, M2, 4) },
+#     { res5 <- griph:::PPearsonMatOMP(M1, M2, 6) },
+#     { res6 <- griph:::PPearsonMatOMP(M1, M2, 8) },
+#     times = 3
+# )
+# cl <- makeCluster(4)
+# registerDoParallel(cl)
+# bres <- microbenchmark(
+#     #{ registerDoParallel(cl) }, # negletable, takes ~0.1 millisec
+#     { registerDoParallel(cl[1]); res1 <- griph:::FlashPHellinger(M1, M2) },
+#     { res2 <- griph:::FlashPHellingerOMP(M1, M2, 1) },
+#     { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPHellinger(M1, M2) },
+#     { res4 <- griph:::FlashPHellingerOMP(M1, M2, 2) },
+#     { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPHellinger(M1, M2) },
+#     { res6 <- griph:::FlashPHellingerOMP(M1, M2, 4) },
+#     times = 5
+# )
+# bres <- microbenchmark(
+#     { registerDoParallel(cl[1]); res1 <- griph:::FlashPCanberra(M1, M2) },
+#     { res2 <- griph:::FlashPCanberraOMP(M1, M2, 1) },
+#     { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPCanberra(M1, M2) },
+#     { res4 <- griph:::FlashPCanberraOMP(M1, M2, 2) },
+#     { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPCanberra(M1, M2) },
+#     { res6 <- griph:::FlashPCanberraOMP(M1, M2, 4) },
+#     times = 3
+# )
+# bres <- microbenchmark(
+#     { registerDoParallel(cl[1]); res1 <- griph:::FlashPPearsonCor(M1, M2) },
+#     { res2 <- griph:::FlashPPearsonCorOMP(M1, M2, 1) },
+#     { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPPearsonCor(M1, M2) },
+#     { res4 <- griph:::FlashPPearsonCorOMP(M1, M2, 2) },
+#     { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPPearsonCor(M1, M2) },
+#     { res6 <- griph:::FlashPPearsonCorOMP(M1, M2, 4) },
+#     times = 3
+# )
+# bres <- microbenchmark(
+#     { registerDoParallel(cl[1]); res1 <- griph:::FlashPSpearmanCor(M1, M2) },
+#     { res2 <- griph:::FlashPSpearmanCorOMP(M1, M2, 1) },
+#     { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPSpearmanCor(M1, M2) },
+#     { res4 <- griph:::FlashPSpearmanCorOMP(M1, M2, 2) },
+#     { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPSpearmanCor(M1, M2) },
+#     { res6 <- griph:::FlashPSpearmanCorOMP(M1, M2, 4) },
+#     times = 3
+# )
+# identical(res1, res2) # summary(as.vector(res1 - res2))
+# identical(res1, res3)
+# identical(res1, res4)
+# identical(res1, res5)
+# identical(res1, res6)
+# bres
+# sbres <- summary(bres)
+# sbres[1,"min"] / sbres[4,"min"] # speed-up
+# plot(c(NA,NA,1,2,4,6,8), sbres[1,"min"] / sbres[,"min"], xlab="No. threads", ylab="Speedup"); abline(a=0, b=1)
 
+library(microbenchmark)
 set.seed(0)
-M1 <- matrix(rpois(5000*300, 8), ncol=300)
-M2 <- matrix(rpois(5000*300, 8), ncol=300)
-bres <- microbenchmark(
-    { res1 <- griph:::PHellingerMat(M1, M2) },
-    { res2 <- griph:::PHellingerMatOMP(M1, M2) },
-    { res3 <- griph:::PHellingerMatOMP(M1, M2, 1) },
-    { res4 <- griph:::PHellingerMatOMP(M1, M2, 2) },
-    { res5 <- griph:::PHellingerMatOMP(M1, M2, 4) },
-    { res5 <- griph:::PHellingerMatOMP(M1, M2, 6) },
-    { res6 <- griph:::PHellingerMatOMP(M1, M2, 8) },
+M1 <- as(matrix(sample(0:10, 5000*300, TRUE, c(.5, rep(.05,10))), ncol=300), "sparseMatrix")
+
+microbenchmark(
+    { res1 <- cov(as.matrix(M1)) },
+    { res2 <- SPearsonMatOMP(M1, 1) },
+    { res3 <- SPearsonMatOMP(M1, 2) },
+    times = 3
+)
+identical(res1, res2)
+identical(res1, res3)
+
+
+library(microbenchmark)
+set.seed(0)
+M1 <- matrix(sample(0:10, 5000*300, TRUE, c(.5, rep(.05,10))), ncol=300)
+M2 <- matrix(sample(0:10, 5000*300, TRUE, c(.5, rep(.05,10))), ncol=300)
+S1 <- as(M1, "sparseMatrix")
+S2 <- as(M2, "sparseMatrix")
+
+microbenchmark(
+    { res1 <- PCanberraMatOMP(M1, M2, 2) },
+    { res2 <- griph:::ssPCanberraMatOMP(S1, S2, 2) }, # ~20% slower than dense
+    { res3 <- griph:::sdPCanberraMatOMP(S1, M2, 2) }, # ~10% faster than dense
+    { res4 <- t(griph:::sdPCanberraMatOMP(S2, M1, 2)) },
     times = 5
 )
-bres <- microbenchmark(
-    { res1 <- griph:::PCanberraMat(M1, M2) },
-    { res2 <- griph:::PCanberraMatOMP(M1, M2) },
-    { res3 <- griph:::PCanberraMatOMP(M1, M2, 1) },
-    { res4 <- griph:::PCanberraMatOMP(M1, M2, 2) },
-    { res5 <- griph:::PCanberraMatOMP(M1, M2, 4) },
-    { res5 <- griph:::PCanberraMatOMP(M1, M2, 6) },
-    { res6 <- griph:::PCanberraMatOMP(M1, M2, 8) },
-    times = 5
-)
-bres <- microbenchmark(
-    { res1 <- cor(M1, M2) },
-    { res2 <- griph:::PPearsonMatOMP(M1, M2) },
-    { res3 <- griph:::PPearsonMatOMP(M1, M2, 1) },
-    { res4 <- griph:::PPearsonMatOMP(M1, M2, 2) },
-    { res5 <- griph:::PPearsonMatOMP(M1, M2, 4) },
-    { res5 <- griph:::PPearsonMatOMP(M1, M2, 6) },
-    { res6 <- griph:::PPearsonMatOMP(M1, M2, 8) },
-    times = 3
-)
-cl <- makeCluster(4)
-registerDoParallel(cl)
-bres <- microbenchmark(
-    #{ registerDoParallel(cl) }, # negletable, takes ~0.1 millisec
-    { registerDoParallel(cl[1]); res1 <- griph:::FlashPHellinger(M1, M2) },
-    { res2 <- griph:::FlashPHellingerOMP(M1, M2, 1) },
-    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPHellinger(M1, M2) },
-    { res4 <- griph:::FlashPHellingerOMP(M1, M2, 2) },
-    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPHellinger(M1, M2) },
-    { res6 <- griph:::FlashPHellingerOMP(M1, M2, 4) },
-    times = 5
-)
-bres <- microbenchmark(
-    { registerDoParallel(cl[1]); res1 <- griph:::FlashPCanberra(M1, M2) },
-    { res2 <- griph:::FlashPCanberraOMP(M1, M2, 1) },
-    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPCanberra(M1, M2) },
-    { res4 <- griph:::FlashPCanberraOMP(M1, M2, 2) },
-    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPCanberra(M1, M2) },
-    { res6 <- griph:::FlashPCanberraOMP(M1, M2, 4) },
-    times = 3
-)
-bres <- microbenchmark(
-    { registerDoParallel(cl[1]); res1 <- griph:::FlashPPearsonCor(M1, M2) },
-    { res2 <- griph:::FlashPPearsonCorOMP(M1, M2, 1) },
-    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPPearsonCor(M1, M2) },
-    { res4 <- griph:::FlashPPearsonCorOMP(M1, M2, 2) },
-    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPPearsonCor(M1, M2) },
-    { res6 <- griph:::FlashPPearsonCorOMP(M1, M2, 4) },
-    times = 3
-)
-bres <- microbenchmark(
-    { registerDoParallel(cl[1]); res1 <- griph:::FlashPSpearmanCor(M1, M2) },
-    { res2 <- griph:::FlashPSpearmanCorOMP(M1, M2, 1) },
-    { registerDoParallel(cl[1:2]); res3 <- griph:::FlashPSpearmanCor(M1, M2) },
-    { res4 <- griph:::FlashPSpearmanCorOMP(M1, M2, 2) },
-    { registerDoParallel(cl[1:4]); res5 <- griph:::FlashPSpearmanCor(M1, M2) },
-    { res6 <- griph:::FlashPSpearmanCorOMP(M1, M2, 4) },
-    times = 3
-)
-identical(res1, res2) # summary(as.vector(res1 - res2))
+identical(res1, res2)
 identical(res1, res3)
 identical(res1, res4)
-identical(res1, res5)
-identical(res1, res6)
-bres
-sbres <- summary(bres)
-sbres[1,"min"] / sbres[4,"min"] # speed-up
-plot(c(NA,NA,1,2,4,6,8), sbres[1,"min"] / sbres[,"min"], xlab="No. threads", ylab="Speedup"); abline(a=0, b=1)
+identical(res3, res4)
+
+# griph:::PCanberraMatOMP  (M1[1:4,1,drop=FALSE], M2[1:4,1:2], 1)
+# griph:::ssPCanberraMatOMP(S1[1:4,1,drop=FALSE], S2[1:4,1:2], 1)
+# griph:::sdPCanberraMatOMP(S1[1:4,1,drop=FALSE], M2[1:4,1:2], 1)
+# t(griph:::sdPCanberraMatOMP(S2[1:4,1:2], M1[1:4,1,drop=FALSE], 1))
+# S1[1:4,1,drop=FALSE]
+# S2[1:4,1:2]
+# j=1; k=1; abs(M1[1:4,j]-M2[1:4,k])/(M1[1:4,j]+M2[1:4,k])
+# j=1; k=2; abs(M1[1:4,j]-M2[1:4,k])/(M1[1:4,j]+M2[1:4,k])
 
 #library(microbenchmark)
 #x <- matrix(rpois(5000*300, 5), ncol = 300) # 5000 genes by 300 cells

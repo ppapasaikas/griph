@@ -182,3 +182,41 @@ searchTreesTSparse <- function(threshold, n_trees, K, maxIter, i, j, x, distMeth
     .Call('griph_searchTreesTSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
 }
 
+#' @title Pearson's correlation coefficient between columns of a sparse matrix
+#'     (OpenMP version).
+#'
+#' @description
+#' \code{SPearsonMatOMP} returns a symmetric matrix of Pearson's correlation
+#' coefficients between all pairs of columns of the sparse matrix passed as argument.
+#'
+#' @details
+#' This function calculates the Pearson's correlation coefficients between all
+#' pairs of columns of the sparse matrix given as argument. It is implemented
+#' in C++ for efficiency. For a matrix with c columns, the return
+#' value is an c-by-c matrix with the pairwise ci cj correlation coefficients.
+#'
+#' @param A  Numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+#' @param nthreads Integer specifying the number of OpenMP threads to use in
+#'     parallel parts (defaults to two, ignored on systems not supporting
+#'     OpenMP).
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(c(1,0,4,0,0,1,2,5,0,3,0,0,1,3,0), nrow=5)
+#' cor(x)
+#' xs <- as(x, "sparseMatrix")
+#' SPearsonMatOMP(xs)
+#'
+SPearsonMatOMP <- function(A, nthreads = 2L) {
+    .Call('griph_SPearsonMatOMP', PACKAGE = 'griph', A, nthreads)
+}
+
+ssPCanberraMatOMP <- function(A, B, nthreads = 2L) {
+    .Call('griph_ssPCanberraMatOMP', PACKAGE = 'griph', A, B, nthreads)
+}
+
+sdPCanberraMatOMP <- function(A, B, nthreads = 2L) {
+    .Call('griph_sdPCanberraMatOMP', PACKAGE = 'griph', A, B, nthreads)
+}
+

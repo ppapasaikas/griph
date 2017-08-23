@@ -242,3 +242,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SPearsonMatOMP
+SEXP SPearsonMatOMP(SEXP A, int nthreads);
+RcppExport SEXP griph_SPearsonMatOMP(SEXP ASEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type A(ASEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(SPearsonMatOMP(A, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// ssPCanberraMatOMP
+SEXP ssPCanberraMatOMP(SEXP A, SEXP B, int nthreads);
+RcppExport SEXP griph_ssPCanberraMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type A(ASEXP);
+    Rcpp::traits::input_parameter< SEXP >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(ssPCanberraMatOMP(A, B, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sdPCanberraMatOMP
+SEXP sdPCanberraMatOMP(SEXP A, SEXP B, int nthreads);
+RcppExport SEXP griph_sdPCanberraMatOMP(SEXP ASEXP, SEXP BSEXP, SEXP nthreadsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type A(ASEXP);
+    Rcpp::traits::input_parameter< SEXP >::type B(BSEXP);
+    Rcpp::traits::input_parameter< int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sdPCanberraMatOMP(A, B, nthreads));
+    return rcpp_result_gen;
+END_RCPP
+}
