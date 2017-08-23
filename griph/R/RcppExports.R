@@ -2,35 +2,35 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 checkBits <- function() {
-    .Call('griph_checkBits', PACKAGE = 'griph')
+    .Call(`_griph_checkBits`)
 }
 
 checkOpenMP <- function() {
-    .Call('griph_checkOpenMP', PACKAGE = 'griph')
+    .Call(`_griph_checkOpenMP`)
 }
 
 searchTrees <- function(threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose) {
-    .Call('griph_searchTrees', PACKAGE = 'griph', threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
+    .Call(`_griph_searchTrees`, threshold, n_trees, K, maxIter, data, distMethod, seed, threads, verbose)
 }
 
 fastDistance <- function(is, js, data, distMethod, threads, verbose) {
-    .Call('griph_fastDistance', PACKAGE = 'griph', is, js, data, distMethod, threads, verbose)
+    .Call(`_griph_fastDistance`, is, js, data, distMethod, threads, verbose)
 }
 
 fastCDistance <- function(is, js, i_locations, p_locations, x, distMethod, threads, verbose) {
-    .Call('griph_fastCDistance', PACKAGE = 'griph', is, js, i_locations, p_locations, x, distMethod, threads, verbose)
+    .Call(`_griph_fastCDistance`, is, js, i_locations, p_locations, x, distMethod, threads, verbose)
 }
 
 fastSDistance <- function(is, js, i_locations, j_locations, x, distMethod, threads, verbose) {
-    .Call('griph_fastSDistance', PACKAGE = 'griph', is, js, i_locations, j_locations, x, distMethod, threads, verbose)
+    .Call(`_griph_fastSDistance`, is, js, i_locations, j_locations, x, distMethod, threads, verbose)
 }
 
 referenceWij <- function(i, j, d, threads, perplexity) {
-    .Call('griph_referenceWij', PACKAGE = 'griph', i, j, d, threads, perplexity)
+    .Call(`_griph_referenceWij`, i, j, d, threads, perplexity)
 }
 
 sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose) {
-    .Call('griph_sgd', PACKAGE = 'griph', coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
+    .Call(`_griph_sgd`, coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples, M, alpha, momentum, useDegree, seed, threads, verbose)
 }
 
 #' @title Canberra distance between columns of two matrices.
@@ -56,7 +56,7 @@ sgd <- function(coords, targets_i, sources_j, ps, weights, gamma, rho, n_samples
 #' PHellingerMat(x, y)
 #'
 PCanberraMat <- function(A, B) {
-    .Call('griph_PCanberraMat', PACKAGE = 'griph', A, B)
+    .Call(`_griph_PCanberraMat`, A, B)
 }
 
 #' @title Canberra distance between columns of two matrices (OpenMP version).
@@ -85,7 +85,7 @@ PCanberraMat <- function(A, B) {
 #' PHellingerMatOMP(x, y)
 #'
 PCanberraMatOMP <- function(A, B, nthreads = 2L) {
-    .Call('griph_PCanberraMatOMP', PACKAGE = 'griph', A, B, nthreads)
+    .Call(`_griph_PCanberraMatOMP`, A, B, nthreads)
 }
 
 #' @title Hellinger distance between columns of two matrices.
@@ -111,7 +111,7 @@ PCanberraMatOMP <- function(A, B, nthreads = 2L) {
 #' PHellingerMat(x, y)
 #'
 PHellingerMat <- function(A, B) {
-    .Call('griph_PHellingerMat', PACKAGE = 'griph', A, B)
+    .Call(`_griph_PHellingerMat`, A, B)
 }
 
 #' @title Hellinger distance between columns of two matrices (OpenMP version).
@@ -140,7 +140,7 @@ PHellingerMat <- function(A, B) {
 #' PHellingerMatOMP(x, y)
 #'
 PHellingerMatOMP <- function(A, B, nthreads = 2L) {
-    .Call('griph_PHellingerMatOMP', PACKAGE = 'griph', A, B, nthreads)
+    .Call(`_griph_PHellingerMatOMP`, A, B, nthreads)
 }
 
 #' @title Pearson's correlation coefficient between columns of two matrices
@@ -171,15 +171,15 @@ PHellingerMatOMP <- function(A, B, nthreads = 2L) {
 #' PPearsonMatOMP(x, y)
 #'
 PPearsonMatOMP <- function(A, B, nthreads = 2L) {
-    .Call('griph_PPearsonMatOMP', PACKAGE = 'griph', A, B, nthreads)
+    .Call(`_griph_PPearsonMatOMP`, A, B, nthreads)
 }
 
 searchTreesCSparse <- function(threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose) {
-    .Call('griph_searchTreesCSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
+    .Call(`_griph_searchTreesCSparse`, threshold, n_trees, K, maxIter, i, p, x, distMethod, seed, threads, verbose)
 }
 
 searchTreesTSparse <- function(threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose) {
-    .Call('griph_searchTreesTSparse', PACKAGE = 'griph', threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
+    .Call(`_griph_searchTreesTSparse`, threshold, n_trees, K, maxIter, i, j, x, distMethod, seed, threads, verbose)
 }
 
 #' @title Pearson's correlation coefficient between columns of a sparse matrix
@@ -209,14 +209,14 @@ searchTreesTSparse <- function(threshold, n_trees, K, maxIter, i, j, x, distMeth
 #' SPearsonMatOMP(xs)
 #'
 SPearsonMatOMP <- function(A, nthreads = 2L) {
-    .Call('griph_SPearsonMatOMP', PACKAGE = 'griph', A, nthreads)
+    .Call(`_griph_SPearsonMatOMP`, A, nthreads)
 }
 
 ssPCanberraMatOMP <- function(A, B, nthreads = 2L) {
-    .Call('griph_ssPCanberraMatOMP', PACKAGE = 'griph', A, B, nthreads)
+    .Call(`_griph_ssPCanberraMatOMP`, A, B, nthreads)
 }
 
 sdPCanberraMatOMP <- function(A, B, nthreads = 2L) {
-    .Call('griph_sdPCanberraMatOMP', PACKAGE = 'griph', A, B, nthreads)
+    .Call(`_griph_sdPCanberraMatOMP`, A, B, nthreads)
 }
 

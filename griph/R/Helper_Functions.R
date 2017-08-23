@@ -101,10 +101,9 @@ select_variable_genes<-function(m) {
     df<-data.frame(mean=rowMeans(m+1/ncol(m)),cv=apply(m,1,sd)/rowMeans(m+1/ncol(m)),var=apply(m,1,var))
     df$dispersion<-with(df,var/mean)
     df$mean_bin<-with(df,cut(mean,breaks=c(-Inf,unique(quantile(mean,seq(0.1,1,0.05),na.rm=TRUE) )  ,Inf)))
-    var_by_bin<-ddply(df,"mean_bin",function(x) {
-        data.frame(bin_median=median(x$dispersion),
-                   bin_mad=mad(x$dispersion))
-    })
+    var_by_bin <- data.frame(mean_bin=factor(levels(df$mean_bin), levels=levels(df$mean_bin)),
+                             bin_median=as.numeric(tapply(df$dispersion, df$mean_bin, median)),
+                             bin_mad=as.numeric(tapply(df$dispersion, df$mean_bin, mad)))[table(df$mean_bin) > 0,]
     df$bin_disp_median<-var_by_bin$bin_median[match(df$mean_bin,var_by_bin$mean_bin)]
     df$bin_disp_mad<-var_by_bin$bin_mad[match(df$mean_bin,var_by_bin$mean_bin)]
     df$dispersion_norm<-with(df,(dispersion-bin_disp_median)/(bin_disp_mad+0.01) )
