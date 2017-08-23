@@ -25,14 +25,14 @@ get.knn <- function(S, k = round(sqrt(nrow(S)) ) ) {
 keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
   n <- diff(S@p)
   lst <- split(S@x, rep.int(1:ncol(S), n))
-  o<-lapply(lst, function(x) rank(-x)  )
-  o=unlist(o)
-  S@x[o > k]=0
+  o <- lapply(lst, function(x) rank(-x))
+  o <- unlist(o)
+  S@x[o > k] <- 0
   
-  S@x=pmin(S@x, t(S)@x)
+  S@x <- pmin(S@x, t(S)@x)
   #S=sqrt( S * t(S) )  #Slower than line above, only works for strictly positive S
   
-  S=Matrix::drop0((S))
+  S <- Matrix::drop0((S))
   return( S ) 
  }
 
@@ -46,14 +46,20 @@ keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
 #' 
 #' @return a sparse Matrix of class CsparseMatrix with a fraction of \code{pct} non-zero elements per column.
 sparsify <- function(S, pct = 0.1) {
-n <- diff(S@p)
-lst <- split(S@x, rep.int(1:ncol(S), n))
-o<-lapply(lst, function(x) {  y=rank(-x);  if (length(y)>2) { y[ y> max(3,min(100,length(y)*pct))    ]=0 }; return(y)  }   )
-o=unlist(o)
-S@x[o == 0]=0
-#S@x=pmin(S@x, t(S)@x)
-S=Matrix::drop0((S))
-return( as(S, "dgCMatrix")  )  
+    n <- diff(S@p)
+    lst <- split(S@x, rep.int(1:ncol(S), n))
+    o <- lapply(lst, function(x) {
+        y <- rank(-x)
+        if (length(y) > 2) {
+            y[ y > max(3,min(100,length(y)*pct))] <- 0
+        }
+        return(y)
+    })
+    o <- unlist(o)
+    S@x[o == 0] <- 0
+    #S@x=pmin(S@x, t(S)@x)
+    S <- Matrix::drop0((S))
+    return( as(S, "dgCMatrix")  )
 }
 
 
@@ -67,7 +73,7 @@ return( as(S, "dgCMatrix")  )
 sparse.cor <- function(x){
     n <- nrow(x)
     cMeans <- colMeans(x)
-    covmat <- (as.matrix(crossprod(x)) - n*tcrossprod(cMeans))/(n-1)
+    covmat <- (as.matrix(crossprod(x)) - n*tcrossprod(cMeans))/(n - 1)
     sdvec <- sqrt(diag(covmat)) 
     cormat <- covmat/tcrossprod(sdvec)
 }
@@ -83,8 +89,8 @@ sparse.cor <- function(x){
 psparse.cor <- function(x, y){
     n <- nrow(x)
     v <- t(scale(y))
-    sdvec <- sqrt(colSums(x^2)/(n-1) - colSums(x)^2/(n^2 - n)) 
-    cormat <- tcrossprod(t(x)/sdvec, v)/(n-1)
+    sdvec <- sqrt(colSums(x^2)/(n - 1) - colSums(x)^2/(n^2 - n)) 
+    cormat <- tcrossprod(t(x)/sdvec, v)/(n - 1)
     return( as(cormat,"matrix") ) 
 }
 
@@ -97,16 +103,16 @@ psparse.cor <- function(x, y){
 #'
 #' @param m  a (protentially sparse) gene x cells count matrix
 #' @return a vector of normalized (robust Z-scores) dispersion values, one per gene.
-select_variable_genes<-function(m) {
-    df<-data.frame(mean=rowMeans(m+1/ncol(m)),cv=apply(m,1,sd)/rowMeans(m+1/ncol(m)),var=apply(m,1,var))
-    df$dispersion<-with(df,var/mean)
-    df$mean_bin<-with(df,cut(mean,breaks=c(-Inf,unique(quantile(mean,seq(0.1,1,0.05),na.rm=TRUE) )  ,Inf)))
-    var_by_bin <- data.frame(mean_bin=factor(levels(df$mean_bin), levels=levels(df$mean_bin)),
-                             bin_median=as.numeric(tapply(df$dispersion, df$mean_bin, median)),
-                             bin_mad=as.numeric(tapply(df$dispersion, df$mean_bin, mad)))[table(df$mean_bin) > 0,]
-    df$bin_disp_median<-var_by_bin$bin_median[match(df$mean_bin,var_by_bin$mean_bin)]
-    df$bin_disp_mad<-var_by_bin$bin_mad[match(df$mean_bin,var_by_bin$mean_bin)]
-    df$dispersion_norm<-with(df,(dispersion-bin_disp_median)/(bin_disp_mad+0.01) )
+select_variable_genes <- function(m) {
+    df <- data.frame(mean = rowMeans(m + 1/ncol(m)), cv = apply(m,1,sd) / rowMeans(m + 1/ncol(m)), var = apply(m,1,var))
+    df$dispersion <- with(df, var/mean)
+    df$mean_bin <- with(df, cut(mean, breaks = c(-Inf, unique(quantile(mean, seq(0.1,1,0.05), na.rm = TRUE)), Inf)))
+    var_by_bin <- data.frame(mean_bin = factor(levels(df$mean_bin), levels = levels(df$mean_bin)),
+                             bin_median = as.numeric(tapply(df$dispersion, df$mean_bin, stats::median)),
+                             bin_mad = as.numeric(tapply(df$dispersion, df$mean_bin, stats::mad)))[table(df$mean_bin) > 0,]
+    df$bin_disp_median <- var_by_bin$bin_median[match(df$mean_bin, var_by_bin$mean_bin)]
+    df$bin_disp_mad <- var_by_bin$bin_mad[match(df$mean_bin, var_by_bin$mean_bin)]
+    df$dispersion_norm <- with(df, (dispersion - bin_disp_median)/(bin_disp_mad + 0.01) )
     return(df$dispersion_norm)
 }
 
@@ -404,9 +410,9 @@ clusteringScore <- function(DM, classification, score.type = c("sdLogFC"), R = 2
 #' edge weights
 #' 
 edge.weights <- function(community, network, weight.within = 10, weight.between = 1) {
-    bridges <- crossing(communities = community, graph = network)
+    bridges <- igraph::crossing(communities = community, graph = network)
     weights <- ifelse(test = bridges, yes = weight.between, no = weight.within)
-    weights = weights*E(network)$weight
+    weights <- weights * igraph::E(network)$weight
     return(weights) 
 }
 
