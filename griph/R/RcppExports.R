@@ -212,10 +212,52 @@ SPearsonMatOMP <- function(A, nthreads = 2L) {
     .Call(`_griph_SPearsonMatOMP`, A, nthreads)
 }
 
+#' @title sparse-sparse verion of PCanberraMatOMP
+#' 
+#' @description
+#' \code{ssPCanberraMatOMP} is an alternative version of \code{PCanberraMatOMP}
+#' for sparse inputs.
+#'
+#' @param A  Sparse numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+#' @param B  Sparse numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+#' @param nthreads Integer specifying the number of OpenMP threads to use in
+#'     parallel parts (defaults to two, ignored on systems not supporting
+#'     OpenMP).
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(c(1,0,4,0,0,1,2,5,0,3,0,0,1,3,0), nrow=5)
+#' xs <- as(x, "sparseMatrix")
+#' 
+#' PCanberraMatOMP(x, x)
+#' ssPCanberraMatOMP(xs, xs)
+#'
 ssPCanberraMatOMP <- function(A, B, nthreads = 2L) {
     .Call(`_griph_ssPCanberraMatOMP`, A, B, nthreads)
 }
 
+#' @title sparse-dense verion of PCanberraMatOMP
+#' 
+#' @description
+#' \code{sdPCanberraMatOMP} is an alternative version of \code{PCanberraMatOMP}
+#' for sparse and dense inputs.
+#'
+#' @param A  Sparse numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+#' @param B  Dense numeric matrix (variables by features). Must be a \code{matrix}.
+#' @param nthreads Integer specifying the number of OpenMP threads to use in
+#'     parallel parts (defaults to two, ignored on systems not supporting
+#'     OpenMP).
+#'
+#' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+#'
+#' @examples
+#' x <- matrix(c(1,0,4,0,0,1,2,5,0,3,0,0,1,3,0), nrow=5)
+#' xs <- as(x, "sparseMatrix")
+#' 
+#' PCanberraMatOMP(x, x)
+#' sdPCanberraMatOMP(xs, x)
+#'
 sdPCanberraMatOMP <- function(A, B, nthreads = 2L) {
     .Call(`_griph_sdPCanberraMatOMP`, A, B, nthreads)
 }

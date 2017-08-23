@@ -16,38 +16,44 @@
 */
 
 /* .Call calls */
-extern SEXP _griph_PCanberraMat(SEXP, SEXP);
-extern SEXP _griph_PCanberraMatOMP(SEXP, SEXP, SEXP);
-extern SEXP _griph_PHellingerMat(SEXP, SEXP);
-extern SEXP _griph_PHellingerMatOMP(SEXP, SEXP, SEXP);
-extern SEXP _griph_PPearsonMatOMP(SEXP, SEXP, SEXP);
 extern SEXP _griph_checkBits();
 extern SEXP _griph_checkOpenMP();
 extern SEXP _griph_fastCDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _griph_fastDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _griph_fastSDistance(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _griph_PCanberraMat(SEXP, SEXP);
+extern SEXP _griph_PCanberraMatOMP(SEXP, SEXP, SEXP);
+extern SEXP _griph_PHellingerMat(SEXP, SEXP);
+extern SEXP _griph_PHellingerMatOMP(SEXP, SEXP, SEXP);
+extern SEXP _griph_PPearsonMatOMP(SEXP, SEXP, SEXP);
 extern SEXP _griph_referenceWij(SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _griph_sdPCanberraMatOMP(SEXP, SEXP, SEXP);
 extern SEXP _griph_searchTrees(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _griph_searchTreesCSparse(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _griph_searchTreesTSparse(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _griph_sgd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _griph_SPearsonMatOMP(SEXP, SEXP);
+extern SEXP _griph_ssPCanberraMatOMP(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_griph_PCanberraMat",       (DL_FUNC) &_griph_PCanberraMat,        2},
-    {"_griph_PCanberraMatOMP",    (DL_FUNC) &_griph_PCanberraMatOMP,     3},
-    {"_griph_PHellingerMat",      (DL_FUNC) &_griph_PHellingerMat,       2},
-    {"_griph_PHellingerMatOMP",   (DL_FUNC) &_griph_PHellingerMatOMP,    3},
-    {"_griph_PPearsonMatOMP",     (DL_FUNC) &_griph_PPearsonMatOMP,      3},
     {"_griph_checkBits",          (DL_FUNC) &_griph_checkBits,           0},
     {"_griph_checkOpenMP",        (DL_FUNC) &_griph_checkOpenMP,         0},
     {"_griph_fastCDistance",      (DL_FUNC) &_griph_fastCDistance,       8},
     {"_griph_fastDistance",       (DL_FUNC) &_griph_fastDistance,        6},
     {"_griph_fastSDistance",      (DL_FUNC) &_griph_fastSDistance,       8},
+    {"_griph_PCanberraMat",       (DL_FUNC) &_griph_PCanberraMat,        2},
+    {"_griph_PCanberraMatOMP",    (DL_FUNC) &_griph_PCanberraMatOMP,     3},
+    {"_griph_PHellingerMat",      (DL_FUNC) &_griph_PHellingerMat,       2},
+    {"_griph_PHellingerMatOMP",   (DL_FUNC) &_griph_PHellingerMatOMP,    3},
+    {"_griph_PPearsonMatOMP",     (DL_FUNC) &_griph_PPearsonMatOMP,      3},
     {"_griph_referenceWij",       (DL_FUNC) &_griph_referenceWij,        5},
+    {"_griph_sdPCanberraMatOMP",  (DL_FUNC) &_griph_sdPCanberraMatOMP,   3},
     {"_griph_searchTrees",        (DL_FUNC) &_griph_searchTrees,         9},
     {"_griph_searchTreesCSparse", (DL_FUNC) &_griph_searchTreesCSparse, 11},
     {"_griph_searchTreesTSparse", (DL_FUNC) &_griph_searchTreesTSparse, 11},
     {"_griph_sgd",                (DL_FUNC) &_griph_sgd,                15},
+    {"_griph_SPearsonMatOMP",     (DL_FUNC) &_griph_SPearsonMatOMP,      2},
+    {"_griph_ssPCanberraMatOMP",  (DL_FUNC) &_griph_ssPCanberraMatOMP,   3},
     {NULL, NULL, 0}
 };
 
