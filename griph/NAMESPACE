@@ -25,7 +25,7 @@ importFrom(coop, pcor)  #Fast pearson's correlation implementation using BLAS
 importFrom("methods", "new", "as")
 importFrom("grDevices", "dev.off", "hcl", "pdf", "png", "colorRampPalette", "rgb")
 importFrom("graphics", "legend", "par", "plot", "symbols", "points")
-importFrom("stats", "IQR", "cor", "dist","as.dist", "median", "nls", "predict", "quantile", "sd","kmeans")
+importFrom("stats", "IQR", "cor", "dist","as.dist", "median", "nls", "predict", "quantile", "sd", "kmeans", "var", "mad")
 importFrom("utils", "flush.console")
 import(RColorBrewer)
 
