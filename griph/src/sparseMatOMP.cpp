@@ -56,6 +56,8 @@
 //'
 // [[Rcpp::export]]
 SEXP SPearsonMatOMP(SEXP A, int nthreads = 2) {
+    Rf_warning("SPearsonMatOMP is not functional yet - use PPearsonMatOMP on dense matrices instead");
+    
     CHM_SP cx = AS_CHM_SP__(A);
     // R_CheckStack();
 
@@ -228,7 +230,27 @@ SEXP SPearsonMatOMP(SEXP A, int nthreads = 2) {
  */
 
 
-// sparse-sparse verion of PCanberraMatOMP (A is a "dgcMatrix", B is a "dgcMatrix")
+//' @title sparse-sparse verion of PCanberraMatOMP
+//' 
+//' @description
+//' \code{ssPCanberraMatOMP} is an alternative version of \code{PCanberraMatOMP}
+//' for sparse inputs.
+//'
+//' @param A  Sparse numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+//' @param B  Sparse numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+//' @param nthreads Integer specifying the number of OpenMP threads to use in
+//'     parallel parts (defaults to two, ignored on systems not supporting
+//'     OpenMP).
+//'
+//' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+//'
+//' @examples
+//' x <- matrix(c(1,0,4,0,0,1,2,5,0,3,0,0,1,3,0), nrow=5)
+//' xs <- as(x, "sparseMatrix")
+//' 
+//' PCanberraMatOMP(x, x)
+//' ssPCanberraMatOMP(xs, xs)
+//'
 // [[Rcpp::export]]
 SEXP ssPCanberraMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     CHM_SP cA = AS_CHM_SP__(A);
@@ -322,7 +344,27 @@ SEXP ssPCanberraMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     return(answer);
 }
 
-// sparse-dense verion of PCanberraMatOMP (A is a "dgcMatrix", B is a "matrix")
+//' @title sparse-dense verion of PCanberraMatOMP
+//' 
+//' @description
+//' \code{sdPCanberraMatOMP} is an alternative version of \code{PCanberraMatOMP}
+//' for sparse and dense inputs.
+//'
+//' @param A  Sparse numeric matrix (variables by features). Must be a \code{dgCMatrix}.
+//' @param B  Dense numeric matrix (variables by features). Must be a \code{matrix}.
+//' @param nthreads Integer specifying the number of OpenMP threads to use in
+//'     parallel parts (defaults to two, ignored on systems not supporting
+//'     OpenMP).
+//'
+//' @return A matrix of dimensions \code{ncol(A})-by-\code{ncol(B)}.
+//'
+//' @examples
+//' x <- matrix(c(1,0,4,0,0,1,2,5,0,3,0,0,1,3,0), nrow=5)
+//' xs <- as(x, "sparseMatrix")
+//' 
+//' PCanberraMatOMP(x, x)
+//' sdPCanberraMatOMP(xs, x)
+//'
 // [[Rcpp::export]]
 SEXP sdPCanberraMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     CHM_SP cA = AS_CHM_SP__(A);
