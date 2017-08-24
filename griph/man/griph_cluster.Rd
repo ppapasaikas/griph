@@ -6,9 +6,9 @@
 \usage{
 griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
   ncores = "all", filter = TRUE, rho = 0.25, batch.penalty = 0.5,
-  ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL, ncom = NULL,
-  plotG = TRUE, maxG = 2500, fsuffix = RandString(),
-  image.format = "png")
+  seed = 127350, ClassAssignment = rep(1, ncol(DM)),
+  BatchAssignment = NULL, ncom = NULL, plotG = TRUE, maxG = 2500,
+  fsuffix = RandString(), image.format = "png")
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -39,6 +39,8 @@ the batch.penalty factor to account for BatchAssignment (if given).}
 \item{batch.penalty}{[0,1] rho scaling factor for enforcing topological constraints
 variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}.}
+
+\item{seed}{Set seed for reproducible results.}
 
 \item{ClassAssignment}{If available a numeric vector of length \code{k} with numeric
 class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}

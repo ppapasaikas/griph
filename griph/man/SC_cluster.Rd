@@ -6,7 +6,8 @@
 \usage{
 SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   filter = FALSE, do.glasso = TRUE, rho = 0.25, pr.iter = 1,
-  batch.penalty = 0.5, comm.method = igraph::cluster_infomap, ncom = NULL,
+  batch.penalty = 0.5, seed = 127350,
+  comm.method = igraph::cluster_infomap, ncom = NULL,
   ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL,
   plotG = TRUE, maxG = 2500, fsuffix = RandString(),
   image.format = "png", ...)
@@ -42,6 +43,8 @@ Set to zero to deactivate.}
 \item{batch.penalty}{[0,1] rho scaling factor for enforcing topological constraints
 variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}.}
+
+\item{seed}{Set seed for reproducible results.}
 
 \item{comm.method}{Community detection algorithm. See igraph "communities"}
 
