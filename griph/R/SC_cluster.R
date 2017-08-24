@@ -9,9 +9,11 @@
 #' @param PHellinger Function to calculate Hellinger Distance between the columns of two matrices.
 #' @param PCanberra Function to calculate Canberra Distance between the columns of two matrices.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
+#' @param seed Set seed for reproducible results.
 #' 
 #' @return cell-by-cell distance matrix.
-WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
+WScor <- function (M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor,seed=127350   ) {
+    set.seed(seed = seed) #Set seed for reproducible results
     nBulks=min(1500, ceiling(5*ncol(M)) )
     FBsize=2
     Gcounts=colSums(M>0)
@@ -155,6 +157,7 @@ PPR <- function (G,df=0.75){
 #' @param batch.penalty [0,1] rho scaling factor for enforcing topological constraints
 #'     variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 #'     rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}. 
+#' @param seed Set seed for reproducible results.
 #' @param comm.method  Community detection algorithm. See igraph "communities" 
 #' @param ncom Forces the community detection algorithm to a fixed number of communities.
 #'     If \code{NULL} (default) then the optimal determined number of clusters of
@@ -174,7 +177,7 @@ PPR <- function (G,df=0.75){
 
 SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
                        filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
-                       comm.method=igraph::cluster_infomap,ncom=NULL,
+                       seed=127350, comm.method=igraph::cluster_infomap,ncom=NULL,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                        plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png', ...){
     
@@ -210,7 +213,7 @@ SC_cluster <- function(DM, use.par=FALSE,ncores="all",is.cor = FALSE,
     if (!isTRUE(is.cor)) {  
         C=list()
         message("Calculating Pairwise and Diffused Similarities...", appendLF = FALSE)
-        C[[2]]=WScor(DM, PPearsonCor=PPearsonCor, PSpearmanCor=PSpearmanCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor )
+        C[[2]]=WScor(DM, PPearsonCor=PPearsonCor, PSpearmanCor=PSpearmanCor, PHellinger=PHellinger, PCanberra=PCanberra, ShrinkCor=ShrinkCor,seed=seed )
         message("done")
     }
     

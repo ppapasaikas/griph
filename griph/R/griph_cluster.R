@@ -112,6 +112,7 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' @param batch.penalty [0,1] rho scaling factor for enforcing topological constraints
 #'     variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 #'     rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}. 
+#' @param seed Set seed for reproducible results.
 #' @param ClassAssignment If available a numeric vector of length \code{k} with numeric
 #'     class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
 #' @param BatchAssignment If available a numeric vector of length \code{k} with numeric
@@ -129,14 +130,14 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 
 
 griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores="all",
-                          filter = TRUE, rho = 0.25, batch.penalty = 0.5,
+                          filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed=127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom=NULL,
                           plotG = TRUE, maxG = 2500, fsuffix = RandString(), image.format='png'){
     if (ref.iter==0 && !is.null(SamplingSize) && ncol(DM) > SamplingSize)
         warning("only ",SamplingSize," of ",ncol(DM)," cells selected for clustering")
     
     ptm=proc.time() #Start clock
-    
+    set.seed(seed = seed) #Set seed for reproducible results
     params <-as.list(environment())
     params$plotG=FALSE 
     
