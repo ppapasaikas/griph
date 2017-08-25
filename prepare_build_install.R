@@ -24,6 +24,9 @@ devtools::install(pkg = "./griph")
 devtools::install(pkg = "./griph", build_vignettes = TRUE)
 devtools::install(pkg = "./griph", reload = TRUE, quick = TRUE)
 
+# build vignette only
+#devtools::build_vignettes(pkg = "./griph/") # will build vignette, clean up the ./vignettes directory and copy the output files to ./inst/doc
+
 # ... directly from github
 devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
 #devtools::install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph", branch = "Testing")
