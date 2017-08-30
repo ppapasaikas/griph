@@ -167,7 +167,7 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
         
         if (ncores == "all") {
             ncores <- parallel::detectCores()
-            ncores <- min(48, floor(0.9 * ncores), ceiling(ncol(DM) / 200))
+            ncores <- min( ceiling(0.9 * ncores), ceiling(ncol(DM) / 200))
         } else {
             ncores <- min(ncores, parallel::detectCores(), ceiling(ncol(DM) / 200))
         }
