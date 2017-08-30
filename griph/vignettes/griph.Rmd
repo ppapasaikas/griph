@@ -72,7 +72,8 @@ table(trueLabel)
 Cell types can be identified using *griph_cluster*:  
 ```{r tung_griph_cluster, message=FALSE}
 library(griph)
-res <- griph_cluster(M, ClassAssignment = trueLabel, plotG = TRUE, fsuffix='tung')
+res <- griph_cluster(M, ClassAssignment = trueLabel, use.par = FALSE,
+                     plotG = TRUE, fsuffix = 'tung')
 ```
 ```{r tung_types}
 table(res$MEMB)
