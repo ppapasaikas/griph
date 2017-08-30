@@ -8,7 +8,7 @@ griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
   ncores = "all", filter = TRUE, rho = 0.25, batch.penalty = 0.5,
   seed = 127350, ClassAssignment = rep(1, ncol(DM)),
   BatchAssignment = NULL, ncom = NULL, plotG = TRUE, maxG = 2500,
-  fsuffix = RandString(), image.format = "png")
+  fsuffix = NULL, image.format = "png")
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -50,11 +50,11 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
 \item{ncom}{Forces detection of a fixed number of clusters (communities).}
 
-\item{plotG}{if \code{TRUE} plots the resulting graph}
+\item{plotG}{if \code{TRUE} plots the resulting graph using \code{plotLVis}}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
 
-\item{fsuffix}{A suffix added to the file names of output plots. If not given
+\item{fsuffix}{A suffix added to the file names of output plots. If \code{NULL} (default),
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}

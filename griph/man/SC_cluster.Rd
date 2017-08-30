@@ -9,8 +9,7 @@ SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   batch.penalty = 0.5, seed = 127350,
   comm.method = igraph::cluster_infomap, ncom = NULL,
   ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL,
-  plotG = TRUE, maxG = 2500, fsuffix = RandString(),
-  image.format = "png", ...)
+  plotG = TRUE, maxG = 2500, fsuffix = NULL, image.format = "png", ...)
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -58,11 +57,11 @@ class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 \item{BatchAssignment}{If available a numeric vector of length \code{k} with numeric
 batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
-\item{plotG}{if \code{TRUE} plots the resulting graph}
+\item{plotG}{if \code{TRUE} plots the resulting graph using \code{plotLVis}}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
 
-\item{fsuffix}{A suffix added to the file names of output plots. If not given
+\item{fsuffix}{A suffix added to the file names of output plots. If \code{NULL} (default),
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}
