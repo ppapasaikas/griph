@@ -230,7 +230,8 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
                 sum.cM <- (colSums(cM) - 1) / 2
                 Y1 <- sum.cM
                 X1 <- log2(Gcounts[SMPL])
-                m <- nls(Y1 ~ a * X1 + b, start = list(a = -5, b = -10))
+                #m <- nls(Y1 ~ a * X1 + b, start = list(a = -5, b = -10))
+                m <- lm(Y1 ~ X1)
                 Yhat <- predict(m)
                 exclude <- which(Y1 / Yhat > quantile(Y1 / Yhat, 0.5) & sum.cM > quantile(sum.cM, 0.25))
                 fraction <- min((ncol(DM)^2) / 1e07, 0.9)
