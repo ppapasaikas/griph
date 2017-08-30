@@ -149,6 +149,12 @@ algorithm described by Tang et al. (2016) in \url{https://doi.org/10.1145/287242
 plotLVis(res, fill.type = "predicted", line.type = "none", mark.type = "true")
 ```
 
+Finally, the plotting functions can also map numerical or categorical values to
+the color of each cell. An example is to visualize the fraction of detected genes:  
+```{r tung_detectedGenes, message=FALSE, echo=TRUE, results='hide'}
+plotLVis(res, fill.type = colMeans(M > 0), line.type = "none", mark.type = "true")
+```
+
 # Accessing the cell classification
 *griph_cluster* identified `r length(unique(res$MEMB))`
 cell types in the data, and the confusion matrix returned in the result summarizes
