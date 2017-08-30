@@ -76,51 +76,47 @@ WScor <- function(M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra, ShrinkCor
 
 
 
-Spcor <- function (M) { #Spearman's correlation using coop
-    R=vapply(c(1:ncol(M)),function (x) rank(M[,x]),FUN.VALUE=double(length=nrow(M) ) )
-    R=coop::pcor(R)
+Spcor <- function(M) { # Spearman's correlation using coop
+    R <- vapply(c(1:ncol(M)), function(x) rank(M[, x]), FUN.VALUE <- double(length = nrow(M)))
+    R <- coop::pcor(R)
     return(R)
 }
 
 
-PSpcor <- function (M1,M2) { #Spearman's correlation using coop
-    R1=vapply(c(1:ncol(M1)),function (x) rank(M1[,x]),FUN.VALUE=double(length=nrow(M1) ) )
-    R2=vapply(c(1:ncol(M2)),function (x) rank(M2[,x]),FUN.VALUE=double(length=nrow(M2) ) )
-    R=stats::cor(R1,R2)
+PSpcor <- function(M1, M2) { # Spearman's correlation for two matrices
+    R1 <- vapply(c(1:ncol(M1)), function(x) rank(M1[,x]), FUN.VALUE = double(length = nrow(M1)))
+    R2 <- vapply(c(1:ncol(M2)), function(x) rank(M2[,x]), FUN.VALUE = double(length = nrow(M2)))
+    R <- stats::cor(R1,R2)
     return(R)
 }
 
 
-canberra <- function (M) {
-    D=as.matrix(dist(t(M),method="canberra" )) #
+canberra <- function(M) {
+    D <- as.matrix(dist(t(M), method = "canberra"))
     return(D)
 }
 
 
-Qglasso <- function (C,rho=0.5,tol=1e-3,maxIter=100,msg=0) {
-    X<-QUIC::QUIC(C,rho=rho,tol=tol,maxIter=maxIter,msg=msg)$X 
+Qglasso <- function(C, rho = 0.5, tol = 1e-3, maxIter = 100, msg = 0) {
+    X <- QUIC::QUIC(C, rho = rho, tol = tol, maxIter = maxIter, msg = msg)$X 
     return(X)
 }
 
-
-PPR <- function (G,df=0.75){
+PPR <- function(G, df = 0.75) {
     if (!isTRUE(igraph::is.igraph(G))) {  
-        if (!isSymmetric(G) )  {stop ("!! G should be either a graph object or a symmetric matrix !!")}   
-        G=igraph::graph.adjacency(G [1:nrow(G),1:nrow(G)],mode=c("max"),weighted=TRUE,diag=FALSE)
+        if (!isSymmetric(G))
+            stop("G must be either a graph object or a symmetric matrix")
+        G <- igraph::graph.adjacency(G[1:nrow(G), 1:nrow(G)], mode = "max", weighted = TRUE, diag = FALSE)
     }
-    L=length(V(G))
-    PR=diag(nrow=L)
-    vals=sapply(1:L, function(x) igraph::page_rank(G, vids=c(1:L),personalized=PR[,x],damping=df )$vector   )
-    PR[1:length(PR)]=log2(unlist(vals)+(0.01/L))
-    PR[lower.tri(PR)]=(PR[lower.tri(PR)]+t(PR)[lower.tri(t(PR))])/2
-    PR[upper.tri(PR)]=t(PR)[upper.tri(t(PR))]
-    PR=2^PR
+    L <- length(V(G))
+    PR <- diag(nrow = L)
+    vals <- sapply(1:L, function(x) igraph::page_rank(G, vids = c(1:L), personalized = PR[,x], damping = df)$vector)
+    PR[1:length(PR)] <- log2(unlist(vals) + (0.01 / L))
+    PR[lower.tri(PR)] = (PR[lower.tri(PR)] + t(PR)[lower.tri(t(PR))]) / 2
+    PR[upper.tri(PR)] = t(PR)[upper.tri(t(PR))]
+    PR = 2^PR
     return(PR)
 }
-
-
-
-
 
 
 
@@ -164,7 +160,8 @@ PPR <- function (G,df=0.75){
 #'     class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
 #' @param BatchAssignment If available a numeric vector of length \code{k} with numeric
 #'     batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
-#' @param plotG if \code{TRUE} plots the resulting graph using \code{plotLVis}
+#' @param plot_ if \code{TRUE} plots the obtained graph using \code{plotLVis}. The resulting
+#'     2D-embedding is stored in the \code{plotLVis} component of the result.
 #' @param maxG Approximate maximal number of vertices to include when plotting the graph.
 #' @param fsuffix A suffix added to the file names of output plots. If \code{NULL} (default),
 #'     it will use a random 5 character string.
@@ -176,7 +173,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
                        filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
                        seed = 127350, comm.method = igraph::cluster_infomap, ncom = NULL,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
-                       plotG = TRUE, maxG = 2500, fsuffix = NULL, image.format='png', ...) {
+                       plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png', ...) {
     
     #######Internal parameters for testing puproses only:  
     qnt <- 8 #Max gene expression decile for imputation (e.g 8->bottom 70% of the genes are imputed) 
@@ -410,7 +407,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
                 miscl = misclErr, GRAO = GRAO, plotGRAO = NULL, plotLVis = NULL)
 
     ######### graph visualization
-    if (plotG) {
+    if (plot_) {
         if (is.null(fsuffix))
             fsuffix <- RandString()
         # ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,

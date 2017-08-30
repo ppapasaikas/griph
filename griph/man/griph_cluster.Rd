@@ -7,7 +7,7 @@
 griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
   ncores = "all", filter = TRUE, rho = 0.25, batch.penalty = 0.5,
   seed = 127350, ClassAssignment = rep(1, ncol(DM)),
-  BatchAssignment = NULL, ncom = NULL, plotG = TRUE, maxG = 2500,
+  BatchAssignment = NULL, ncom = NULL, plot_ = TRUE, maxG = 2500,
   fsuffix = NULL, image.format = "png")
 }
 \arguments{
@@ -50,7 +50,8 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
 \item{ncom}{Forces detection of a fixed number of clusters (communities).}
 
-\item{plotG}{if \code{TRUE} plots the resulting graph using \code{plotLVis}}
+\item{plot_}{if \code{TRUE} plots the obtained graph using \code{plotLVis}. The resulting
+2D-embedding is stored in the \code{plotLVis} component of the result.}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
 

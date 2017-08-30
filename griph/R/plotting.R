@@ -552,7 +552,7 @@ plotTsne <- function(gr,
 #' @param quiet If \code{TRUE}, do not report on progress.
 #' @param ... additional arguments passed to \code{largeVis::projectKNNs}
 #' 
-#' @return Invisible the results of the largeVis projection.
+#' @return Invisible the results of the largeVis projection as a two-column matrix.
 #' 
 #' @seealso \code{largeVis} used to calculate the largeVis projection.
 plotLVis <- function(gr,
@@ -568,29 +568,28 @@ plotLVis <- function(gr,
                      quiet=FALSE, ...) {
     
     
-    add.args=list(...)
+    add.args <- list(...)
     # get varaibles from gr
     MEMB <- gr$MEMB
     MEMB.true <- gr$MEMB.true
-    csize <- table(MEMB)
-    
+
     # digest arguments
     fill.type <- match.arg(fill.type)
     line.type <- match.arg(line.type)
     mark.type <- match.arg(mark.type)
-    if(is.null(names(custom.class))) {
-        stopifnot(length(custom.class)==length(MEMB))
+    if (is.null(names(custom.class))) {
+        stopifnot(length(custom.class) == length(MEMB))
         names(custom.class) <- names(MEMB)
     }
-    if(length(fill.col)==1) {
+    if (length(fill.col) == 1) {
         stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
         fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
     }
-    if(length(line.col)==1) {
+    if (length(line.col) == 1) {
         stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
         line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
     }
-    if(length(mark.col)==1) {
+    if (length(mark.col) == 1) {
         stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
         mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
     }
@@ -598,83 +597,84 @@ plotLVis <- function(gr,
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
     my.pt.cex <- 1.5
-    my.pt.lwd <- if(line.type == "none") 1.0 else 2.5
+    my.pt.lwd <- if (line.type == "none") 1.0 else 2.5
     
     # get largeVis projection
-    if(!quiet)
-        message("Computing largeVis projection...")
+    if ("plotLVis" %in% names(gr) && !is.null(gr$plotLVis)) {
+        if (!quiet)
+            message("Using existing largeVis projection")
+        res <- t(gr$plotLVis)
+    } else {
+        if (!quiet)
+            message("Computing largeVis projection...")
     
-    set.seed(seed = seed)
+        set.seed(seed = seed)
     
-    if (!is.element('sgd_batches',names(add.args))){
-        add.args$sgd_batches=max(0.1*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e7)  #!!!!!!Use GRAO instead!!! 
+       if (!is.element('sgd_batches', names(add.args)))
+            add.args$sgd_batches <- max(0.1*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e7)  #!!!!!!Use GRAO instead!!! 
+        if (!is.element('M',names(add.args)))
+            add.args$M <- 2    
+        if (!is.element('gamma', names(add.args)))
+            add.args$gamma <- 20    
+        if (!is.element('alpha', names(add.args)))
+            add.args$alpha <- 0.2
+        if (!is.element('useDegree', names(add.args)))
+            add.args$useDegree <- TRUE    
+
+        #res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
+        res <- do.call(projectKNNs, c(list(wij = gr$DISTM, seed = seed), add.args))
     }
-    if (!is.element('M',names(add.args))){
-        add.args$M=2    
-    }
-    if (!is.element('gamma',names(add.args))){
-        add.args$gamma=20    
-    }
-    if (!is.element('alpha',names(add.args))){
-        add.args$alpha=0.2
-    }
-    if (!is.element('useDegree',names(add.args))){
-        add.args$useDegree=TRUE    
-    }
-    
-    #res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
-    res <- do.call(projectKNNs, c( list(wij=gr$DISTM,seed=seed),add.args )    )
     
     # get colors
-    class.pred <- factor(MEMB, levels=sort(as.numeric(unique(MEMB))))
-    class.true <- factor(MEMB.true, levels=unique(MEMB.true))
+    class.pred <- factor(MEMB, levels = sort(as.numeric(unique(MEMB))))
+    class.true <- factor(MEMB.true, levels = unique(MEMB.true))
     class.none <- factor(rep(NA, length(MEMB)))
-    class.custom <- factor(custom.class, levels=unique(custom.class))
+    class.custom <- factor(custom.class, levels = unique(custom.class))
     
     class.fill <- switch(fill.type,
-                         predicted=class.pred,
-                         true=class.true,
-                         none=class.none,
-                         custom=class.custom)
-    fillColorPalette <- if(nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
+                         predicted = class.pred,
+                         true = class.true,
+                         none = class.none,
+                         custom = class.custom)
+    fillColorPalette <- if (nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
     fillColor <- fillColorPalette[as.numeric(class.fill)]
     
     class.line <- switch(line.type,
-                         predicted=class.pred,
-                         true=class.true,
-                         none=class.none,
-                         custom=class.custom)
-    lineColorPalette <- if(nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
+                         predicted = class.pred,
+                         true = class.true,
+                         none = class.none,
+                         custom = class.custom)
+    lineColorPalette <- if (nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
     lineColor <- lineColorPalette[as.numeric(class.line)]
     
     class.mark <- switch(mark.type,
-                         predicted=class.pred,
-                         true=class.true,
-                         none=class.none,
-                         custom=class.custom)
+                         predicted = class.pred,
+                         true = class.true,
+                         none = class.none,
+                         custom = class.custom)
     markElements <- split(seq_along(class.mark), class.mark)
-    markColor <- if(nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
+    markColor <- if (nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
     
     # open output file
-    if(!is.na(image.format)) {
-        if(image.format=='pdf') {
-            fname <- paste('Lvis_',fsuffix,'.pdf',sep="")
+    if (!is.na(image.format)) {
+        if (image.format == 'pdf') {
+            fname <- paste('Lvis_', fsuffix, '.pdf', sep = "")
             pdf(file = fname, width = 12, height = 10)
-        } else if (image.format=="png") {
-            fname <- paste('Lvis_',fsuffix,'.png',sep="")
+        } else if (image.format == "png") {
+            fname <- paste('Lvis_', fsuffix, '.png', sep = "")
             png(filename = fname, width = 12, height = 10, units = "in", res = 300)   
         }
-        if(!quiet)
-            message("\tsaving LargeVis plot to ",fname)
+        if (!quiet)
+            message("\tsaving LargeVis plot to ", fname)
     }
     
     # setup plot coordinate system
-    par(mar=c(5.1, 4.1, 4.1, 14.1), xpd=TRUE)
-    plot(t(res)[,1], t(res)[,2], type = "n", axes=FALSE, xlab="", ylab="")
+    par(mar = c(5.1, 4.1, 4.1, 14.1), xpd = TRUE)
+    plot(t(res)[,1], t(res)[,2], type = "n", axes = FALSE, xlab = "", ylab = "")
     
     # add mark polygons
-    if(mark.type != "none") {
-        for(j in which(lengths(markElements) > 0)) {
+    if (mark.type != "none") {
+        for (j in which(lengths(markElements) > 0)) {
             xy <- t(res)[markElements[[j]], , drop = FALSE]
             off <- par("cxy")[2]*1
             pp <- rbind(xy,
@@ -691,23 +691,23 @@ plotLVis <- function(gr,
     }
     
     # add cells
-    points(t(res), col = if(line.type=="none") "black" else lineColor,
-           bg = fillColor, pch = my.pch, lwd = my.pt.lwd, cex=my.pt.cex)
+    points(t(res), col = if (line.type == "none") "black" else lineColor,
+           bg = fillColor, pch = my.pch, lwd = my.pt.lwd, cex = my.pt.cex)
     
     # add legend(s)
-    if(mark.type != "none") {
-        lgd <- legend(x = par("usr")[2]+12*par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+    if (mark.type != "none") {
+        lgd <- legend(x = par("usr")[2] + 12 * par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                       cex = 1, fill = paste0(markColor, "66"), title = mark.type, legend = levels(class.mark))
     } else {
-        lgd <- list(rect=list(left=par("usr")[2]+12*par("cxy")[1]))
+        lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
     }
-    if(fill.type != "none" && nlevels(class.fill) > 0) {
+    if (fill.type != "none" && nlevels(class.fill) > 0) {
         lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                       pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                      col = if(line.type=="none") "black" else "white", pt.bg = fillColorPalette,
+                      col = if (line.type == "none") "black" else "white", pt.bg = fillColorPalette,
                       title = fill.type, legend = levels(class.fill))
     }
-    if(line.type != "none" && nlevels(class.line) > 0) {
+    if (line.type != "none" && nlevels(class.line) > 0) {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
                col = lineColorPalette, pt.bg = "white",
@@ -715,8 +715,10 @@ plotLVis <- function(gr,
     }
     
     # close output file
-    if(!is.na(image.format))
+    if (!is.na(image.format))
         dev.off()
     
-    return(invisible(t(res)))
+    rres <- t(res)
+    dimnames(rres) <- list(names(gr$MEMB), c("x","y"))
+    return(invisible(rres))
 }

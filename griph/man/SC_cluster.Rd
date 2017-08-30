@@ -9,7 +9,7 @@ SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   batch.penalty = 0.5, seed = 127350,
   comm.method = igraph::cluster_infomap, ncom = NULL,
   ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL,
-  plotG = TRUE, maxG = 2500, fsuffix = NULL, image.format = "png", ...)
+  plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format = "png", ...)
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -57,7 +57,8 @@ class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 \item{BatchAssignment}{If available a numeric vector of length \code{k} with numeric
 batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
-\item{plotG}{if \code{TRUE} plots the resulting graph using \code{plotLVis}}
+\item{plot_}{if \code{TRUE} plots the obtained graph using \code{plotLVis}. The resulting
+2D-embedding is stored in the \code{plotLVis} component of the result.}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
 

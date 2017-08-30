@@ -11,71 +11,57 @@
 #' @param PCanberra Function to calculate Canberra Distance between the columns of two matrices.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' @return cell-by-cell distance matrix.
-WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor   ) {
+WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor) {
     
-    CellIds=colnames(M)
-    dimnames(M)=NULL
+    CellIds <- colnames(M)
+    dimnames(M) <- NULL
     
-    ptm1=proc.time() #Start clock
+    ptm1 <- proc.time() #Start clock
     
-    D=PPearsonCor(log2(FB+1),log2(M+1))
-    R=vapply(c(1:ncol(D)),function (x) rank(D[,x]),FUN.VALUE=double(length=nrow(D) ) )  #pearson's cor    
+    D <- PPearsonCor(log2(FB + 1), log2(M + 1))
+    R <- vapply(c(1:ncol(D)), function(x) rank(D[,x]), FUN.VALUE = double(length = nrow(D)))  # Pearson's cor    
     
-    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("\nP (Elapsed Time: ", Te1, ")")
     
     ######## Counts per 100K:
-    CellCounts=colSums(FB)
-    FB=sweep(FB,2,CellCounts,FUN="/")
-    FB=FB*100000
-    CellCounts=colSums(M)
-    M=sweep(M,2,CellCounts,FUN="/")
-    M=M*100000 
+    CellCounts <- colSums(FB)
+    FB <- sweep(FB, 2, CellCounts, FUN = "/")
+    FB <- FB * 100000
+    CellCounts <- colSums(M)
+    M <- sweep(M, 2, CellCounts, FUN = "/")
+    M <- M * 100000 
     
-    ptm1=proc.time() #Start clock
-    Dt=PCanberra( log2(FB+1),log2(M+1) )   
-    Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
-    R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #canberra
-    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    ptm1 <- proc.time() #Start clock
+    Dt <- PCanberra(log2(FB + 1), log2(M + 1))   
+    Dt <- 1 - ((Dt - min(Dt)) / diff(range(Dt)))
+    R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Canberra
+    Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("C (Elapsed Time: ", Te1, ")")
     
-    ptm1=proc.time() #Start clock
-    Dt=PSpearmanCor(FB,M)
-    R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #spearman's cor 
-    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    ptm1 <- proc.time() #Start clock
+    Dt <- PSpearmanCor(FB, M)
+    R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Spearman's cor
+    Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("S (Elapsed Time: ", Te1, ")")
     
-    ptm1=proc.time() #Start clock
-    Dt=PHellinger(FB,M)
-    Dt=1-( (Dt-min(Dt))/ diff(range(Dt)) )
-    R=R+vapply(c(1:ncol(Dt)),function (x) rank(Dt[,x]),FUN.VALUE=double(length=nrow(Dt) ) )  #Hellinger distance
-    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    ptm1 <- proc.time() #Start clock
+    Dt <- PHellinger(FB, M)
+    Dt <- 1 - ((Dt - min(Dt)) / diff(range(Dt)))
+    R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Hellinger distance
+    Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("H (Elapsed Time: ", Te1, ")")
     
-    ptm1=proc.time() #Start clock
-    R=(R/4)^2
-    R=sweep(R,2,colMeans(R),"-")
-    R=buildEdgeMatrix( R ,distance_method="Cosine",K=min( 250, ceiling(1e2+sqrt(ncol(R)) ) )   )
-    R=Matrix::sparseMatrix(i=R$i,j=R$j,x=1-(R$x/2),dims=attr(R,"dims"),dimnames=list(CellIds,CellIds))
-    Te1=signif((proc.time() - ptm1)[3],digits=6)
+    ptm1 <- proc.time() #Start clock
+    R <- (R / 4)^2
+    R <- sweep(R, 2, colMeans(R), "-")
+    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = min(250, ceiling(1e2 + sqrt(ncol(R)))))
+    R <- Matrix::sparseMatrix(i = R$i, j = R$j, x = 1 - (R$x / 2), dims = attr(R,"dims"), dimnames = list(CellIds,CellIds))
+    Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("bEM (Elapsed Time: ", Te1, ")")
     
     return(R)    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -118,7 +104,8 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' @param BatchAssignment If available a numeric vector of length \code{k} with numeric
 #'     batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))
 #' @param ncom Forces detection of a fixed number of clusters (communities).
-#' @param plotG if \code{TRUE} plots the resulting graph using \code{plotLVis}
+#' @param plot_ if \code{TRUE} plots the obtained graph using \code{plotLVis}. The resulting
+#'     2D-embedding is stored in the \code{plotLVis} component of the result.
 #' @param maxG Approximate maximal number of vertices to include when plotting the graph.
 #' @param fsuffix A suffix added to the file names of output plots. If \code{NULL} (default),
 #'     it will use a random 5 character string.
@@ -129,14 +116,14 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
-                          plotG = TRUE, maxG = 2500, fsuffix = NULL, image.format='png'){
+                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png'){
     if (ref.iter == 0 && !is.null(SamplingSize) && ncol(DM) > SamplingSize)
         warning("only ", SamplingSize," of ", ncol(DM)," cells selected for clustering")
     
     ptm <- proc.time() #Start clock
     set.seed(seed = seed) #Set seed for reproducible results
     params <- as.list(environment())
-    params$plotG <- FALSE 
+    params$plot_ <- FALSE 
     
     #Make sure DM comes with rownames/colnames:
     if (is.null(rownames(DM))) {
@@ -359,7 +346,7 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
         #mixing.ratio=apply(between,1,get.mixr )
         #}
         
-        if (plotG == TRUE) {
+        if (plot_ == TRUE) {
             if (is.null(fsuffix))
                 fsuffix <- RandString()
             # cluster.res[["plotGRAO"]] <- plotGraph(cluster.res, maxG = maxG, fsuffix = fsuffix,

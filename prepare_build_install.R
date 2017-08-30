@@ -81,7 +81,7 @@ list.files(system.file("extdata", package = "griph"))
 library(griph)
 M <- readRDS(system.file("extdata", "buettner_top10k.rds", package = "griph"))
 label <- attr(M, "label")
-res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
+res  <- SC_cluster(M, ClassAssignment = label, plot = FALSE)
 
 ss <- clusteringScore(M, label, score.type = "sdLogFC") # published labels
 ss2 <- clusteringScore(M, res$MEMB, score.type = "sdLogFC") # griph labels
@@ -132,8 +132,8 @@ clusteringScore(M, ccr)$score.norm
 clusteringScore(M, cc2)$score.norm
 clusteringScore(M, cc2r)$score.norm
 
-res  <- SC_cluster(M, ClassAssignment = label, plotG = FALSE)
-resP <- SC_cluster(M, ClassAssignment = label, plotG = FALSE, use.par = TRUE, ncores = 8)
+res  <- SC_cluster(M, ClassAssignment = label, plot = FALSE)
+resP <- SC_cluster(M, ClassAssignment = label, plot = FALSE, use.par = TRUE, ncores = 8)
 for(nm in names(res))
     cat(nm,":",identical(res[[nm]], resP[[nm]]), "\n")
 all.equal(res$DISTM, resP$DISTM)
@@ -148,7 +148,7 @@ griph:::classError(res$MEMB, cc)
 griph:::classError(res$MEMB, c("G1.S" = "G1", "S" = "S", "G2" = "G2M",
                                "G2.M" = "G2M", "M.G1" = "G1")[as.character(cc)])
 
-res <- griph_cluster(M, ClassAssignment = label, plotG = FALSE)
+res <- griph_cluster(M, ClassAssignment = label, plot = FALSE)
 res$miscl
 
 
@@ -161,7 +161,7 @@ g <- plotGraph(res, fill.type = "predicted", line.type = "none")
 g <- plotGraph(res, collapse.type = "true")
 g <- plotGraph(res, collapse.type = "predicted")
 
-res2 <- griph_cluster(M, ref.iter = 1, ClassAssignment = label, plotG = FALSE)
+res2 <- griph_cluster(M, ref.iter = 1, ClassAssignment = label, plot = FALSE)
 g2 <- plotGraph(res2)
 g2 <- plotGraph(res2, line.type = "true", fill.type = "custom", fill.col = "Set1",
                 custom.class = cc, draw.edges = TRUE)
@@ -207,8 +207,8 @@ table(cc1, cc2)
 griph:::classError(cc1, cc2)
 cc <- cc2
 
-res <- SC_cluster(M2, ClassAssignment = label, plotG = FALSE, use.par = TRUE, ncores = 8)
-res2 <- SC_cluster(M2, ClassAssignment = label, BatchAssignment = cc, plotG = FALSE, use.par = TRUE, ncores = 8)
+res <- SC_cluster(M2, ClassAssignment = label, plot = FALSE, use.par = TRUE, ncores = 8)
+res2 <- SC_cluster(M2, ClassAssignment = label, BatchAssignment = cc, plot = FALSE, use.par = TRUE, ncores = 8)
 
 par(mfrow=c(1,2))
 g <- plotGraph(res)
