@@ -1,3 +1,97 @@
+# gr: griph result
+# val: what to map to colors, one of:
+#       "none": no color
+#       "predicted": gr$MEMB (or V(graph)$membership)
+#       "true": gr$MEMB.true (or V(GRAOp)$class)
+#       numeric vector: linearly map to colors
+#       factor: map each level to a different color
+# col: defines the color palette, either the name of a RColorBrewer palette, or a vector of R colors
+# graph: if non NULL, take 
+# NA.color: use for is.numeric(val) & is.na(val)
+getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "lightgray") {
+    # digest arguments
+    stopifnot(is.list(gr),
+              all(c("MEMB","MEMB.true") %in% names(gr)),
+              (is.character(val) && length(val) == 1 && val %in% c("none","predicted","true")) || is.numeric(val) || is.factor(val),
+              is.character(col) && (length(col) > 1 || col %in% rownames(RColorBrewer::brewer.pal.info)),
+              is.null(graph) || inherits(graph, "igraph"))
+    ncells <- if (is.null(graph)) length(gr$MEMB) else length(igraph::V(graph))
+
+    # map to colors
+    coltype <- ""
+    if ((is.character(val) && length(val) == 1 && val %in% c("none","predicted","true")) || is.factor(val)) {
+        if (is.factor(val)) {
+            class.col <- val
+        } else {
+            coltype <- val
+            if (is.null(graph)) { # use gr
+                class.col <- switch(val,
+                                    predicted = factor(gr$MEMB, levels = sort(as.numeric(unique(gr$MEMB)))),
+                                    true = factor(gr$MEMB.true, levels = unique(gr$MEMB.true)),
+                                    none = factor(rep(NA, ncells)))
+            } else {#               use graph
+                class.col <- switch(val,
+                                    predicted = factor(igraph::V(graph)$membership, levels = sort(as.numeric(unique(igraph::V(graph)$membership)))),
+                                    true = factor(igraph::V(graph)$class, levels = unique(igraph::V(graph)$class)),
+                                    none = factor(rep(NA, ncells)))
+            }
+        }
+        nclass <- nlevels(class.col)
+        if (length(col) == 1)
+            col <- RColorBrewer::brewer.pal(min(RColorBrewer::brewer.pal.info[col, "maxcolors"], max(3, nclass)), col)[1:nclass]
+        colpalette <- if (nclass > length(col)) grDevices::colorRampPalette(col)(nclass) else col
+        names(colpalette) <- levels(class.col)
+        cols <- colpalette[as.numeric(class.col)]
+        names(cols) <- as.character(class.col)
+        
+    } else if (is.numeric(val)) {
+        i <- !is.na(val)
+        rng <- range(val[i])
+        colpalette <- if (length(col) == 1) RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[col, "maxcolors"], col) else col
+        names(colpalette) <- as.character(signif(seq(rng[1], rng[2], length.out = length(colpalette)), 3))
+        cols <- rep(NA.color, length(val))
+        cr <- colorRamp(colpalette)((val[i] - rng[1]) / (rng[2] - rng[1]))
+        cols[i] <- grDevices::rgb(cr[,1], cr[,2], cr[,3], maxColorValue = 255)
+    }
+    
+    attr(x = cols, which = "type") <- coltype
+    attr(x = cols, which = "palette") <- colpalette
+    return(cols)    
+}
+
+
+drawLegends <- function() { # internal use only
+    # get variables from the calling environment
+    for (nm in c("mark.type", "markColor", "markColorType", "markColorPalette",
+                 "fill.type", "fillColor", "fillColorType", "fillColorPalette",
+                 "line.type", "lineColor", "lineColorType", "lineColorPalette",
+                 "my.pch", "my.pt.lwd", "my.pt.cex"))
+        assign(nm, get(nm, parent.frame()))
+
+    # draw the legends
+    if (mark.type != "none") {
+        lgd <- legend(x = par("usr")[2] + 12 * par("cxy")[1], y = par("usr")[4],
+                      xjust = 1, yjust = 1, bty = "n", cex = 1,
+                      fill = paste0(markColorPalette, "66"), title = markColorType,
+                      legend = names(markColorPalette))
+    } else {
+        lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
+    }
+    if (fill.type != "none" && length(fillColorPalette) > 0) {
+        lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
+                      col = if (line.type == "none") "black" else "white",
+                      pt.bg = fillColorPalette,
+                    title = fillColorType, legend = names(fillColorPalette))
+    }
+    if (line.type != "none" && length(lineColorPalette) > 0) {
+        legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+               pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
+               col = lineColorPalette, pt.bg = "white",
+               title = lineColorType, legend = names(lineColorPalette))
+    }
+}
+
 #' @title Visualize griph result as a graph.
 #' 
 #' @description Plot a graph obtained from \code{\link{SC_cluster}}, allowing to
@@ -6,34 +100,24 @@
 #' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
 #' @param maxG Approximate maximal number of vertices to include when plotting
 #'     the graph.
-#' @param fill.type Type of fill color, one of \code{predicted} (predicted class
-#'     labels, default), \code{true} (true class labels, if available), \code{none}
-#'     (no fill color) or \code{custom} (use \code{custom.col}).
-#' @param line.type Type of line color, one of \code{true} (true class labels, if
-#'     available, default), \code{predicted} (predicted class labels), \code{none}
-#'     for no fill color or \code{custom} (use \code{custom.col}).
-#' @param mark.type Type of cell class defnition to mark using polygons,
-#'     one of \code{none} (no polygons, the default), \code{predicted} (draw
-#'     polygons around cells with the same predicted class label), \code{true}
-#'     (polygons around cells with the same true class label, if available) or
-#'     \code{custom} (polygons around cells with the same \code{custom.class}).
+#' @param fill.type Type of fill color, one of \code{"predicted"} (predicted class
+#'     labels, default), \code{"true"} (true class labels, if available), \code{"none"}
+#'     (no fill color), a numeric vectors  or a factor whose values should be
+#'     mapped to fill colors, using the palette given in \code{fill.col}.
+#' @param line.type Type of line color, as in \code{fill.type}.
+#' @param mark.type Type of cell class defnition to mark using polygons, as in \code{fill.type}.
 #' @param collapse.type Type of cell class to use for graph simplification,
 #'     by combining cells of the same class into a single vertex. If set to a value
 #'     other than \code{"none"}, the same value will also be used for \code{fill.type}
 #'     and \code{line.type} is ignored.
-#' @param fill.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for vertex fill coloring.
-#' @param line.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for vertex outline coloring.
-#' @param mark.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for cell class polygon marking.
-#' @param custom.class Factor, character or numeric vector of the same length or
-#'     with names corresponding to names(gr$MEMB) to use for custom cell classification
-#'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
+#' @param fill.col Fill color palette, either a character scalar with a \code{\link{RColorBrewer}}
+#'     color palette name or color vector defining the palette to use for vertex fill coloring.
+#' @param line.col Line color palette, as in \code{fill.col}.
+#' @param mark.col Mark color palette, as in \code{fill.col}.
 #' @param draw.edges If \code{NULL} (default), draw edges if \code{collapse.type != "none"}.
 #'     \code{TRUE} or \code{FALSE} can be used to override the default.
 #' @param seed Random number seed to make graph layout deterministic.
-#' @param fsuffix A suffix added to the file names of output plots. If not given
+#' @param fsuffix A suffix added to the file names of output plots. If \code{NULL} (default),
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
 #' @param image.format Specifies the format of the created image. Currently supported are
 #'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
@@ -44,17 +128,16 @@
 #' 
 #' @return Invisibly the plot-optimized version of the graph as an \code{igraph} object.
 plotGraph <- function(gr, maxG=2500,
-                      fill.type=c("predicted","true","none","custom"),
-                      line.type=c("true","predicted","none","custom"),
-                      mark.type=c("none","predicted","true","custom"),
+                      fill.type="predicted",
+                      line.type="true",
+                      mark.type="none",
                       collapse.type=c("none","predicted","true"),
                       fill.col="Spectral",
                       line.col="Dark2",
                       mark.col="Pastel1",
-                      custom.class=factor(rep(1, length(gr$MEMB))),
                       draw.edges=NULL,
                       seed=91919,
-                      fsuffix=RandString(), image.format=NA,
+                      fsuffix=NULL, image.format=NA,
                       forceRecalculation=FALSE, quiet=FALSE) {
     if (!quiet)
         message("Computing Graph Layout and Rendering...")
@@ -65,27 +148,8 @@ plotGraph <- function(gr, maxG=2500,
     csize <- table(MEMB)
     
     # digest arguments
-    fill.type <- match.arg(fill.type)
-    line.type <- match.arg(line.type)
-    mark.type <- match.arg(mark.type)
     collapse.type <- match.arg(collapse.type)
-    if (is.null(names(custom.class))) {
-        stopifnot(length(custom.class) == length(MEMB))
-        names(custom.class) <- names(MEMB)
-    }
-    if (length(fill.col) == 1) {
-        stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
-        fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
-    }
-    if (length(line.col) == 1) {
-        stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
-        line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
-    }
-    if (length(mark.col) == 1) {
-        stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
-        mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
-    }
-    
+
     # global plotting paramterers
     pct <- 1
     my.pch <- 21L # should be in 21:25
@@ -106,16 +170,16 @@ plotGraph <- function(gr, maxG=2500,
         line.type <- "none"
         mark.type <- "none"
         class.collapse <- switch(collapse.type,
-                                 predicted = factor(V(GRAO)$membership,
-                                                    levels = sort(as.numeric(unique(V(GRAO)$membership)))),
-                                 true = factor(V(GRAO)$class,
-                                               levels = unique(V(GRAO)$class)))
+                                 predicted = factor(igraph::V(GRAO)$membership,
+                                                    levels = sort(as.numeric(unique(igraph::V(GRAO)$membership)))),
+                                 true = factor(igraph::V(GRAO)$class,
+                                               levels = unique(igraph::V(GRAO)$class)))
         GRAOp <- igraph::simplify( igraph::contract(GRAO, class.collapse) )
-        V(GRAOp)$membership <- V(GRAOp)$class <- levels(class.collapse)
-        V(GRAOp)$size <- 10 / (length(V(GRAOp))/60 )^0.3 * (as.numeric(csize/median(csize)))^0.5
+        igraph::V(GRAOp)$membership <- igraph::V(GRAOp)$class <- levels(class.collapse)
+        igraph::V(GRAOp)$size <- 10 / (length(igraph::V(GRAOp)) / 60)^0.3 * (as.numeric(csize / median(csize)))^0.5
         
     } else if (is.null(gr$plotGRAO) || forceRecalculation) {
-        if (length(V(GRAO) ) > 1.25*maxG ) {
+        if (length(igraph::V(GRAO)) > 1.25 * maxG ) {
             if (!quiet)
                 message("\tGraph too large (>",maxG, " vertices). A sampled subgraph of ~", maxG, " vertices will be plotted", appendLF = FALSE)
             
@@ -164,10 +228,10 @@ plotGraph <- function(gr, maxG=2500,
         }
         
         ######## Prune graph for better plot output
-        if (median(igraph::degree(GRAOp)) > 4 ) {
+        if (median(igraph::degree(GRAOp)) > 4) {
             pct <- min(1, 1 / sqrt(0.1 * median(igraph::degree(GRAOp))))
-            ADJp <- igraph::as_adj(GRAOp, attr = 'weight',sparse=TRUE)
-            ADJp <- sparsify(ADJp,pct)
+            ADJp <- igraph::as_adj(GRAOp, attr = 'weight', sparse = TRUE)
+            ADJp <- sparsify(ADJp, pct)
             ADJp[which(abs(ADJp) > 0)] <- 1
             GRAOtemp <- igraph::graph.adjacency(ADJp, mode = "max", weighted = NULL,
                                                 diag = FALSE)
@@ -178,8 +242,8 @@ plotGraph <- function(gr, maxG=2500,
         
         GRAOp <- igraph::delete_vertices(GRAOp, which(igraph::ego_size(GRAOp, 3) < 6))
         ###Delete Vertices from communites with few members:
-        min.csize <- ceiling(0.25 * sqrt(length(V(GRAO))))
-        GRAOp <- igraph::delete_vertices(GRAOp, which( V(GRAOp)$community.size < min.csize ))  
+        min.csize <- ceiling(0.25 * sqrt(length(igraph::V(GRAO))))
+        GRAOp <- igraph::delete_vertices(GRAOp, which(igraph::V(GRAOp)$community.size < min.csize))  
         
         if (!quiet)
             message("\tnodes from communities with <",min.csize, " members will not be displayed.")
@@ -190,48 +254,32 @@ plotGraph <- function(gr, maxG=2500,
         GRAOp <- gr$plotGRAO$GRAO
     }
     if (!quiet)
-        message("\tdisplaying graph with ",length(V(GRAOp))," (",
-                round(100 * length(V(GRAOp)) / length(V(GRAO)), 1), "%) vertices and ",
-                length(E(GRAOp)), " (", round(100 * length(E(GRAOp)) / length(E(GRAO)), 1),
+        message("\tdisplaying graph with ",length(igraph::V(GRAOp))," (",
+                round(100 * length(igraph::V(GRAOp)) / length(igraph::V(GRAO)), 1), "%) vertices and ",
+                length(igraph::E(GRAOp)), " (", round(100 * length(igraph::E(GRAOp)) / length(igraph::E(GRAO)), 1),
                 "%) edges")
     
     # get colors
-    class.pred <- factor(V(GRAOp)$membership, levels = sort(as.numeric(unique(V(GRAO)$membership))))
-    class.true <- factor(V(GRAOp)$class, levels = unique(V(GRAO)$class))
-    class.none <- factor(rep(NA, length(V(GRAOp))))
-    class.custom <- factor(custom.class[V(GRAOp)$labels], levels = unique(custom.class))
+    fillColor <- getPlotColors(gr = gr, val = fill.type, col = fill.col, graph = GRAOp)
+    fillColorPalette <- attr(x = fillColor, which = "palette")
+    fillColorType <- attr(x = fillColor, which = "type")
     
-    class.fill <- switch(fill.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    fillColorPalette <- if (nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
-    fillColor <- fillColorPalette[as.numeric(class.fill)]
+    lineColor <- getPlotColors(gr = gr, val = line.type, col = line.col, graph = GRAOp)
+    lineColorPalette <- attr(x = lineColor, which = "palette")
+    lineColorType <- attr(x = lineColor, which = "type")
     
-    class.line <- switch(line.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    lineColorPalette <- if (nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
-    lineColor <- lineColorPalette[as.numeric(class.line)]
-    
-    class.mark <- switch(mark.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    markElements <- split(seq_along(class.mark), class.mark)
-    markColor <- if (nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
-    
+    markColor <- getPlotColors(gr = gr, val = mark.type, col = mark.col, graph = GRAOp)
+    markColorPalette <- attr(x = markColor, which = "palette")
+    markColorType <- attr(x = markColor, which = "type")
+    markElements <- split(seq_along(markColor), names(markColor))[names(markColorPalette)]
+
     # set some more graph attributes
-    V(GRAOp)$classcolor <- lineColor
-    V(GRAOp)$size <- if (collapse.type == "none") 10 / (length(V(GRAOp))/60 )^0.3 else V(GRAOp)$size
-    V(GRAOp)$cex <- V(GRAOp)$size / 3
-    V(GRAOp)$frame.width <- 2 / (length(V(GRAOp))/60 )^0.3
-    E(GRAOp)$width <- E(GRAOp)$weight / sqrt((length(V(GRAOp))/60 ))
-    V(GRAOp)$color <- fillColor
+    igraph::V(GRAOp)$classcolor <- lineColor
+    igraph::V(GRAOp)$size <- if (collapse.type == "none") 10 / (length(igraph::V(GRAOp)) / 60)^0.3 else igraph::V(GRAOp)$size
+    igraph::V(GRAOp)$cex <- igraph::V(GRAOp)$size / 3
+    igraph::V(GRAOp)$frame.width <- 2 / (length(igraph::V(GRAOp)) / 6 )^0.3
+    igraph::E(GRAOp)$width <- igraph::E(GRAOp)$weight / sqrt((length(igraph::V(GRAOp))/60 ))
+    igraph::V(GRAOp)$color <- fillColor
     
     # compute graph layout
     set.seed(seed = seed)
@@ -240,6 +288,8 @@ plotGraph <- function(gr, maxG=2500,
     
     # open output file
     if (!is.na(image.format)) {
+        if (is.null(fsuffix))
+            fsuffix <- RandString()
         if (image.format == 'pdf') {
             fname <- paste('graph_', fsuffix, '.pdf', sep = "")
             pdf(file = fname, width = 12, height = 10)
@@ -269,8 +319,8 @@ plotGraph <- function(gr, maxG=2500,
                         cbind(xy[, 1], xy[, 2] + off))
             cl <- igraph::convex_hull(pp)
             graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
-                              col = paste0(markColor[j], "66"),
-                              border = adjust.color(markColor[j], 0.5))
+                              col = paste0(markColorPalette[j], "66"),
+                              border = adjust.color(markColorPalette[j], 0.5))
             
         }
     }
@@ -280,7 +330,7 @@ plotGraph <- function(gr, maxG=2500,
         el <- igraph::as_edgelist(GRAOp, names = FALSE)
         graphics::segments(x0 = l[,1][el[,1]], y0 = l[,2][el[,1]],
                            x1 = l[,1][el[,2]], y1 = l[,2][el[,2]],
-                           col = edge.col, lwd = E(GRAOp)$weight / max(E(GRAOp)$weight) * edge.lwd.max)
+                           col = edge.col, lwd = igraph::E(GRAOp)$weight / max(igraph::E(GRAOp)$weight) * edge.lwd.max)
     }
     
     # add vertices
@@ -289,32 +339,13 @@ plotGraph <- function(gr, maxG=2500,
            cex = my.pt.cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
     
     # add legend(s)
-    if (mark.type != "none") {
-        lgd <- legend(x = par("usr")[2] + 12*par("cxy")[1], y = par("usr")[4],
-                      xjust = 1, yjust = 1, bty = "n", cex = 1,
-                      fill = paste0(markColor, "66"), title = mark.type,
-                      legend = levels(class.mark))
-    } else {
-        lgd <- list(rect = list(left = par("usr")[2] + 12*par("cxy")[1]))
-    }
-    if (fill.type != "none" && nlevels(class.fill) > 0) {
-        lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                      col = if (line.type == "none") "black" else "white", pt.bg = fillColorPalette,
-                      title = fill.type, legend = levels(class.fill))
-    }
-    if (line.type != "none" && nlevels(class.line) > 0) {
-        legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-               pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-               col = lineColorPalette, pt.bg = "white",
-               title = line.type, legend = levels(class.line))
-    }
+    drawLegends()
     
     # close output file
     if (!is.na(image.format))
         dev.off()
     
-    return(list(y=l[,1:2],GRAO=invisible(GRAOp)))
+    return(list(y = l[,1:2], GRAO = invisible(GRAOp)))
 }
 
 
@@ -327,28 +358,18 @@ plotGraph <- function(gr, maxG=2500,
 #'     \code{\link{SC_cluster}}, allowing to control coloring.
 #' 
 #' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
-#' @param fill.type Type of fill color, one of \code{predicted} (predicted class
-#'     labels, default), \code{true} (true class labels, if available), \code{none}
-#'     (no fill color) or \code{custom} (use \code{custom.col}).
-#' @param line.type Type of line color, one of \code{true} (true class labels, if
-#'     available, default), \code{predicted} (predicted class labels), \code{none}
-#'     for no fill color or \code{custom} (use \code{custom.col}).
-#' @param mark.type Type of cell class defnition to mark using polygons,
-#'     one of \code{none} (no polygons, the default), \code{predicted} (draw
-#'     polygons around cells with the same predicted class label), \code{true}
-#'     (polygons around cells with the same true class label, if available) or
-#'     \code{custom} (polygons around cells with the same \code{custom.class}).
-#' @param fill.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for vertex fill coloring.
-#' @param line.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for vertex outline coloring.
-#' @param mark.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for cell class polygon marking.
-#' @param custom.class Factor, character or numberic vector of the same length or
-#'     with names corresponding to names(gr$MEMB) to use for custom cell classification
-#'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
+#' @param fill.type Type of fill color, one of \code{"predicted"} (predicted class
+#'     labels, default), \code{"true"} (true class labels, if available), \code{"none"}
+#'     (no fill color), a numeric vectors  or a factor whose values should be
+#'     mapped to fill colors, using the palette given in \code{fill.col}.
+#' @param line.type Type of line color, as in \code{fill.type}.
+#' @param mark.type Type of cell class defnition to mark using polygons, as in \code{fill.type}.
+#' @param fill.col Fill color palette, either a character scalar with a \code{\link{RColorBrewer}}
+#'     color palette name or color vector defining the palette to use for vertex fill coloring.
+#' @param line.col Line color palette, as in \code{fill.col}.
+#' @param mark.col Mark color palette, as in \code{fill.col}.
 #' @param seed Random number seed to make t-SNE projection deterministic.
-#' @param fsuffix A suffix added to the file names of output plots. If not given
+#' @param fsuffix A suffix added to the file names of output plots. If \code{NULL} (default),
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
 #' @param image.format Specifies the format of the created image. Currently supported are
 #'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
@@ -360,15 +381,14 @@ plotGraph <- function(gr, maxG=2500,
 #' 
 #' @seealso \code{Rtsne} used to calculate the t-SNE projection.
 plotTsne <- function(gr,
-                     fill.type=c("predicted","true","none","custom"),
-                     line.type=c("true","predicted","none","custom"),
-                     mark.type=c("none","predicted","true","custom"),
+                     fill.type="predicted",
+                     line.type="true",
+                     mark.type="none",
                      fill.col="Spectral",
                      line.col="Dark2",
                      mark.col="Pastel1",
-                     custom.class=factor(rep(1, length(gr$MEMB))),
                      seed=91919,
-                     fsuffix=RandString(), image.format=NA,
+                     fsuffix=NULL, image.format=NA,
                      quiet=FALSE, ...) {
     if (!is.element("Rtsne", utils::installed.packages()[,1])) {
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
@@ -382,25 +402,18 @@ plotTsne <- function(gr,
     #csize <- table(MEMB)
     
     # digest arguments
-    fill.type <- match.arg(fill.type)
-    line.type <- match.arg(line.type)
-    mark.type <- match.arg(mark.type)
-    if (is.null(names(custom.class))) {
-        stopifnot(length(custom.class) == length(MEMB))
-        names(custom.class) <- names(MEMB)
-    }
-    if (length(fill.col) == 1) {
-        stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
-        fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
-    }
-    if (length(line.col) == 1) {
-        stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
-        line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
-    }
-    if (length(mark.col) == 1) {
-        stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
-        mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
-    }
+    # if (length(fill.col) == 1) {
+    #     stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
+    #     fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
+    # }
+    # if (length(line.col) == 1) {
+    #     stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
+    #     line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
+    # }
+    # if (length(mark.col) == 1) {
+    #     stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
+    #     mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
+    # }
     
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
@@ -417,37 +430,23 @@ plotTsne <- function(gr,
     res <- do.call(Rtsne::Rtsne, c(list(X = stats::as.dist(1 - gr$DISTM), pca = FALSE, is_distance = TRUE), args))
     
     # get colors
-    class.pred <- factor(MEMB, levels = sort(as.numeric(unique(MEMB))))
-    class.true <- factor(MEMB.true, levels = unique(MEMB.true))
-    class.none <- factor(rep(NA, length(MEMB)))
-    class.custom <- factor(custom.class, levels = unique(custom.class))
+    fillColor <- getPlotColors(gr = gr, val = fill.type, col = fill.col)
+    fillColorPalette <- attr(x = fillColor, which = "palette")
+    fillColorType <- attr(x = fillColor, which = "type")
     
-    class.fill <- switch(fill.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    fillColorPalette <- if (nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
-    fillColor <- fillColorPalette[as.numeric(class.fill)]
+    lineColor <- getPlotColors(gr = gr, val = line.type, col = line.col)
+    lineColorPalette <- attr(x = lineColor, which = "palette")
+    lineColorType <- attr(x = lineColor, which = "type")
     
-    class.line <- switch(line.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    lineColorPalette <- if (nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
-    lineColor <- lineColorPalette[as.numeric(class.line)]
-    
-    class.mark <- switch(mark.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    markElements <- split(seq_along(class.mark), class.mark)
-    markColor <- if (nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
-    
+    markColor <- getPlotColors(gr = gr, val = mark.type, col = mark.col)
+    markColorPalette <- attr(x = markColor, which = "palette")
+    markColorType <- attr(x = markColor, which = "type")
+    markElements <- split(seq_along(markColor), names(markColor))[names(markColorPalette)]
+
     # open output file
     if (!is.na(image.format)) {
+        if (is.null(fsuffix))
+            fsuffix <- RandString()
         if (image.format == 'pdf') {
             fname <- paste('tSNE_',fsuffix,'.pdf',sep = "")
             pdf(file = fname, width = 12, height = 10)
@@ -475,8 +474,8 @@ plotTsne <- function(gr,
                         cbind(xy[, 1], xy[, 2] + off))
             cl <- igraph::convex_hull(pp)
             graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
-                              col = paste0(markColor[j], "66"),
-                              border = adjust.color(markColor[j], 0.5))
+                              col = paste0(markColorPalette[j], "66"),
+                              border = adjust.color(markColorPalette[j], 0.5))
             
         }
     }
@@ -486,27 +485,7 @@ plotTsne <- function(gr,
            bg = fillColor, pch = my.pch, lwd = my.pt.lwd, cex = my.pt.cex)
     
     # add legend(s)
-    if (mark.type != "none") {
-        lgd <- legend(x = par("usr")[2] + 12 * par("cxy")[1], y = par("usr")[4],
-                      xjust = 1, yjust = 1, bty = "n", cex = 1,
-                      fill = paste0(markColor, "66"), title = mark.type,
-                      legend = levels(class.mark))
-    } else {
-        lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
-    }
-    if (fill.type != "none" && nlevels(class.fill) > 0) {
-        lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                      col = if (line.type == "none") "black" else "white",
-                      pt.bg = fillColorPalette,
-                      title = fill.type, legend = levels(class.fill))
-    }
-    if (line.type != "none" && nlevels(class.line) > 0) {
-        legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-               pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-               col = lineColorPalette, pt.bg = "white",
-               title = line.type, legend = levels(class.line))
-    }
+    drawLegends()
     
     # close output file
     if (!is.na(image.format))
@@ -523,32 +502,25 @@ plotTsne <- function(gr,
 #' 
 #' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}
 #'     or \code{\link{griph_cluster}}.
-#' @param fill.type Type of fill color, one of \code{predicted} (predicted class
-#'     labels, default), \code{true} (true class labels, if available), \code{none}
-#'     (no fill color) or \code{custom} (use \code{custom.col}).
-#' @param line.type Type of line color, one of \code{true} (true class labels, if
-#'     available, default), \code{predicted} (predicted class labels), \code{none}
-#'     for no fill color or \code{custom} (use \code{custom.col}).
-#' @param mark.type Type of cell class defnition to mark using polygons,
-#'     one of \code{none} (no polygons, the default), \code{predicted} (draw
-#'     polygons around cells with the same predicted class label), \code{true}
-#'     (polygons around cells with the same true class label, if available) or
+#' @param fill.type Type of fill color, one of \code{"predicted"} (predicted class
+#'     labels, default), \code{"true"} (true class labels, if available), \code{"none"}
+#'     (no fill color), a numeric vectors  or a factor whose values should be
+#'     mapped to fill colors, using the palette given in \code{fill.col}.
+#' @param line.type Type of line color, as in \code{fill.type}.
+#' @param mark.type Type of cell class defnition to mark using polygons, as in \code{fill.type}.
 #'     \code{custom} (polygons around cells with the same \code{custom.class}).
-#' @param fill.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for vertex fill coloring.
-#' @param line.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for vertex outline coloring.
-#' @param mark.col Character scalar with a \code{\link{RColorBrewer}} color palette name
-#'     or color vector defining the palette to use for cell class polygon marking.
-#' @param custom.class Factor, character or numberic vector of the same length or
-#'     with names corresponding to names(gr$MEMB) to use for custom cell classification
-#'     (used if \code{fill.type} and/or \code{line.type} is set to "custom").
+#' @param fill.col Fill color palette, either a character scalar with a \code{\link{RColorBrewer}}
+#'     color palette name or color vector defining the palette to use for vertex fill coloring.
+#' @param line.col Line color palette, as in \code{fill.col}.
+#' @param mark.col Mark color palette, as in \code{fill.col}.
 #' @param seed Random number seed to make largeVis projection deterministic.
-#' @param fsuffix A suffix added to the file names of output plots. If not given
+#' @param fsuffix A suffix added to the file names of output plots. If \code{NULL} (default),
 #'     it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.
 #' @param image.format Specifies the format of the created image. Currently supported are
 #'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
 #'     is rendered on the currently opened plotting device.
+#' @param forceRecalculation If \code{TRUE}, recalculate plotting-optimized graph
+#'     even if it is already contained in \code{gr}.
 #' @param quiet If \code{TRUE}, do not report on progress.
 #' @param ... additional arguments passed to \code{largeVis::projectKNNs}
 #' 
@@ -556,15 +528,15 @@ plotTsne <- function(gr,
 #' 
 #' @seealso \code{largeVis} used to calculate the largeVis projection.
 plotLVis <- function(gr,
-                     fill.type=c("predicted","true","none","custom"),
-                     line.type=c("true","predicted","none","custom"),
-                     mark.type=c("none","predicted","true","custom"),
+                     fill.type="predicted",
+                     line.type="true",
+                     mark.type="none",
                      fill.col="Spectral",
                      line.col="Dark2",
                      mark.col="Pastel1",
-                     custom.class=factor(rep(1, length(gr$MEMB))),
                      seed=91919,
-                     fsuffix=RandString(), image.format=NA,
+                     fsuffix=NULL, image.format=NA,
+                     forceRecalculation=FALSE,
                      quiet=FALSE, ...) {
     
     
@@ -574,25 +546,18 @@ plotLVis <- function(gr,
     MEMB.true <- gr$MEMB.true
 
     # digest arguments
-    fill.type <- match.arg(fill.type)
-    line.type <- match.arg(line.type)
-    mark.type <- match.arg(mark.type)
-    if (is.null(names(custom.class))) {
-        stopifnot(length(custom.class) == length(MEMB))
-        names(custom.class) <- names(MEMB)
-    }
-    if (length(fill.col) == 1) {
-        stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
-        fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
-    }
-    if (length(line.col) == 1) {
-        stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
-        line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
-    }
-    if (length(mark.col) == 1) {
-        stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
-        mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
-    }
+    # if (length(fill.col) == 1) {
+    #     stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
+    #     fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
+    # }
+    # if (length(line.col) == 1) {
+    #     stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
+    #     line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
+    # }
+    # if (length(mark.col) == 1) {
+    #     stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
+    #     mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
+    # }
     
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
@@ -600,7 +565,7 @@ plotLVis <- function(gr,
     my.pt.lwd <- if (line.type == "none") 1.0 else 2.5
     
     # get largeVis projection
-    if ("plotLVis" %in% names(gr) && !is.null(gr$plotLVis)) {
+    if (!forceRecalculation && "plotLVis" %in% names(gr) && !is.null(gr$plotLVis)) {
         if (!quiet)
             message("Using existing largeVis projection")
         res <- t(gr$plotLVis)
@@ -611,7 +576,7 @@ plotLVis <- function(gr,
         set.seed(seed = seed)
     
        if (!is.element('sgd_batches', names(add.args)))
-            add.args$sgd_batches <- max(0.1*sgdBatches(ncol(gr$DISTM),Matrix::nnzero(gr$DISTM)),1e7)  #!!!!!!Use GRAO instead!!! 
+            add.args$sgd_batches <- max(0.1 * sgdBatches(ncol(gr$DISTM), Matrix::nnzero(gr$DISTM)), 1e7)  #!!!!!!Use GRAO instead!!! 
         if (!is.element('M',names(add.args)))
             add.args$M <- 2    
         if (!is.element('gamma', names(add.args)))
@@ -626,37 +591,23 @@ plotLVis <- function(gr,
     }
     
     # get colors
-    class.pred <- factor(MEMB, levels = sort(as.numeric(unique(MEMB))))
-    class.true <- factor(MEMB.true, levels = unique(MEMB.true))
-    class.none <- factor(rep(NA, length(MEMB)))
-    class.custom <- factor(custom.class, levels = unique(custom.class))
+    fillColor <- getPlotColors(gr = gr, val = fill.type, col = fill.col)
+    fillColorPalette <- attr(x = fillColor, which = "palette")
+    fillColorType <- attr(x = fillColor, which = "type")
     
-    class.fill <- switch(fill.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    fillColorPalette <- if (nlevels(class.fill) > length(fill.col)) grDevices::colorRampPalette(fill.col)(nlevels(class.fill)) else fill.col
-    fillColor <- fillColorPalette[as.numeric(class.fill)]
+    lineColor <- getPlotColors(gr = gr, val = line.type, col = line.col)
+    lineColorPalette <- attr(x = lineColor, which = "palette")
+    lineColorType <- attr(x = lineColor, which = "type")
     
-    class.line <- switch(line.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    lineColorPalette <- if (nlevels(class.line) > length(line.col)) grDevices::colorRampPalette(line.col)(nlevels(class.line)) else line.col
-    lineColor <- lineColorPalette[as.numeric(class.line)]
-    
-    class.mark <- switch(mark.type,
-                         predicted = class.pred,
-                         true = class.true,
-                         none = class.none,
-                         custom = class.custom)
-    markElements <- split(seq_along(class.mark), class.mark)
-    markColor <- if (nlevels(class.mark) > length(mark.col)) grDevices::colorRampPalette(mark.col)(nlevels(class.mark)) else mark.col[1:nlevels(class.mark)]
-    
+    markColor <- getPlotColors(gr = gr, val = mark.type, col = mark.col)
+    markColorPalette <- attr(x = markColor, which = "palette")
+    markColorType <- attr(x = markColor, which = "type")
+    markElements <- split(seq_along(markColor), names(markColor))[names(markColorPalette)]
+
     # open output file
     if (!is.na(image.format)) {
+        if (is.null(fsuffix))
+            fsuffix <- RandString()
         if (image.format == 'pdf') {
             fname <- paste('Lvis_', fsuffix, '.pdf', sep = "")
             pdf(file = fname, width = 12, height = 10)
@@ -684,8 +635,8 @@ plotLVis <- function(gr,
                         cbind(xy[, 1], xy[, 2] + off))
             cl <- igraph::convex_hull(pp)
             graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
-                              col = paste0(markColor[j], "66"),
-                              border = adjust.color(markColor[j], 0.5))
+                              col = paste0(markColorPalette[j], "66"),
+                              border = adjust.color(markColorPalette[j], 0.5))
             
         }
     }
@@ -695,24 +646,7 @@ plotLVis <- function(gr,
            bg = fillColor, pch = my.pch, lwd = my.pt.lwd, cex = my.pt.cex)
     
     # add legend(s)
-    if (mark.type != "none") {
-        lgd <- legend(x = par("usr")[2] + 12 * par("cxy")[1], y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-                      cex = 1, fill = paste0(markColor, "66"), title = mark.type, legend = levels(class.mark))
-    } else {
-        lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
-    }
-    if (fill.type != "none" && nlevels(class.fill) > 0) {
-        lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                      col = if (line.type == "none") "black" else "white", pt.bg = fillColorPalette,
-                      title = fill.type, legend = levels(class.fill))
-    }
-    if (line.type != "none" && nlevels(class.line) > 0) {
-        legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-               pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-               col = lineColorPalette, pt.bg = "white",
-               title = line.type, legend = levels(class.line))
-    }
+    drawLegends()
     
     # close output file
     if (!is.na(image.format))

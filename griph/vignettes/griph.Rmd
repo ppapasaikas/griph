@@ -105,7 +105,7 @@ predicted cell types:
 ```{r knownVsPred, message=FALSE}
 g.true <- plotGraph(res, fill.type = "true", line.type = "none")
 res$plotGRAO <- g.true # store in res for re-use
-g.pred <- plotGraph(res, fill.type = "pred", line.type = "none")
+g.pred <- plotGraph(res, fill.type = "predicted", line.type = "none")
 ```
 
 In *plotGRAO*, weak edges are pruned, vertex attributes are added for visualization
