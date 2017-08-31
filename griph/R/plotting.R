@@ -1,3 +1,15 @@
+# val: type to check
+checkColorType <- function(val, ncells) {
+    if (!((is.character(val) && length(val) == 1 && val %in% c("none","predicted","true")) ||
+          (is.numeric(val) && length(val) == ncells) ||
+          (is.factor(val) && length(val) == ncells))) {
+            stop(deparse(substitute(val)),
+                 ' must be either a numeric(', ncells, '), ',
+                 'a factor(', ncells, ') or one of "none", "predicted" or "true"')
+    }
+    return(TRUE)
+}
+
 # gr: griph result
 # val: what to map to colors, one of:
 #       "none": no color
@@ -59,15 +71,11 @@ getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "l
     return(cols)    
 }
 
-
-drawLegends <- function() { # internal use only
-    # get variables from the calling environment
-    for (nm in c("mark.type", "markColor", "markColorType", "markColorPalette",
-                 "fill.type", "fillColor", "fillColorType", "fillColorPalette",
-                 "line.type", "lineColor", "lineColorType", "lineColorPalette",
-                 "my.pch", "my.pt.lwd", "my.pt.cex"))
-        assign(nm, get(nm, parent.frame()))
-
+# draw one or several legends (internal use only)
+drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
+                        fill.type, fillColor, fillColorType, fillColorPalette,
+                        line.type, lineColor, lineColorType, lineColorPalette,
+                        my.pch, my.pt.lwd, my.pt.cex) {
     # draw the legends
     if (mark.type != "none") {
         lgd <- legend(x = par("usr")[2] + 12 * par("cxy")[1], y = par("usr")[4],
@@ -148,6 +156,9 @@ plotGraph <- function(gr, maxG=2500,
     csize <- table(MEMB)
     
     # digest arguments
+    checkColorType(fill.type, length(MEMB))
+    checkColorType(line.type, length(MEMB))
+    checkColorType(mark.type, length(MEMB))
     collapse.type <- match.arg(collapse.type)
 
     # global plotting paramterers
@@ -339,7 +350,10 @@ plotGraph <- function(gr, maxG=2500,
            cex = my.pt.cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
     
     # add legend(s)
-    drawLegends()
+    drawLegends(mark.type, markColor, markColorType, markColorPalette,
+                fill.type, fillColor, fillColorType, fillColorPalette,
+                line.type, lineColor, lineColorType, lineColorPalette,
+                my.pch, my.pt.lwd, my.pt.cex)
     
     # close output file
     if (!is.na(image.format))
@@ -402,18 +416,9 @@ plotTsne <- function(gr,
     #csize <- table(MEMB)
     
     # digest arguments
-    # if (length(fill.col) == 1) {
-    #     stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
-    #     fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
-    # }
-    # if (length(line.col) == 1) {
-    #     stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
-    #     line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
-    # }
-    # if (length(mark.col) == 1) {
-    #     stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
-    #     mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
-    # }
+    checkColorType(fill.type, length(MEMB))
+    checkColorType(line.type, length(MEMB))
+    checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
@@ -485,7 +490,10 @@ plotTsne <- function(gr,
            bg = fillColor, pch = my.pch, lwd = my.pt.lwd, cex = my.pt.cex)
     
     # add legend(s)
-    drawLegends()
+    drawLegends(mark.type, markColor, markColorType, markColorPalette,
+                fill.type, fillColor, fillColorType, fillColorPalette,
+                line.type, lineColor, lineColorType, lineColorPalette,
+                my.pch, my.pt.lwd, my.pt.cex)
     
     # close output file
     if (!is.na(image.format))
@@ -546,18 +554,9 @@ plotLVis <- function(gr,
     MEMB.true <- gr$MEMB.true
 
     # digest arguments
-    # if (length(fill.col) == 1) {
-    #     stopifnot(fill.col %in% rownames(RColorBrewer::brewer.pal.info))
-    #     fill.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[fill.col, "maxcolors"], fill.col)
-    # }
-    # if (length(line.col) == 1) {
-    #     stopifnot(line.col %in% rownames(RColorBrewer::brewer.pal.info))
-    #     line.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[line.col, "maxcolors"], line.col)
-    # }
-    # if (length(mark.col) == 1) {
-    #     stopifnot(mark.col %in% rownames(RColorBrewer::brewer.pal.info))
-    #     mark.col <- RColorBrewer::brewer.pal(RColorBrewer::brewer.pal.info[mark.col, "maxcolors"], mark.col)
-    # }
+    checkColorType(fill.type, length(MEMB))
+    checkColorType(line.type, length(MEMB))
+    checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
@@ -646,7 +645,10 @@ plotLVis <- function(gr,
            bg = fillColor, pch = my.pch, lwd = my.pt.lwd, cex = my.pt.cex)
     
     # add legend(s)
-    drawLegends()
+    drawLegends(mark.type, markColor, markColorType, markColorPalette,
+                fill.type, fillColor, fillColorType, fillColorPalette,
+                line.type, lineColor, lineColorType, lineColorPalette,
+                my.pch, my.pt.lwd, my.pt.cex)
     
     # close output file
     if (!is.na(image.format))
