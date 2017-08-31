@@ -164,11 +164,11 @@ plotGraph <- function(gr, maxG=2500,
     # global plotting paramterers
     pct <- 1
     my.pch <- 21L # should be in 21:25
-    my.pt.cex <- 2.5
+    my.pt.cex <- 1.5
     my.pt.lwd <- if (line.type == "none" || collapse.type != "none") 1.0 else 2.5
     edge.lwd.max <- 12.0
     edge.col <- "#33333355"
-    
+
     # get plot-optimized graph
     if (collapse.type != "none") {
         if (!quiet)
@@ -422,9 +422,9 @@ plotTsne <- function(gr,
     
     # global plotting paramterers
     my.pch <- 21L # should be in 21:25
-    my.pt.cex <- 2.5
+    my.pt.cex <- 1.5
     my.pt.lwd <- if (line.type == "none") 1.0 else 2.5
-    
+
     # get t-SNE projection
     if (!quiet)
         message("Computing t-SNE projection...")
