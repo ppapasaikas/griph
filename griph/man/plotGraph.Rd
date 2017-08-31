@@ -11,7 +11,8 @@ plotGraph(gr, maxG = 2500, fill.type = "predicted", line.type = "true",
   forceRecalculation = FALSE, quiet = FALSE)
 }
 \arguments{
-\item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}}.}
+\item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}} or
+\code{\link{griph_cluster}}.}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting
 the graph.}
@@ -58,6 +59,7 @@ even if it is already contained in \code{gr}.}
 Invisibly the plot-optimized version of the graph as an \code{igraph} object.
 }
 \description{
-Plot a graph obtained from \code{\link{SC_cluster}}, allowing to
-    apply graph subsampling and control coloring.
+Plot a graph obtained from \code{\link{SC_cluster}} or
+    \code{\link{griph_cluster}}, allowing to apply graph subsampling and
+    control coloring.
 }

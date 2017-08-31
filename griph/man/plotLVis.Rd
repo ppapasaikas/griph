@@ -39,7 +39,7 @@ it will use a random 5 character string. Ignored if \code{image.format} is \code
 \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
 is rendered on the currently opened plotting device.}
 
-\item{forceRecalculation}{If \code{TRUE}, recalculate plotting-optimized graph
+\item{forceRecalculation}{If \code{TRUE}, recalculate LargeVis 2D-embedding
 even if it is already contained in \code{gr}.}
 
 \item{quiet}{If \code{TRUE}, do not report on progress.}
