@@ -86,11 +86,34 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
         lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
     }
     if (fill.type != "none" && length(fillColorPalette) > 0) {
-        lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
-                      pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                      col = if (line.type == "none") "black" else "white",
-                      pt.bg = fillColorPalette,
-                    title = fillColorType, legend = names(fillColorPalette))
+        if (is.numeric(fill.type)) {
+            # draw a continuous color legend
+            llevs <- as.numeric(names(fillColorPalette))
+            lcols <- fillColorPalette
+            zlims <- range(llevs)
+            zlabs <- as.character(signif(seq(zlims[1], zlims[2], length.out = 3), 3))
+            pusr <- par('usr')
+            pcxy <- par("cxy")
+            xl <- lgd$rect$left - 1.5 * pcxy[1] - max(strwidth(zlabs, cex = 0.75))
+            xr <- xl + 1.0 * pcxy[1]
+            yb <- pusr[4] - 4.0 * pcxy[2]
+            yt <- yb + 3.0 * pcxy[2]
+            rect(xleft  = xl, ybottom = seq(yb, yt, length = 65)[-65],
+                 xright = xr, ytop    = seq(yb, yt, length = 65)[-1],
+                 col = grDevices::colorRampPalette(lcols)(64), border = NA)
+            segments(x0 = xr, y0 = seq(yb, yt, length.out = 3),
+                     x1 = xr + 0.3 * pcxy[1], y1 = seq(yb, yt, length.out = 3), col = "black")
+            text(x = xr + 0.5 * pcxy[1], y = seq(yb, yt, length.out = 3),
+                 labels = zlabs, adj = c(0, 0.5), srt = 0, cex = 0.75)
+            lgd <- list(rect = list(left = xl))
+        } else {
+            # draw a discrete color legend
+            lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
+                          pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
+                          col = if (line.type == "none") "black" else "white",
+                          pt.bg = fillColorPalette,
+                          title = fillColorType, legend = names(fillColorPalette))
+        }
     }
     if (line.type != "none" && length(lineColorPalette) > 0) {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
