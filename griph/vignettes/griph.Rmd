@@ -150,9 +150,9 @@ plotLVis(res, fill.type = "predicted", line.type = "none", mark.type = "true")
 ```
 
 Finally, the plotting functions can also map numerical or categorical values to
-the color of each cell. An example is to visualize the fraction of detected genes:  
+the color of each cell. An example is to visualize the number of detected genes:  
 ```{r tung_detectedGenes, message=FALSE, echo=TRUE, results='hide'}
-plotLVis(res, fill.type = colMeans(M > 0), line.type = "none", mark.type = "true")
+plotLVis(res, fill.type = colSums(M > 0), line.type = "none", mark.type = "true")
 ```
 
 # Accessing the cell classification
