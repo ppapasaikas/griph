@@ -1,4 +1,6 @@
-# val: type to check
+# checkColorType
+# check if fill.type, line.type, mark.type argument is valid
+#     val: type to check
 checkColorType <- function(val, ncells) {
     if (!((is.character(val) && length(val) == 1 && val %in% c("none","predicted","true")) ||
           (is.numeric(val) && length(val) == ncells) ||
@@ -10,16 +12,19 @@ checkColorType <- function(val, ncells) {
     return(TRUE)
 }
 
-# gr: griph result
-# val: what to map to colors, one of:
-#       "none": no color
-#       "predicted": gr$MEMB (or V(graph)$membership)
-#       "true": gr$MEMB.true (or V(GRAOp)$class)
-#       numeric vector: linearly map to colors
-#       factor: map each level to a different color
-# col: defines the color palette, either the name of a RColorBrewer palette, or a vector of R colors
-# graph: if non NULL, take 
-# NA.color: use for is.numeric(val) & is.na(val)
+# getPlotColors
+# depending on val (fill.type, line.type, mark.type) and col (fill.col, line.col, mark.col),
+# generate a vector of colors (palette and type as attributes)
+#     gr: griph result
+#     val: what to map to colors, one of:
+#           "none": no color
+#           "predicted": gr$MEMB (or V(graph)$membership)
+#           "true": gr$MEMB.true (or V(GRAOp)$class)
+#           numeric vector: linearly map to colors
+#           factor: map each level to a different color
+#     col: defines the color palette, either the name of a RColorBrewer palette, or a vector of R colors
+#     graph: if non NULL, take 
+#     NA.color: use for is.numeric(val) & is.na(val)
 getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "lightgray") {
     # digest arguments
     stopifnot(is.list(gr),
@@ -50,7 +55,7 @@ getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "l
         }
         nclass <- nlevels(class.col)
         if (length(col) == 1)
-            col <- RColorBrewer::brewer.pal(min(RColorBrewer::brewer.pal.info[col, "maxcolors"], max(3, nclass)), col)[1:nclass]
+            col <- RColorBrewer::brewer.pal(min(RColorBrewer::brewer.pal.info[col, "maxcolors"], max(3, nclass)), col)[1:min(RColorBrewer::brewer.pal.info[col, "maxcolors"], nclass)]
         colpalette <- if (nclass > length(col)) grDevices::colorRampPalette(col)(nclass) else col
         names(colpalette) <- levels(class.col)
         cols <- colpalette[as.numeric(class.col)]
@@ -71,12 +76,15 @@ getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "l
     return(cols)    
 }
 
-# draw one or several legends (internal use only)
+# drawLegends
+# draw one or several legends (internal use only), depending on fill.X, line.X, mark.X
+# and corresponding colors, consistently for all plotXXX functions
 drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                         fill.type, fillColor, fillColorType, fillColorPalette,
                         line.type, lineColor, lineColorType, lineColorPalette,
                         my.pch, my.pt.lwd, my.pt.cex) {
     # draw the legends
+    # ... for mark
     if (mark.type != "none") {
         lgd <- legend(x = par("usr")[2] + 12 * par("cxy")[1], y = par("usr")[4],
                       xjust = 1, yjust = 1, bty = "n", cex = 1,
@@ -85,18 +93,18 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
     } else {
         lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
     }
+    # ... for fill
     if (fill.type != "none" && length(fillColorPalette) > 0) {
         if (is.numeric(fill.type)) {
             # draw a continuous color legend
             llevs <- as.numeric(names(fillColorPalette))
             lcols <- fillColorPalette
-            zlims <- range(llevs)
-            zlabs <- as.character(signif(seq(zlims[1], zlims[2], length.out = 3), 3))
+            zlabs <- as.character(signif(seq(llevs[1], llevs[length(llevs)], length.out = 3), 2))
             pusr <- par('usr')
             pcxy <- par("cxy")
-            xl <- lgd$rect$left - 1.5 * pcxy[1] - max(strwidth(zlabs, cex = 0.75))
+            xl <- lgd$rect$left - 2.0 * pcxy[1] - max(strwidth(zlabs, cex = 0.75))
             xr <- xl + 1.0 * pcxy[1]
-            yb <- pusr[4] - 4.0 * pcxy[2]
+            yb <- pusr[4] - 4.5 * pcxy[2]
             yt <- yb + 3.0 * pcxy[2]
             rect(xleft  = xl, ybottom = seq(yb, yt, length = 65)[-65],
                  xright = xr, ytop    = seq(yb, yt, length = 65)[-1],
@@ -105,7 +113,7 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                      x1 = xr + 0.3 * pcxy[1], y1 = seq(yb, yt, length.out = 3), col = "black")
             text(x = xr + 0.5 * pcxy[1], y = seq(yb, yt, length.out = 3),
                  labels = zlabs, adj = c(0, 0.5), srt = 0, cex = 0.75)
-            lgd <- list(rect = list(left = xl))
+            lgd <- list(rect = list(left = xl - 0.5 * pcxy[1]))
         } else {
             # draw a discrete color legend
             lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
@@ -115,6 +123,7 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                           title = fillColorType, legend = names(fillColorPalette))
         }
     }
+    # ... for line
     if (line.type != "none" && length(lineColorPalette) > 0) {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
@@ -123,12 +132,35 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
     }
 }
 
+# drawPolygons
+# draw polygons (mark.type != "none")
+#    e: ncell-by-2 matrix with x and y coordinates of 2D-embedding
+#    markElements: list of indices for cells in each group
+#    markColorPalette: colors for each group
+drawPolygons <- function(e, markElements, markColorPalette) {
+    for (j in which(lengths(markElements) > 0)) {
+        xy <- e[markElements[[j]], , drop = FALSE]
+        off <- par("cxy")[2] * 1
+        pp <- rbind(xy,
+                    cbind(xy[, 1] - off, xy[, 2]),
+                    cbind(xy[, 1] + off, xy[, 2]),
+                    cbind(xy[, 1], xy[, 2] - off), 
+                    cbind(xy[, 1], xy[, 2] + off))
+        cl <- igraph::convex_hull(pp)
+        graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
+                          col = paste0(markColorPalette[j], "66"),
+                          border = adjust.color(markColorPalette[j], 0.5))
+    }
+}
+
 #' @title Visualize griph result as a graph.
 #' 
-#' @description Plot a graph obtained from \code{\link{SC_cluster}}, allowing to
-#'     apply graph subsampling and control coloring.
+#' @description Plot a graph obtained from \code{\link{SC_cluster}} or
+#'     \code{\link{griph_cluster}}, allowing to apply graph subsampling and
+#'     control coloring.
 #' 
-#' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
+#' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}} or
+#'     \code{\link{griph_cluster}}.
 #' @param maxG Approximate maximal number of vertices to include when plotting
 #'     the graph.
 #' @param fill.type Type of fill color, one of \code{"predicted"} (predicted class
@@ -173,12 +205,10 @@ plotGraph <- function(gr, maxG=2500,
     if (!quiet)
         message("Computing Graph Layout and Rendering...")
     
-    # get varaibles from gr
+    # digest arguments
     GRAO <- gr$GRAO
     MEMB <- gr$MEMB
     csize <- table(MEMB)
-    
-    # digest arguments
     checkColorType(fill.type, length(MEMB))
     checkColorType(line.type, length(MEMB))
     checkColorType(mark.type, length(MEMB))
@@ -340,24 +370,8 @@ plotGraph <- function(gr, maxG=2500,
     plot(l[,1], l[,2], type = "n", axes = FALSE, xlab = "", ylab = "")
     
     # add mark polygons
-    if (mark.type != "none") {
-        for (j in which(lengths(markElements) > 0)) {
-            xy <- l[markElements[[j]], , drop = FALSE]
-            off <- par("cxy")[2] * 1
-            #avg <- matrix(colMeans(xy), ncol = 2, nrow = nrow(xy), byrow = TRUE)
-            #pp <- xy + sign(xy - avg) * off
-            pp <- rbind(xy,
-                        cbind(xy[, 1] - off, xy[, 2]),
-                        cbind(xy[, 1] + off, xy[, 2]),
-                        cbind(xy[, 1], xy[, 2] - off), 
-                        cbind(xy[, 1], xy[, 2] + off))
-            cl <- igraph::convex_hull(pp)
-            graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
-                              col = paste0(markColorPalette[j], "66"),
-                              border = adjust.color(markColorPalette[j], 0.5))
-            
-        }
-    }
+    if (mark.type != "none")
+        drawPolygons(e = l, markElements = markElements, markColorPalette = markColorPalette)
     
     # add edges (by default only for collapase.type != "none")
     if (isTRUE(draw.edges) || (is.null(draw.edges) && collapse.type != "none")) {
@@ -389,12 +403,14 @@ plotGraph <- function(gr, maxG=2500,
 
 
 
-#' @title Visualize griph result as a tSNE projection.
+#' @title Visualize griph result as a t-SNE projection.
 #' 
 #' @description Plot a t-SNE projection of the affinity matrix obtained from
-#'     \code{\link{SC_cluster}}, allowing to control coloring.
+#'     \code{\link{SC_cluster}} or \code{\link{griph_cluster}}, allowing to
+#'     control coloring.
 #' 
-#' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}}.
+#' @param gr A \code{griph} result, as returned by \code{\link{SC_cluster}} or
+#'     \code{\link{griph_cluster}}.
 #' @param fill.type Type of fill color, one of \code{"predicted"} (predicted class
 #'     labels, default), \code{"true"} (true class labels, if available), \code{"none"}
 #'     (no fill color), a numeric vectors  or a factor whose values should be
@@ -411,6 +427,8 @@ plotGraph <- function(gr, maxG=2500,
 #' @param image.format Specifies the format of the created image. Currently supported are
 #'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
 #'     is rendered on the currently opened plotting device.
+#' @param forceRecalculation If \code{TRUE}, recalculate t-SNE 2D-embedding
+#'     even if it is already contained in \code{gr}.
 #' @param quiet If \code{TRUE}, do not report on progress.
 #' @param ... additional arguments passed to \code{Rtsne}
 #' 
@@ -426,19 +444,16 @@ plotTsne <- function(gr,
                      mark.col="Pastel1",
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
+                     forceRecalculation=FALSE,
                      quiet=FALSE, ...) {
     if (!is.element("Rtsne", utils::installed.packages()[,1])) {
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
              'install.packages("Rtsne")')
     }
     
-    args <- list(...)
-    # get varaibles from gr
-    MEMB <- gr$MEMB
-    MEMB.true <- gr$MEMB.true
-    #csize <- table(MEMB)
-    
     # digest arguments
+    args <- list(...)
+    MEMB <- gr$MEMB
     checkColorType(fill.type, length(MEMB))
     checkColorType(line.type, length(MEMB))
     checkColorType(mark.type, length(MEMB))
@@ -449,13 +464,19 @@ plotTsne <- function(gr,
     my.pt.lwd <- if (line.type == "none") 1.0 else 2.5
 
     # get t-SNE projection
-    if (!quiet)
-        message("Computing t-SNE projection...")
-    set.seed(seed = seed)
-    if ( !("perplexity" %in% names(args))  ) {
-        args$perplexity <- min(30,round(sqrt(nrow(gr$DISTM)) - 1))
+    if (!forceRecalculation && "plotTsne" %in% names(gr) && !is.null(gr$plotTsne)) {
+        if (!quiet)
+            message("Using existing t-SNE embedding")
+        res <- gr$plotTsne
+    } else {
+        if (!quiet)
+            message("Computing t-SNE embedding...")
+        
+        set.seed(seed = seed)
+        if (!("perplexity" %in% names(args)))
+            args$perplexity <- min(30, round(sqrt(nrow(gr$DISTM)) - 1))
+        res <- do.call(Rtsne::Rtsne, c(list(X = stats::as.dist(1 - gr$DISTM), pca = FALSE, is_distance = TRUE), args))
     }
-    res <- do.call(Rtsne::Rtsne, c(list(X = stats::as.dist(1 - gr$DISTM), pca = FALSE, is_distance = TRUE), args))
     
     # get colors
     fillColor <- getPlotColors(gr = gr, val = fill.type, col = fill.col)
@@ -491,22 +512,8 @@ plotTsne <- function(gr,
     plot(res$Y[,1], res$Y[,2], type = "n", axes = FALSE, xlab = "", ylab = "")
     
     # add mark polygons
-    if (mark.type != "none") {
-        for (j in which(lengths(markElements) > 0)) {
-            xy <- res$Y[markElements[[j]], , drop = FALSE]
-            off <- par("cxy")[2]*1
-            pp <- rbind(xy,
-                        cbind(xy[, 1] - off, xy[, 2]),
-                        cbind(xy[, 1] + off, xy[, 2]),
-                        cbind(xy[, 1], xy[, 2] - off), 
-                        cbind(xy[, 1], xy[, 2] + off))
-            cl <- igraph::convex_hull(pp)
-            graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
-                              col = paste0(markColorPalette[j], "66"),
-                              border = adjust.color(markColorPalette[j], 0.5))
-            
-        }
-    }
+    if (mark.type != "none")
+        drawPolygons(e = res$Y, markElements = markElements, markColorPalette = markColorPalette)
     
     # add cells
     points(res$Y, col = if (line.type == "none") "black" else lineColor,
@@ -550,7 +557,7 @@ plotTsne <- function(gr,
 #' @param image.format Specifies the format of the created image. Currently supported are
 #'     \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
 #'     is rendered on the currently opened plotting device.
-#' @param forceRecalculation If \code{TRUE}, recalculate plotting-optimized graph
+#' @param forceRecalculation If \code{TRUE}, recalculate LargeVis 2D-embedding
 #'     even if it is already contained in \code{gr}.
 #' @param quiet If \code{TRUE}, do not report on progress.
 #' @param ... additional arguments passed to \code{largeVis::projectKNNs}
@@ -569,14 +576,9 @@ plotLVis <- function(gr,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
                      quiet=FALSE, ...) {
-    
-    
-    add.args <- list(...)
-    # get varaibles from gr
-    MEMB <- gr$MEMB
-    MEMB.true <- gr$MEMB.true
-
     # digest arguments
+    add.args <- list(...)
+    MEMB <- gr$MEMB
     checkColorType(fill.type, length(MEMB))
     checkColorType(line.type, length(MEMB))
     checkColorType(mark.type, length(MEMB))
@@ -589,11 +591,11 @@ plotLVis <- function(gr,
     # get largeVis projection
     if (!forceRecalculation && "plotLVis" %in% names(gr) && !is.null(gr$plotLVis)) {
         if (!quiet)
-            message("Using existing largeVis projection")
+            message("Using existing LargeVis embedding")
         res <- t(gr$plotLVis)
     } else {
         if (!quiet)
-            message("Computing largeVis projection...")
+            message("Computing LargeVis embedding...")
     
         set.seed(seed = seed)
     
@@ -646,22 +648,8 @@ plotLVis <- function(gr,
     plot(t(res)[,1], t(res)[,2], type = "n", axes = FALSE, xlab = "", ylab = "")
     
     # add mark polygons
-    if (mark.type != "none") {
-        for (j in which(lengths(markElements) > 0)) {
-            xy <- t(res)[markElements[[j]], , drop = FALSE]
-            off <- par("cxy")[2]*1
-            pp <- rbind(xy,
-                        cbind(xy[, 1] - off, xy[, 2]),
-                        cbind(xy[, 1] + off, xy[, 2]),
-                        cbind(xy[, 1], xy[, 2] - off), 
-                        cbind(xy[, 1], xy[, 2] + off))
-            cl <- igraph::convex_hull(pp)
-            graphics::xspline(cl$rescoords, shape = 0.5, open = FALSE,
-                              col = paste0(markColorPalette[j], "66"),
-                              border = adjust.color(markColorPalette[j], 0.5))
-            
-        }
-    }
+    if (mark.type != "none")
+        drawPolygons(e = t(res), markElements = markElements, markColorPalette = markColorPalette)
     
     # add cells
     points(t(res), col = if (line.type == "none") "black" else lineColor,
