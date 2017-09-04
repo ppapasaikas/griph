@@ -5,7 +5,7 @@
 \title{Combined distance calculations.}
 \usage{
 WScor(M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra,
-  ShrinkCor = ShrinkCor)
+  ShrinkCor = ShrinkCor, seed = 127350)
 }
 \arguments{
 \item{M}{gene-by-cell count matrix.}
@@ -19,6 +19,8 @@ WScor(M, PPearsonCor, PSpearmanCor, PHellinger, PCanberra,
 \item{PCanberra}{Function to calculate Canberra Distance between the columns of two matrices.}
 
 \item{ShrinkCor}{Function to calculate shrinkage correlation.}
+
+\item{seed}{Set seed for reproducible results.}
 }
 \value{
 cell-by-cell distance matrix.

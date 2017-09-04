@@ -23,9 +23,9 @@ importFrom(parallel, detectCores, makeCluster, stopCluster)
 importFrom(corpcor, cor.shrink) #Fast pearson's correlation using BLAS, incorporating weights and shrinkage
 importFrom(coop, pcor)  #Fast pearson's correlation implementation using BLAS
 importFrom("methods", "new", "as")
-importFrom("grDevices", "dev.off", "hcl", "pdf", "png", "colorRampPalette", "rgb")
+importFrom("grDevices", "dev.off", "hcl", "pdf", "png", "colorRampPalette", "rgb", "colorRamp")
 importFrom("graphics", "legend", "par", "plot", "symbols", "points")
-importFrom("stats", "IQR", "cor", "dist","as.dist", "median", "nls", "predict", "quantile", "sd","kmeans")
+importFrom("stats", "IQR", "cor", "dist","as.dist", "median", "lm", "predict", "quantile", "sd", "kmeans", "var", "mad")
 importFrom("utils", "flush.console")
 import(RColorBrewer)
 
@@ -33,6 +33,7 @@ useDynLib(griph, .registration = TRUE)
 
 
 export(SC_cluster, griph_cluster, plotGraph, predictCellCycle, plotTsne, plotLVis,
-       PHellingerMat, PHellingerMatOMP, PCanberraMat, PCanberraMatOMP, PPearsonMatOMP)
+       PHellingerMat, PHellingerMatOMP, PCanberraMat, PCanberraMatOMP, PPearsonMatOMP,
+       SPearsonMatOMP, ssPCanberraMatOMP, sdPCanberraMatOMP)
 
 

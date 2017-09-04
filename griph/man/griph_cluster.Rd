@@ -6,9 +6,9 @@
 \usage{
 griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
   ncores = "all", filter = TRUE, rho = 0.25, batch.penalty = 0.5,
-  ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL, ncom = NULL,
-  plotG = TRUE, maxG = 2500, fsuffix = RandString(),
-  image.format = "png")
+  seed = 127350, ClassAssignment = rep(1, ncol(DM)),
+  BatchAssignment = NULL, ncom = NULL, plot_ = TRUE, maxG = 2500,
+  fsuffix = NULL, image.format = "png")
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -26,7 +26,10 @@ functions based on \code{\link[foreach]{foreach}} (see details).}
 parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 the available cores. Ignored if \code{use.par==FALSE}.}
 
-\item{filter}{T/F Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.}
+\item{filter}{TRUE/FALSE or a positive numeric values. Determines  whether filtering for reaining only overdispersed genes should be performed.
+If FALSE no gene filtering is performed. If TRUE (default) only the top 25% overdispersed genes are retained.
+If set to a number between 0 and 1 than this fraction of genes is retained.
+If set to an integer > 1 than this numbeer of genes is retained}
 
 \item{rho}{Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 Default=0.25.  The parameter is then automatically scaled to account for
@@ -37,6 +40,8 @@ the batch.penalty factor to account for BatchAssignment (if given).}
 variables according to \code{BatchAssignment}. For penalty p  -> rho_same_batch=rho^(1-p),
 rho_diff_batch=rho^(1+p). It is ignored if \code{BatchAssignment==NULL}.}
 
+\item{seed}{Set seed for reproducible results.}
+
 \item{ClassAssignment}{If available a numeric vector of length \code{k} with numeric
 class labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
@@ -45,11 +50,12 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 
 \item{ncom}{Forces detection of a fixed number of clusters (communities).}
 
-\item{plotG}{if \code{TRUE} plots the resulting graph}
+\item{plot_}{if \code{TRUE} plots the obtained graph using \code{plotLVis}. The resulting
+2D-embedding is stored in the \code{plotLVis} component of the result.}
 
 \item{maxG}{Approximate maximal number of vertices to include when plotting the graph.}
 
-\item{fsuffix}{A suffix added to the file names of output plots. If not given
+\item{fsuffix}{A suffix added to the file names of output plots. If \code{NULL} (default),
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}

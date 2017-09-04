@@ -4,59 +4,50 @@
 \alias{plotLVis}
 \title{Visualize griph result using a LargeVis algorithm (Tang et al., 2016).}
 \usage{
-plotLVis(gr, fill.type = c("predicted", "true", "none", "custom"),
-  line.type = c("true", "predicted", "none", "custom"),
-  mark.type = c("none", "predicted", "true", "custom"),
-  fill.col = "Spectral", line.col = "Dark2", mark.col = "Pastel1",
-  custom.class = factor(rep(1, length(gr$MEMB))), seed = 91919,
-  fsuffix = RandString(), image.format = NA, quiet = FALSE, ...)
+plotLVis(gr, fill.type = "predicted", line.type = "true",
+  mark.type = "none", fill.col = "Spectral", line.col = "Dark2",
+  mark.col = "Pastel1", seed = 91919, fsuffix = NULL, image.format = NA,
+  forceRecalculation = FALSE, quiet = FALSE, ...)
 }
 \arguments{
 \item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}}
 or \code{\link{griph_cluster}}.}
 
-\item{fill.type}{Type of fill color, one of \code{predicted} (predicted class
-labels, default), \code{true} (true class labels, if available), \code{none}
-(no fill color) or \code{custom} (use \code{custom.col}).}
+\item{fill.type}{Type of fill color, one of \code{"predicted"} (predicted class
+labels, default), \code{"true"} (true class labels, if available), \code{"none"}
+(no fill color), a numeric vectors  or a factor whose values should be
+mapped to fill colors, using the palette given in \code{fill.col}.}
 
-\item{line.type}{Type of line color, one of \code{true} (true class labels, if
-available, default), \code{predicted} (predicted class labels), \code{none}
-for no fill color or \code{custom} (use \code{custom.col}).}
+\item{line.type}{Type of line color, as in \code{fill.type}.}
 
-\item{mark.type}{Type of cell class defnition to mark using polygons,
-one of \code{none} (no polygons, the default), \code{predicted} (draw
-polygons around cells with the same predicted class label), \code{true}
-(polygons around cells with the same true class label, if available) or
+\item{mark.type}{Type of cell class defnition to mark using polygons, as in \code{fill.type}.
 \code{custom} (polygons around cells with the same \code{custom.class}).}
 
-\item{fill.col}{Character scalar with a \code{\link{RColorBrewer}} color palette name
-or color vector defining the palette to use for vertex fill coloring.}
+\item{fill.col}{Fill color palette, either a character scalar with a \code{\link{RColorBrewer}}
+color palette name or color vector defining the palette to use for vertex fill coloring.}
 
-\item{line.col}{Character scalar with a \code{\link{RColorBrewer}} color palette name
-or color vector defining the palette to use for vertex outline coloring.}
+\item{line.col}{Line color palette, as in \code{fill.col}.}
 
-\item{mark.col}{Character scalar with a \code{\link{RColorBrewer}} color palette name
-or color vector defining the palette to use for cell class polygon marking.}
-
-\item{custom.class}{Factor, character or numberic vector of the same length or
-with names corresponding to names(gr$MEMB) to use for custom cell classification
-(used if \code{fill.type} and/or \code{line.type} is set to "custom").}
+\item{mark.col}{Mark color palette, as in \code{fill.col}.}
 
 \item{seed}{Random number seed to make largeVis projection deterministic.}
 
-\item{fsuffix}{A suffix added to the file names of output plots. If not given
+\item{fsuffix}{A suffix added to the file names of output plots. If \code{NULL} (default),
 it will use a random 5 character string. Ignored if \code{image.format} is \code{NULL}.}
 
 \item{image.format}{Specifies the format of the created image. Currently supported are
 \code{\link{pdf}}, \code{\link{png}} or \code{NA}. If \code{NA} (the default), the plot
 is rendered on the currently opened plotting device.}
 
+\item{forceRecalculation}{If \code{TRUE}, recalculate LargeVis 2D-embedding
+even if it is already contained in \code{gr}.}
+
 \item{quiet}{If \code{TRUE}, do not report on progress.}
 
 \item{...}{additional arguments passed to \code{largeVis::projectKNNs}}
 }
 \value{
-Invisible the results of the largeVis projection.
+Invisible the results of the largeVis projection as a two-column matrix.
 }
 \description{
 Plot a largeVis projection of the affinity matrix obtained from

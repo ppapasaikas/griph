@@ -187,3 +187,4 @@ SEXP PPearsonMatOMP(SEXP A, SEXP B, int nthreads = 2) {
     return ans_;
 }
 #undef ANS
+#undef CLAMP

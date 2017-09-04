@@ -21,7 +21,7 @@ LazyData: true
 Imports: Matrix, methods, igraph, QUIC, coop, corpcor, foreach, doParallel,
     parallel, bigmemory, RColorBrewer
 Depends: R (>= 3.0.2)
-LinkingTo: Rcpp (>= 0.12.9), RcppProgress (>= 0.2.1), RcppArmadillo (>= 0.7.200.2.0)
+LinkingTo: Rcpp (>= 0.12.9), RcppProgress (>= 0.2.1), RcppArmadillo (>= 0.7.200.2.0), Matrix
 Suggests: BiocStyle, knitr, rmarkdown, testthat, Rtsne, gtools
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
