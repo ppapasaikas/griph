@@ -72,7 +72,37 @@ WScorFB <- function (M,FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 
 
 
+##### Skeleton for using SC_cluster as an S3 method:
+SC_cluster <- function (x) UseMethod("SC_cluster")
 
+SC_cluster.dgCMatrix <- function (x) {
+    if (class(x)!="dgCMatrix"){
+        stop ("Input object must be  a Sparse Matrix of class dgCMatrix")  
+    }
+    else {
+    #DoStuff  
+    }
+}
+#Similarly for:
+SC_cluster.dgTMatrix 
+SC_cluster.matrix
+SC_cluster.HDF5
+SC_cluster.SummarizedExperiment_dgC
+SC_cluster.SummarizedExperiment_dgT
+SC_cluster.SummarizedExperiment_Matrix
+...
+SC_cluster.default <- function(x, ...){
+    warning(paste("SC_cluster does not know how to handle object of class ", 
+                  class(x), 
+                  "and can only be used on classes..."))
+}
+
+#in addition for all S4 objects (e.g dgCMatrix) we should add:
+setMethod("SC_cluster", "dgCMatrix", SC_cluster.dgcMatrix)   
+
+#Finally in the NAMESPACE we should add:
+S3method(SC_cluster, "dgCMatrix")
+exportMethods(SC_cluster)   
 
 
 
@@ -342,31 +372,13 @@ griph_cluster <- function(DM, SamplingSize= NULL,ref.iter=1,use.par=TRUE,ncores=
             gc() #Call garbage collector
         }
         
+        
         ######Top FeatureGenes:
         
         
         ######Mark Doublets:
-        #if (markDoublets==TRUE){
-        #memb=cluster.res$MEMB
-        #n=length(memb)
-        #nsq=n^2
-        #TBL=table(memb)
-        #nclust=length(TBL)
-        #between=sapply(1:nclust, function(x)  rowMeans(cluster.res$DISTM[,memb==x])    )
-        #expected=matrix(0,nclust,nclust)
-        #    for (c1 in 1: nclust){
-        #        for (c2 in 1: nclust){
-        #        expected[c1,c2]=(1+sum(between[,c1] * between[,c2] > 0)   ) 
-        #        }
-        #    }
-        
-        #    get.mixr <- function (x) {
-        #    o=order(x,decreasing=TRUE)
-        #    mixr=x[o[2]]/(x[o[1]]+1e-3)
-        #    mixr=1/ ((expected[ o[1],o[2] ]) )
-        #    }
-        #mixing.ratio=apply(between,1,get.mixr )
-        #}
+
+    
         
         
         
