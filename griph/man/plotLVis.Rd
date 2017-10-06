@@ -7,7 +7,8 @@
 plotLVis(gr, fill.type = "predicted", line.type = "true",
   mark.type = "none", fill.col = "Spectral", line.col = "Dark2",
   mark.col = "Pastel1", seed = 91919, fsuffix = NULL, image.format = NA,
-  forceRecalculation = FALSE, quiet = FALSE, ...)
+  forceRecalculation = FALSE, quiet = FALSE, plot.args = list(pch = 21L,
+  cex = 1.5, lwd = 2.5), ...)
 }
 \arguments{
 \item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}}
@@ -44,7 +45,9 @@ even if it is already contained in \code{gr}.}
 
 \item{quiet}{If \code{TRUE}, do not report on progress.}
 
-\item{...}{additional arguments passed to \code{largeVis::projectKNNs} as well as for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )}
+\item{plot.args}{a named list of  arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )}
+
+\item{...}{additional arguments passed to \code{largeVis::projectKNNs}}
 }
 \value{
 Invisible the results of the largeVis projection as a two-column matrix.

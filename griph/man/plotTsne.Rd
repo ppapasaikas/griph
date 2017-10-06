@@ -7,7 +7,8 @@
 plotTsne(gr, fill.type = "predicted", line.type = "true",
   mark.type = "none", fill.col = "Spectral", line.col = "Dark2",
   mark.col = "Pastel1", seed = 91919, fsuffix = NULL, image.format = NA,
-  forceRecalculation = FALSE, quiet = FALSE, ...)
+  forceRecalculation = FALSE, plot.args = list(pch = 21L, cex = 1.5, lwd =
+  2.5), quiet = FALSE, ...)
 }
 \arguments{
 \item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}} or
@@ -41,9 +42,11 @@ is rendered on the currently opened plotting device.}
 \item{forceRecalculation}{If \code{TRUE}, recalculate t-SNE 2D-embedding
 even if it is already contained in \code{gr}.}
 
+\item{plot.args}{a named list of  arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )}
+
 \item{quiet}{If \code{TRUE}, do not report on progress.}
 
-\item{...}{additional arguments passed to \code{Rtsne} as well as for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )}
+\item{...}{additional arguments passed to \code{Rtsne}}
 }
 \value{
 Invisible the results of the t-SNE projection.

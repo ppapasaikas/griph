@@ -188,7 +188,7 @@ drawPolygons <- function(e, markElements, markColorPalette) {
 #' @param forceRecalculation If \code{TRUE}, recalculate plotting-optimized graph
 #'     even if it is already contained in \code{gr}.
 #' @param quiet If \code{TRUE}, do not report on progress.
-#' @param ... additional arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )
+#' @param plot.args a named list of  arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )
 #' 
 #' @return Invisibly the plot-optimized version of the graph as an \code{igraph} object.
 plotGraph <- function(gr, maxG=2500,
@@ -202,12 +202,13 @@ plotGraph <- function(gr, maxG=2500,
                       draw.edges=NULL,
                       seed=91919,
                       fsuffix=NULL, image.format=NA,
-                      forceRecalculation=FALSE, quiet=FALSE, ...) {
+                      forceRecalculation=FALSE, quiet=FALSE,
+                      plot.args=list(pch=21L, cex=1.5,lwd=2.5)
+                      ) {
     if (!quiet)
         message("Computing Graph Layout and Rendering...")
     
     # digest arguments
-    add.args <- list(...)
     GRAO <- gr$GRAO
     MEMB <- gr$MEMB
     csize <- table(MEMB)
@@ -218,13 +219,7 @@ plotGraph <- function(gr, maxG=2500,
 
     
     # global plotting paramterers (can come as arguments)
-    if (!is.element('pch',names(add.args)))
-        add.args$pch <- 21L    # should be in 21:25
-    if (!is.element('cex',names(add.args)))
-        add.args$cex <- 1.5   
-    if (!is.element('lwd',names(add.args)))
-        add.args$lwd <- 2.5
-    add.args$lwd <- if (line.type == "none" || collapse.type != "none") 0.5 else add.args$lwd
+    plot.args$lwd <- if (line.type == "none" || collapse.type != "none") 0.5 else plot.args$lwd
     
     pct <- 1
     edge.lwd.max <- 12.0
@@ -392,14 +387,14 @@ plotGraph <- function(gr, maxG=2500,
     
     # add vertices
     points(l[,1], l[,2], col = if (line.type == "none") "black" else lineColor,
-           bg = fillColor, pch = add.args$pch, lwd = add.args$lwd, 
-           cex =  add.args$cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
+           bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, 
+           cex =  plot.args$cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
     
     # add legend(s)
     drawLegends(mark.type, markColor, markColorType, markColorPalette,
                 fill.type, fillColor, fillColorType, fillColorPalette,
                 line.type, lineColor, lineColorType, lineColorPalette,
-                add.args$pch, add.args$lwd, add.args$cex)
+                plot.args$pch, plot.args$lwd, plot.args$cex)
     
     # close output file
     if (!is.na(image.format))
@@ -439,7 +434,8 @@ plotGraph <- function(gr, maxG=2500,
 #' @param forceRecalculation If \code{TRUE}, recalculate t-SNE 2D-embedding
 #'     even if it is already contained in \code{gr}.
 #' @param quiet If \code{TRUE}, do not report on progress.
-#' @param ... additional arguments passed to \code{Rtsne} as well as for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )
+#' @param plot.args a named list of  arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )
+#' @param ... additional arguments passed to \code{Rtsne} 
 #' 
 #' @return Invisible the results of the t-SNE projection.
 #' 
@@ -454,6 +450,7 @@ plotTsne <- function(gr,
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
+                     plot.args=list(pch=21L, cex=1.5,lwd=2.5),
                      quiet=FALSE, ...) {
     if (!is.element("Rtsne", utils::installed.packages()[,1])) {
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
@@ -468,13 +465,7 @@ plotTsne <- function(gr,
     checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers (can come as arguments)
-    if (!is.element('pch',names(add.args)))
-        add.args$pch <- 21L    # should be in 21:25
-    if (!is.element('cex',names(add.args)))
-        add.args$cex <- 1.5   
-    if (!is.element('lwd',names(add.args)))
-        add.args$lwd <- 2.5
-    add.args$lwd <- if (line.type == "none") 0.5 else add.args$lwd
+    plot.args$lwd <- if (line.type == "none") 0.5 else plot.args$lwd
     
 
     # get t-SNE projection
@@ -531,13 +522,13 @@ plotTsne <- function(gr,
     
     # add cells
     points(res$Y, col = if (line.type == "none") "black" else lineColor,
-           bg = fillColor, pch = add.args$pch, lwd = add.args$lwd, cex = add.args$cex)
+           bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
     
     # add legend(s)
     drawLegends(mark.type, markColor, markColorType, markColorPalette,
                 fill.type, fillColor, fillColorType, fillColorPalette,
                 line.type, lineColor, lineColorType, lineColorPalette,
-                add.args$pch, add.args$lwd, add.args$cex)
+                plot.args$pch, plot.args$lwd, plot.args$cex)
     
     # close output file
     if (!is.na(image.format))
@@ -574,7 +565,8 @@ plotTsne <- function(gr,
 #' @param forceRecalculation If \code{TRUE}, recalculate LargeVis 2D-embedding
 #'     even if it is already contained in \code{gr}.
 #' @param quiet If \code{TRUE}, do not report on progress.
-#' @param ... additional arguments passed to \code{largeVis::projectKNNs} as well as for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )
+#' @param plot.args a named list of  arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )
+#' @param ... additional arguments passed to \code{largeVis::projectKNNs} 
 #' 
 #' @return Invisible the results of the largeVis projection as a two-column matrix.
 #' 
@@ -589,7 +581,8 @@ plotLVis <- function(gr,
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
-                     quiet=FALSE, ...) {
+                     quiet=FALSE, plot.args=list(pch=21L, cex=1.5,lwd=2.5),
+                     ...) {
     # digest arguments
     add.args <- list(...)
     MEMB <- gr$MEMB
@@ -598,13 +591,7 @@ plotLVis <- function(gr,
     checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers (can come as arguments)
-    if (!is.element('pch',names(add.args)))
-        add.args$pch <- 21L    # should be in 21:25
-    if (!is.element('cex',names(add.args)))
-        add.args$cex <- 1.5   
-    if (!is.element('lwd',names(add.args)))
-        add.args$lwd <- 2.5
-    add.args$lwd <- if (line.type == "none") 0.5 else add.args$lwd
+    plot.args$lwd <- if (line.type == "none") 0.5 else plot.args$lwd
 
     
     # get largeVis projection
@@ -672,13 +659,13 @@ plotLVis <- function(gr,
     
     # add cells
     points(t(res), col = if (line.type == "none") "black" else lineColor,
-           bg = fillColor, pch = add.args$pch, lwd = add.args$lwd, cex = add.args$cex)
+           bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
     
     # add legend(s)
     drawLegends(mark.type, markColor, markColorType, markColorPalette,
                 fill.type, fillColor, fillColorType, fillColorPalette,
                 line.type, lineColor, lineColorType, lineColorPalette,
-                add.args$pch, add.args$lwd, add.args$cex)
+                plot.args$pch, plot.args$lwd, plot.args$cex)
     
     # close output file
     if (!is.na(image.format))
