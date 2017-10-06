@@ -8,7 +8,7 @@ plotGraph(gr, maxG = 2500, fill.type = "predicted", line.type = "true",
   mark.type = "none", collapse.type = c("none", "predicted", "true"),
   fill.col = "Spectral", line.col = "Dark2", mark.col = "Pastel1",
   draw.edges = NULL, seed = 91919, fsuffix = NULL, image.format = NA,
-  forceRecalculation = FALSE, quiet = FALSE)
+  forceRecalculation = FALSE, quiet = FALSE, ...)
 }
 \arguments{
 \item{gr}{A \code{griph} result, as returned by \code{\link{SC_cluster}} or
@@ -54,6 +54,8 @@ is rendered on the currently opened plotting device.}
 even if it is already contained in \code{gr}.}
 
 \item{quiet}{If \code{TRUE}, do not report on progress.}
+
+\item{...}{additional arguments for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )}
 }
 \value{
 Invisibly the plot-optimized version of the graph as an \code{igraph} object.

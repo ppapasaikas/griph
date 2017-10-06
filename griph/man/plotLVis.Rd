@@ -44,7 +44,7 @@ even if it is already contained in \code{gr}.}
 
 \item{quiet}{If \code{TRUE}, do not report on progress.}
 
-\item{...}{additional arguments passed to \code{largeVis::projectKNNs}}
+\item{...}{additional arguments passed to \code{largeVis::projectKNNs} as well as for controlling specific plot points attributes (cex, lwd, pch -should between 21 and 25- )}
 }
 \value{
 Invisible the results of the largeVis projection as a two-column matrix.
