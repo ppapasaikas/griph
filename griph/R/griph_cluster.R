@@ -60,7 +60,7 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("bEM (Elapsed Time: ", Te1, ")")
     
-    return(R)    
+    return(R)    #This is NOT a symmetric matrix
 }
 
 

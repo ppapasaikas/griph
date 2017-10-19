@@ -33,12 +33,14 @@ getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "l
               is.character(col) && (length(col) > 1 || col %in% rownames(RColorBrewer::brewer.pal.info)),
               is.null(graph) || inherits(graph, "igraph"))
     ncells <- if (is.null(graph)) length(gr$MEMB) else length(igraph::V(graph))
-
     # map to colors
     coltype <- ""
     if ((is.character(val) && length(val) == 1 && val %in% c("none","predicted","true")) || is.factor(val)) {
         if (is.factor(val)) {
+            if (is.null(graph)) {
             class.col <- val
+            }
+            else {class.col <- val[igraph:::V(gr$GRAO)$labels %in% igraph:::V(graph)$labels ]}
         } else {
             coltype <- val
             if (is.null(graph)) { # use gr
@@ -60,7 +62,7 @@ getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "l
         names(colpalette) <- levels(class.col)
         cols <- colpalette[as.numeric(class.col)]
         names(cols) <- as.character(class.col)
-        
+
     } else if (is.numeric(val)) {
         i <- !is.na(val)
         rng <- range(val[i])
@@ -69,6 +71,7 @@ getPlotColors <- function(gr, val, col = "Spectral", graph = NULL, NA.color = "l
         cols <- rep(NA.color, length(val))
         cr <- colorRamp(colpalette)((val[i] - rng[1]) / (rng[2] - rng[1]))
         cols[i] <- grDevices::rgb(cr[,1], cr[,2], cr[,3], maxColorValue = 255)
+
     }
     
     attr(x = cols, which = "type") <- coltype
@@ -348,12 +351,12 @@ plotGraph <- function(gr, maxG=2500,
     igraph::V(GRAOp)$frame.width <- 2 / (length(igraph::V(GRAOp)) / 6 )^0.3
     igraph::E(GRAOp)$width <- igraph::E(GRAOp)$weight / sqrt((length(igraph::V(GRAOp))/60 ))
     igraph::V(GRAOp)$color <- fillColor
-    
     # compute graph layout
     set.seed(seed = seed)
+
     l <- igraph::layout_with_fr(graph = GRAOp)
     # igraph::add.vertex.shape("fcircle", clip=igraph.shape.noclip, plot=mycircle, parameters=list(vertex.frame.color=1, vertex.frame.width=1))
-    
+
     # open output file
     if (!is.na(image.format)) {
         if (is.null(fsuffix))
@@ -368,14 +371,16 @@ plotGraph <- function(gr, maxG=2500,
         if (!quiet)
             message("\tsaving graph to ", fname)
     }
-    
+
     # setup plot coordinate system
     par(mar = c(5.1, 4.1, 4.1, 14.1), xpd = TRUE)
     plot(l[,1], l[,2], type = "n", axes = FALSE, xlab = "", ylab = "")
     
+    
     # add mark polygons
     if (mark.type != "none")
         drawPolygons(e = l, markElements = markElements, markColorPalette = markColorPalette)
+    
     
     # add edges (by default only for collapase.type != "none")
     if (isTRUE(draw.edges) || (is.null(draw.edges) && collapse.type != "none")) {
@@ -390,17 +395,40 @@ plotGraph <- function(gr, maxG=2500,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, 
            cex =  plot.args$cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
     
+    # add MST segments if MST is present
+    if ( !is.null(gr$MST)) {
+        for (e in 1:length(E(gr$MST ))   ) {
+            source=names(igraph::tail_of ( gr$MST, e) )
+            target=names(igraph::head_of ( gr$MST, e))
+            if (exists("snowball")){
+            source.nodes=which(sort(snowball) %in% which(gr$MST.memb==source) )
+            target.nodes=which(sort(snowball) %in% which(gr$MST.memb==target) )
+            }else{
+            source.nodes=which(gr$MST.memb==source)
+            target.nodes=which(gr$MST.memb==target)
+            }
+            X0=mean(l[source.nodes,1], trim=0.1)
+            Y0=mean(l[source.nodes,2], trim=0.1)
+            X1=mean(l[target.nodes,1], trim=0.1)
+            Y1=mean(l[target.nodes,2], trim=0.1)
+            segments (X0,Y0,X1,Y1,col="red",lwd=2  )
+            points(c(X0,X1),c(Y0,Y1),col="red",bg="#555555",pch=21,cex=1.0)
+        }
+    }
+    
+    
     # add legend(s)
     drawLegends(mark.type, markColor, markColorType, markColorPalette,
                 fill.type, fillColor, fillColorType, fillColorPalette,
                 line.type, lineColor, lineColorType, lineColorPalette,
                 plot.args$pch, plot.args$lwd, plot.args$cex)
-    
+
     # close output file
     if (!is.na(image.format))
         dev.off()
-    
+
     return(list(y = l[,1:2], GRAO = invisible(GRAOp)))
+
 }
 
 
@@ -523,6 +551,25 @@ plotTsne <- function(gr,
     # add cells
     points(res$Y, col = if (line.type == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
+    
+    # add MST segments if MST is present
+    if ( !is.null(gr$MST)) {
+        for (e in 1:length(E(gr$MST ))   ) {
+            source=names(igraph::tail_of ( gr$MST, e) )
+            target=names(igraph::head_of ( gr$MST, e))
+            source.nodes=which(gr$MST.memb==source)
+            target.nodes=which(gr$MST.memb==target)
+            X0=mean(res$Y[source.nodes,1], trim=0.1)
+            Y0=mean(res$Y[source.nodes,2], trim=0.1)
+            X1=mean(res$Y[target.nodes,1], trim=0.1)
+            Y1=mean(res$Y[target.nodes,2], trim=0.1)
+            segments (X0,Y0,X1,Y1,col="red",lwd=2  )
+            points(c(X0,X1),c(Y0,Y1),col="red",bg="#555555",pch=21,cex=1.0)
+        }
+    }
+    
+    
+    
     
     # add legend(s)
     drawLegends(mark.type, markColor, markColorType, markColorPalette,
@@ -660,6 +707,23 @@ plotLVis <- function(gr,
     # add cells
     points(t(res), col = if (line.type == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
+    
+    
+    # add MST segments if MST is present
+    if ( !is.null(gr$MST)) {
+    for (e in 1:length(E(gr$MST ))   ) {
+        source=names(igraph::tail_of ( gr$MST, e) )
+        target=names(igraph::head_of ( gr$MST, e))
+        source.nodes=which(gr$MST.memb==source)
+        target.nodes=which(gr$MST.memb==target)
+        X0=mean(t(res)[source.nodes,1], trim=0.1)
+        Y0=mean(t(res)[source.nodes,2], trim=0.1)
+        X1=mean(t(res)[target.nodes,1], trim=0.1)
+        Y1=mean(t(res)[target.nodes,2], trim=0.1)
+        segments (X0,Y0,X1,Y1,col="red",lwd=2  )
+        points(c(X0,X1),c(Y0,Y1),col="red",bg="#555555",pch=21,cex=1.0)
+    }
+    }
     
     # add legend(s)
     drawLegends(mark.type, markColor, markColorType, markColorPalette,
