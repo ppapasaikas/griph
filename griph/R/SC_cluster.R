@@ -396,7 +396,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
-    E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within = 1.25, weight.between = 0.8)
+    #E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within = 1.25, weight.between = 0.8)
     
     ######### Optimal Mapping between true and estimated class assignments: ##########
     mapping <- mapLabelsGreedy(memb$membership, ClassAssignment)
