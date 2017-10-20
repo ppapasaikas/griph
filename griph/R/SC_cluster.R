@@ -277,6 +277,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     } else {
         #####Assumes Cuse comes as a  sparse matrix  (dgCmatrix) object...    
         ADJ <- Cuse
+        
         ADJ@x[ADJ@x < 0] <- 0
         ADJ <- Matrix::drop0((ADJ), 1e-20)
         if (!is.null(BatchAssignment)) {
@@ -296,16 +297,16 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     ######## Graph weights:
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
     ave <- mean(Cuse@x)
+    
     ADJ@x <- exp(-(((1 - Cuse@x)^2) / ((1 - ave)^2)))   #Kernelize distance according to Haren and Koren 2001 section 3
     ADJ <- Matrix::drop0((ADJ), 1e-20)
     
     ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
     k <- min(max(floor(5 * sqrt(ncol(ADJ))), 100), floor(ncol(ADJ)) / 1.5)
     ADJ <- keep.mknn(ADJ, k = round(k))
-
+    
     GRAO <- igraph::graph.adjacency(ADJ, mode = c("max"), weighted = TRUE, diag = FALSE)
     message("done")
-    
     
     if (pr.iter > 0) {
         for (i in 1:pr.iter) {
@@ -338,7 +339,12 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             PR <- NULL
         }
     }
-
+    
+    # Make sure a symmetrized matrix is returned.
+    # As the randomprojectionTreesearch via buildEdgeMatrix is heuristic for every node,  this is not in general the case
+    # the graph.adjacency graph constructor and the subsequent as_adjacency_matrix force a symmetric matrix with W'[i,j]=max(W[i,j], W[j,i])
+    ADJ=igraph::as_adjacency_matrix(GRAO,attr="weight") 
+    
     Cuse <- NULL
     
     pct <- 1
@@ -390,14 +396,13 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
-    E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within = 2, weight.between = 0.5)
+    #E(GRAO)$weight <- edge.weights(memb, GRAO, weight.within = 1.25, weight.between = 0.8)
     
     ######### Optimal Mapping between true and estimated class assignments: ##########
     mapping <- mapLabelsGreedy(memb$membership, ClassAssignment)
     misclErr <- classError(memb$membership, ClassAssignment, mapping)
     
     #### Add back Cell Ids to igraph object, ADJ, MEMB and prepare return value
-    
     dimnames(ADJ) <- list(CellIds,CellIds)
     names(memb$membership) <- CellIds
     V(GRAO)$labels <- CellIds
