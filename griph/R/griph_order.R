@@ -5,7 +5,7 @@
 #'     and a custom membership assignment.
 #' 
 #' @param gr A \code{griph} result, as returned by \code{\link{griph_cluster}}.
-#' @param memb A membership vector of length equal to the cells.
+#' @param memb A membership vector of length equal to the number of cells present in gr.
 
 
 griph_order <- function(gr, memb=NULL )
