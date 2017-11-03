@@ -38,11 +38,39 @@ keep.mknn <- function(S, k = round(sqrt(nrow(S) )  )  ) {
 
 
 
+#' Keep k mutual nearest neighbors of variables given a sparse similarity matrix.  
+#' By default 10 nearest neighbors of each node are retained to avoid node isolation
+#' 
+#' @param S  a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix
+#' @param k integer giving the number of mutual nearest meighbors
+#'      Defaults to the rounded square root of the number of variables.
+#' @param quant  Edges with weights > quantile(edge_weights, quant)  are retained in order to avoid large breaks
+#' 
+#' @return a sparse Matrix of class CsparseMatrix with at most \code{length(S@x)} non-zero elements.
+
+keep.mknn2 <- function(S, k = round(sqrt(nrow(S) ) ), quant=0.8   ) {
+    n <- diff(S@p)
+    thr=quantile(S@x,quant)
+    lst <- split(S@x, rep.int(1:ncol(S), n))
+    o <- lapply(lst, function(x) rank(-x))
+    o <- unlist(o)
+    xtemp=S@x
+    S@x[o > k] <- 0
+    S@x[xtemp > thr] <- xtemp[xtemp > thr] #Keep edges with weights > quantile(edge_weights, quant)   => Avoid large breaks
+    S@x <- pmin(S@x, t(S)@x)
+    S@x[o < 11] <- xtemp[o < 11]             #Keep the top 10 edges of every node                        => Avoid isolated nodes
+    S@x <- pmax(S@x, t(S)@x)
+    S <- Matrix::drop0((S))
+    return( S ) 
+}
+
+
+
 
 #' Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors  
 #' 
 #' @param S a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix.
-#' @param pct fraction of edges to keep.
+#' @param pct fraction of edges (per node) to keep.
 #' 
 #' @return a sparse Matrix of class CsparseMatrix with a fraction of \code{pct} non-zero elements per column.
 sparsify <- function(S, pct = 0.1) {
@@ -61,6 +89,43 @@ sparsify <- function(S, pct = 0.1) {
     S <- Matrix::drop0((S))
     return( as(S, "dgCMatrix")  )
 }
+
+
+
+#' Prune an affinity (weighted adjacency) matrix to keep only top \code{pct} fraction neighbors  
+#' 
+#' @param S a sparse similarity matrix (square, symmetric, non-negative) of class CsparseMatrix.
+#' @param quant fraction of edges to keep.
+#' 
+#' @return a sparse Matrix of class CsparseMatrix with a fraction of \code{pct} non-zero elements per column.
+
+
+sparsify2 <- function(S, quant = 0.1) {
+    n <- diff(S@p)
+    lst <- split(S@x, rep.int(1:ncol(S), n))
+    thr=quantile(S@x,quant)
+    
+    o <- lapply(lst, function(x) {
+        y <- x
+        if (length(y) > 9) {
+            y[ y < thr] <- 0
+        }
+        return(y)
+    })
+    o <- unlist(o)
+    S@x[o == 0] <- 0
+    S@x=pmax(S@x, t(S)@x)
+    S <- Matrix::drop0((S))
+    return( as(S, "dgCMatrix")  )
+}
+
+
+
+
+
+
+
+
 
 
 
