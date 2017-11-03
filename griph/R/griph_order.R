@@ -37,7 +37,7 @@ griph_order <- function(gr, memb=NULL )
     class.collapse <- factor(new.memb[use.nodes], levels = sort(unique( new.memb[use.nodes] ))  )
     CollapsedDISTM=matrix(0,length(good.clust),length(good.clust),dimnames = list( levels( class.collapse ), levels( class.collapse)  )  )
 
-    DISTM=1-as.matrix ( gr$DISTM[use.nodes,use.nodes] )
+    DISTM=1-Matrix::as.matrix( gr$DISTM[use.nodes,use.nodes] )
     diag(DISTM)=0
     
     for (i in 1:length(good.clust)){
@@ -45,7 +45,7 @@ griph_order <- function(gr, memb=NULL )
             if (i>=j) {next}
             cl1=levels( class.collapse )  [i]
             cl2=levels( class.collapse )  [j]
-            CollapsedDISTM[i,j]= mean(DISTM[ new.memb==cl1,new.memb==cl2 ], trim=0.1 ) 
+            CollapsedDISTM[i,j]= mean(DISTM[ new.memb==cl1,new.memb==cl2 ], trim=0.005 ) 
             CollapsedDISTM[j,i]=   CollapsedDISTM[i,j]
         }
     }
