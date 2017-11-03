@@ -26,10 +26,10 @@ functions based on \code{\link[foreach]{foreach}} (see details).}
 parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 the available cores. Ignored if \code{use.par==FALSE}.}
 
-\item{filter}{TRUE/FALSE or a positive numeric values. Determines  whether filtering for reaining only overdispersed genes should be performed.
+\item{filter}{TRUE/FALSE or a positive numeric values. Determines  whether filtering for retaining only overdispersed genes should be performed.
 If FALSE no gene filtering is performed. If TRUE (default) only the top 25% overdispersed genes are retained.
 If set to a number between 0 and 1 than this fraction of genes is retained.
-If set to an integer > 1 than this numbeer of genes is retained}
+If set to an integer > 1 than this number of genes is retained}
 
 \item{rho}{Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 Default=0.25.  The parameter is then automatically scaled to account for
