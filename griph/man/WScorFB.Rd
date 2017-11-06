@@ -4,13 +4,15 @@
 \alias{WScorFB}
 \title{Combined distance calculations.}
 \usage{
-WScorFB(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra,
+WScorFB(M, FB, K = 50, PSpearmanCor, PPearsonCor, PHellinger, PCanberra,
   ShrinkCor = ShrinkCor)
 }
 \arguments{
 \item{M}{gene-by-cell count matrix.}
 
 \item{FB}{gene-by-FakeBulks gene sums count matrix.}
+
+\item{K}{Number of nearest neighbors to retain}
 
 \item{PSpearmanCor}{Function to calculate Spearman correlation between the columns of two matrices.}
 

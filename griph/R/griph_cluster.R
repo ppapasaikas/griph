@@ -4,6 +4,7 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
+#' @param K Number of nearest neighbors to retain
 #' @param FB gene-by-FakeBulks gene sums count matrix.
 #' @param PPearsonCor Function to calculate Pearson correlation between the columns of two matrices.
 #' @param PSpearmanCor Function to calculate Spearman correlation between the columns of two matrices.
@@ -11,7 +12,7 @@
 #' @param PCanberra Function to calculate Canberra Distance between the columns of two matrices.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' @return cell-by-cell distance matrix.
-WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor) {
+WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor) {
     
     CellIds <- colnames(M)
     dimnames(M) <- NULL
@@ -55,7 +56,7 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
     ptm1 <- proc.time() #Start clock
     R <- (R / 4)^2
     #R <- sweep(R, 2, colMeans(R), "-")
-    K=min(max(floor(0.25 * ( sqrt(ncol(R)) + nrow(R) )) , 10), floor(ncol(R)) / 1.5) 
+    #K=min(max(floor(0.25 * ( sqrt(ncol(R)) + nrow(R) )) , 10), floor(ncol(R)) / 1.5) 
     R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K   )    #
     R <- Matrix::sparseMatrix(i = R$i, j = R$j, x = 1 - (R$x / 2), dims = attr(R,"dims"), dimnames = list(CellIds,CellIds))
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
@@ -79,7 +80,10 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' 
 #' @param DM Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 #'     Required argument.
-#' @param SamplingSize Number of sampled cells in initialization step. If NULL it is set to \code{max(750,ncores*250)}
+#' @param K Number of nearest neighbors to consider. If \code{NULL} (default) it is set to to \code{0.25*sqrt(k)+4*D}, D being
+#'     the dataset dimensionality determined in the initialization (sampling) step. Smaller K values result in more disconnected
+#'     cell clusters and vice versa. Typically should be in the range [20,200]. 
+#' @param SamplingSize Number of sampled cells in initialization step. If NULL it is set to \code{min(2000,k/2)}
 #' @param ref.iter Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
 #'     step is performed to \code{min(SamplingSize,ncol(DM))} cells. 
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
@@ -114,7 +118,7 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' 
 #' @return Currently a list with the clustering results.
 #' 
-griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
+griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
                           plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png'){
@@ -313,20 +317,27 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
                 }
                 
 
+                #### pass K for mutual NN to  WScorFB, SC_cluster. Should be the same as K passed in buildEdgeMatrix of WScorFB
+                if (is.null(K)) {
+                Kmnn=min(max(floor(0.25 * ( sqrt(ncol(DM)) + ncol(FakeBulk) )) , 10), floor(ncol(DM)) / 1.5) 
+                }
+                else{
+                Kmnn=K
+                }
+                
 
                 ###### Calculate distances of all the cells to the FakeBulks:
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
                 params$DM <- WScorFB(DM[genelist,], FakeBulk,PSpearmanCor = PSpearmanCor,
                                      PPearsonCor = PPearsonCor, PHellinger = PHellinger,
-                                     PCanberra = PCanberra, ShrinkCor = ShrinkCor)
+                                     PCanberra = PCanberra, ShrinkCor = ShrinkCor, K=Kmnn)
                 message("done")
                 
                 
-                #### pass K for mutual NN to SC_cluster. Should be the same as K passed in buildEdgeMatrix of WScorFB
-                Kmnn=min(max(floor(0.25 * ( sqrt(ncol(DM)) + ncol(FakeBulk) )) , 10), floor(ncol(DM)) / 1.5) 
-                
+
                 cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn) ) )
                 cluster.res$GeneList <- genelist        
+                
             }
             gc() #Call garbage collector
         }
