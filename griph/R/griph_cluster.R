@@ -4,6 +4,7 @@
 #'     obtain robust cell-to-cell distances.
 #' 
 #' @param M gene-by-cell count matrix.
+#' @param K Number of nearest neighbors to retain
 #' @param FB gene-by-FakeBulks gene sums count matrix.
 #' @param PPearsonCor Function to calculate Pearson correlation between the columns of two matrices.
 #' @param PSpearmanCor Function to calculate Spearman correlation between the columns of two matrices.
@@ -11,7 +12,7 @@
 #' @param PCanberra Function to calculate Canberra Distance between the columns of two matrices.
 #' @param ShrinkCor Function to calculate shrinkage correlation.
 #' @return cell-by-cell distance matrix.
-WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor) {
+WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, ShrinkCor=ShrinkCor) {
     
     CellIds <- colnames(M)
     dimnames(M) <- NULL
@@ -54,8 +55,9 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
     
     ptm1 <- proc.time() #Start clock
     R <- (R / 4)^2
-    R <- sweep(R, 2, colMeans(R), "-")
-    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = min(250, ceiling(1e2 + sqrt(ncol(R)))))
+    #R <- sweep(R, 2, colMeans(R), "-")
+    #K=min(max(floor(0.25 * ( sqrt(ncol(R)) + nrow(R) )) , 10), floor(ncol(R)) / 1.5) 
+    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K   )    #
     R <- Matrix::sparseMatrix(i = R$i, j = R$j, x = 1 - (R$x / 2), dims = attr(R,"dims"), dimnames = list(CellIds,CellIds))
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("bEM (Elapsed Time: ", Te1, ")")
@@ -78,7 +80,10 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' 
 #' @param DM Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 #'     Required argument.
-#' @param SamplingSize Number of sampled cells in initialization step. If NULL it is set to \code{max(750,ncores*250)}
+#' @param K Number of nearest neighbors to consider. If \code{NULL} (default) it is set to to \code{0.25*sqrt(k)+4*D}, D being
+#'     the dataset dimensionality determined in the initialization (sampling) step. Smaller K values result in more disconnected
+#'     cell clusters and vice versa. Typically should be in the range [20,200]. 
+#' @param SamplingSize Number of sampled cells in initialization step. If NULL it is set to \code{min(2000,k/2)}
 #' @param ref.iter Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
 #'     step is performed to \code{min(SamplingSize,ncol(DM))} cells. 
 #' @param use.par If \code{TRUE}, use parallel versions of distance calculation
@@ -86,10 +91,10 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' @param ncores a numeric(1) or character(1), either specifying the number of
 #'     parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 #'     the available cores. Ignored if \code{use.par==FALSE}.
-#' @param filter TRUE/FALSE or a positive numeric values. Determines  whether filtering for reaining only overdispersed genes should be performed.
+#' @param filter TRUE/FALSE or a positive numeric values. Determines  whether filtering for retaining only overdispersed genes should be performed.
 #'     If FALSE no gene filtering is performed. If TRUE (default) only the top 25% overdispersed genes are retained.
 #'     If set to a number between 0 and 1 than this fraction of genes is retained.
-#'     If set to an integer > 1 than this numbeer of genes is retained
+#'     If set to an integer > 1 than this number of genes is retained
 #### Filter genes according to cv=f( mean ) fitting. Default: \code{TRUE}.
 #' @param rho Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 #'     Default=0.25.  The parameter is then automatically scaled to account for
@@ -113,7 +118,7 @@ WScorFB <- function(M, FB, PSpearmanCor, PPearsonCor, PHellinger, PCanberra, Shr
 #' 
 #' @return Currently a list with the clustering results.
 #' 
-griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
+griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
                           plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png'){
@@ -139,7 +144,7 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
         params$use.par <- FALSE
     } 
     if (is.null(SamplingSize)) {
-        params$SamplingSize <- 2000    
+        params$SamplingSize <- max(500,min(2000, ceiling(ncol(DM)/2)) )
     }
     
     #######Define functions if use.par=FALSE
@@ -174,9 +179,9 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
         cl <- parallel::makeCluster(ncores)
         doParallel::registerDoParallel(cl)
         
-        if (is.null(SamplingSize)) {
-            params$SamplingSize <- max(params$SamplingSize, 250 * ncores )    
-        }
+        #if (is.null(SamplingSize)) {
+        #    params$SamplingSize <- max(params$SamplingSize, 250 * ncores )    
+        #}
     }
     
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
@@ -189,7 +194,7 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
                 }
                 
                 Gcounts <- colSums(DM > 0)
-                LowQual <- which(Gcounts < quantile(Gcounts, 0.01))
+                LowQual <- which(Gcounts <= quantile(Gcounts, 0.01))
                 
                 if ((ncol(DM) - length(LowQual))  > params$SamplingSize) {
                     SMPL <- sample(1:ncol(DM)[-LowQual], params$SamplingSize)
@@ -233,8 +238,8 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
                 #m <- nls(Y1 ~ a * X1 + b, start = list(a = -5, b = -10))
                 m <- lm(Y1 ~ X1)
                 Yhat <- predict(m)
-                exclude <- which(Y1 / Yhat > quantile(Y1 / Yhat, 0.5) & sum.cM > quantile(sum.cM, 0.25))
-                fraction <- min((ncol(DM)^2) / 1e07, 0.9)
+                exclude <- which(Y1 / Yhat > quantile(Y1 / Yhat, 0.25) & sum.cM > quantile(sum.cM, 0.25))
+                fraction <- min( ((ncol(DM)^2) / 1e06), 0.9)
                 exclude <- sample(exclude, ceiling(length(exclude) * fraction))
                 SMPL <- SMPL[-c(exclude)]
                 params$DM <- params$DM[, -c(exclude)]
@@ -294,18 +299,30 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
                 
                 #Number of boostrapping samples:
                 Nboot.Smpls <- min(ceiling(250 / (length(good.clust)^2)), 80)
-                Nboot.Smpls <- max(Nboot.Smpls, 2)
+                Nboot.Smpls <- max(Nboot.Smpls, 16)
                 bootS.size <- Nboot.Smpls^(-0.4)
                 
                 FakeBulk <- matrix(0, length(genelist), length(good.clust) * Nboot.Smpls)
                 r <- 0
                 for (c in 1:length(good.clust)) {
                     clust <- good.clust[c]
+                    ssize <- ceiling(sum(memb == clust) * bootS.size) + 1
+                    ssize <- min(100,ssize)
                     for (b in 1:Nboot.Smpls) {
                         r <- r + 1
-                        cluster.sample <- sample(which(memb == clust), ceiling(sum(memb == clust) * bootS.size) + 1 ,replace = TRUE)
-                        FakeBulk[,r] <- rowSums(DM[genelist, names(memb)][, cluster.sample])
+                        
+                        cluster.sample <- sample(which(memb == clust), ssize ,replace = TRUE) 
+                        FakeBulk[,r] <- rowMeans(DM[genelist, names(memb)][, cluster.sample])
                     }
+                }
+                
+
+                #### pass K for mutual NN to  WScorFB, SC_cluster. Should be the same as K passed in buildEdgeMatrix of WScorFB
+                if (is.null(K)) {
+                Kmnn=min(max(floor(0.25 * ( sqrt(ncol(DM)) + ncol(FakeBulk) )) , 10), floor(ncol(DM)) / 1.5) 
+                }
+                else{
+                Kmnn=K
                 }
                 
 
@@ -313,10 +330,14 @@ griph_cluster <- function(DM, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, 
                 message("Calculating Cell Distances to Cluster Centroids (Bulks)...", appendLF = FALSE)
                 params$DM <- WScorFB(DM[genelist,], FakeBulk,PSpearmanCor = PSpearmanCor,
                                      PPearsonCor = PPearsonCor, PHellinger = PHellinger,
-                                     PCanberra = PCanberra, ShrinkCor = ShrinkCor)
+                                     PCanberra = PCanberra, ShrinkCor = ShrinkCor, K=Kmnn)
                 message("done")
-                cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, do.glasso = FALSE, pr.iter = 0)))
+                
+                
+
+                cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn) ) )
                 cluster.res$GeneList <- genelist        
+                
             }
             gc() #Call garbage collector
         }

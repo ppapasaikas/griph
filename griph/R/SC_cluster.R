@@ -175,6 +175,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                        plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png', ...) {
     
+    add.args <- list(...)
     #######Internal parameters for testing puproses only:  
     qnt <- 8 #Max gene expression decile for imputation (e.g 8->bottom 70% of the genes are imputed) 
     rho <- rho + ((ncol(DM) / 1e9)^0.2) #Scale rho for number of cells. MAKE SURE rho is <=1
@@ -227,7 +228,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
         RHO <- matrix(rho, nrow = nrow(Cuse), ncol = ncol(Cuse))
         ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-        k <- min(max(5 * sqrt(ncol(Cuse)), 50), floor(ncol(Cuse)) / 1.5)  
+        k <- min(max(4 * sqrt(ncol(Cuse)), 50), floor(ncol(Cuse)) / 1.5)  
         kN <- get.knn(Cuse, k = round(k))
         for (i in 1:ncol(RHO)) {
             RHO[-kN[,i], i] <- min(1, 1.5 * rho)
@@ -247,7 +248,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             }, row(Cuse), col(Cuse))
             RHO <- matrix(RHO, nrow = nrow(Cuse), ncol = ncol(Cuse))
             ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-            k <- min(max(floor(5 * sqrt(ncol(Cuse))), 50) ,floor(ncol(Cuse)) / 1.5)
+            k <- min(max(floor(4 * sqrt(ncol(Cuse))), 50) ,floor(ncol(Cuse)) / 1.5)
             kN <- get.knn(Cuse, k = round(k))
             for (i in 1:ncol(RHO)) {
                 RHO[-kN[,i], i] <- pmin(rep(1, length(RHO[-kN[,i], i])), 1.5 * RHO[-kN[,i], i])
@@ -301,9 +302,20 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     ADJ@x <- exp(-(((1 - Cuse@x)^2) / ((1 - ave)^2)))   #Kernelize distance according to Haren and Koren 2001 section 3
     ADJ <- Matrix::drop0((ADJ), 1e-20)
     
+    
+    
     ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-    k <- min(max(floor(5 * sqrt(ncol(ADJ))), 100), floor(ncol(ADJ)) / 1.5)
-    ADJ <- keep.mknn(ADJ, k = round(k))
+    if (!is.element('Kmnn', names(  add.args  ) ) ){
+    Kmnn <- min(max(floor(3 * sqrt(ncol(ADJ))), 20), floor(ncol(ADJ)) / 1.5) ###!!! k here *needs* to match with the parameter given in buildEdgeMatrix
+    }
+    else{
+    Kmnn=add.args$Kmnn    
+    }
+    message("\rKmnn:", Kmnn, "\r")
+    ADJ <- keep.mknn2(ADJ, k = Kmnn)
+    ADJ <- sparsify2(ADJ,quant=0.1)
+
+    
     
     GRAO <- igraph::graph.adjacency(ADJ, mode = c("max"), weighted = TRUE, diag = FALSE)
     message("done")
@@ -314,19 +326,17 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             flush.console()
             df <- 0.75
             PR <- PPRank(GRAO, df = df)
+            ADJtemp=ADJ
             ADJ <- PR
             ADJ[which(PR < (0.01 / (ncol(ADJ))))] <- 0
-            ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
-            k <- min(max(5 * sqrt(ncol(Cuse)), 100), floor(ncol(Cuse)) / 1.5)   
-            kN <- get.knn(PR, k = round(k))
-            for (i in 1:ncol(ADJ)) {
-                ADJ[-kN[,i], i] <- 0
-                ADJ[i, -kN[,i]] <- 0
-            }
+            ###### k-nn based pruning (should this be changed to m-knn?:
+            k <- min(max(3 * sqrt(ncol(Cuse)), 100), floor(ncol(Cuse)) / 1.5)   
             PR <- PR / (max(PR[upper.tri(PR)]) + 0.01 / ncol(ADJ)) 
             diag(PR) <- 1
-            #PR <- 1
-            
+
+            ADJ[which(Cuse==0)] <- 0
+            ADJ[which(ADJtemp==0)] <- 0
+            rm(ADJtemp)
             ADJ[ADJ > 0] <- Cuse[which(ADJ > 0)] 
 
             ave <- mean(ADJ[ADJ > 0])
@@ -335,6 +345,12 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             ADJ <- ADJ * PR #Reweighing
             ADJ <- as(ADJ ,"dgCMatrix")
             ADJ <- Matrix::drop0((ADJ), 1e-20)
+            
+            ###### Mutual k-nn based pruning as per Harel and Koren 2001 SIGKDD:
+            k <- min(max(floor(2 * sqrt(ncol(ADJ))), 20), floor(ncol(ADJ)) / 1.5)
+            ADJ <- keep.mknn2(ADJ, k = round(k))
+            ADJ <- sparsify2(ADJ,quant=0.25)
+            
             GRAO <- igraph::graph.adjacency(ADJ, mode = c("max"), weighted = TRUE, diag = FALSE)
             PR <- NULL
         }

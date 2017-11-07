@@ -4,9 +4,9 @@
 \alias{griph_cluster}
 \title{Wrapper function for SC_cluster}
 \usage{
-griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
-  ncores = "all", filter = TRUE, rho = 0.25, batch.penalty = 0.5,
-  seed = 127350, ClassAssignment = rep(1, ncol(DM)),
+griph_cluster(DM, K = NULL, SamplingSize = NULL, ref.iter = 1,
+  use.par = TRUE, ncores = "all", filter = TRUE, rho = 0.25,
+  batch.penalty = 0.5, seed = 127350, ClassAssignment = rep(1, ncol(DM)),
   BatchAssignment = NULL, ncom = NULL, plot_ = TRUE, maxG = 2500,
   fsuffix = NULL, image.format = "png")
 }
@@ -14,7 +14,11 @@ griph_cluster(DM, SamplingSize = NULL, ref.iter = 1, use.par = TRUE,
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
 Required argument.}
 
-\item{SamplingSize}{Number of sampled cells in initialization step. If NULL it is set to \code{max(750,ncores*250)}}
+\item{K}{Number of nearest neighbors to consider. If \code{NULL} (default) it is set to to \code{0.25*sqrt(k)+4*D}, D being
+the dataset dimensionality determined in the initialization (sampling) step. Smaller K values result in more disconnected
+cell clusters and vice versa. Typically should be in the range [20,200].}
+
+\item{SamplingSize}{Number of sampled cells in initialization step. If NULL it is set to \code{min(2000,k/2)}}
 
 \item{ref.iter}{Number of clustering refinement iterations.  If set to 0 only the clustering initialization 
 step is performed to \code{min(SamplingSize,ncol(DM))} cells.}
@@ -26,10 +30,10 @@ functions based on \code{\link[foreach]{foreach}} (see details).}
 parallel jobs to use, or \code{"all"} (default) to use up to 90 percent of
 the available cores. Ignored if \code{use.par==FALSE}.}
 
-\item{filter}{TRUE/FALSE or a positive numeric values. Determines  whether filtering for reaining only overdispersed genes should be performed.
+\item{filter}{TRUE/FALSE or a positive numeric values. Determines  whether filtering for retaining only overdispersed genes should be performed.
 If FALSE no gene filtering is performed. If TRUE (default) only the top 25% overdispersed genes are retained.
 If set to a number between 0 and 1 than this fraction of genes is retained.
-If set to an integer > 1 than this numbeer of genes is retained}
+If set to an integer > 1 than this number of genes is retained}
 
 \item{rho}{Inverse covariance matrix regularization (graph sparsification) parameter -> [0,1].
 Default=0.25.  The parameter is then automatically scaled to account for
