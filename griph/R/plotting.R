@@ -374,7 +374,12 @@ plotGraph <- function(gr, maxG=2500,
 
     # setup plot coordinate system
     par(mar = c(5.1, 4.1, 4.1, 14.1), xpd = TRUE)
-    plot(l[,1], l[,2], type = "n", axes = FALSE, xlab = "", ylab = "")
+    xmin=max(  quantile(l[,1],0.1)-0.5*IQR(l[,1]), min(l[,1])  )
+    xmax=min(  quantile(l[,1],0.9)+IQR(l[,1]), max(l[,1])  )
+    ymin=max(  quantile(l[,2],0.1)-0.5*IQR(l[,2]), min(l[,2])  )
+    ymax=min(  quantile(l[,2],0.9)+IQR(l[,2]), max(l[,2])  )
+    plot(l[,1], l[,2], type = "n", axes = FALSE, xlab = "", ylab = "", xlim=c(xmin,xmax),ylim=c(ymin,ymax)    )
+    
     
     
     # add mark polygons
