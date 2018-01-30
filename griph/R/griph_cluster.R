@@ -116,12 +116,14 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
 #' 
+#' @param comm.method  Community detection algorithm. See igraph "communities". By default multilevel louvain is used. 
 #' @return Currently a list with the clustering results.
 #' 
 griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
-                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png'){
+                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png',
+                          comm.method = igraph::cluster_louvain){
     if (ref.iter == 0 && !is.null(SamplingSize) && ncol(DM) > SamplingSize)
         warning("only ", SamplingSize," of ", ncol(DM)," cells selected for clustering")
     
@@ -271,7 +273,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 
                 message("done")
                 
-                cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, pr.iter = 1)))
+                cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1)))
             } else {
                 
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
@@ -335,7 +337,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 
                 
 
-                cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn) ) )
+                cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn) ) )
                 cluster.res$GeneList <- genelist        
                 
             }

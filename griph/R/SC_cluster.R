@@ -171,7 +171,7 @@ PPR <- function(G, df = 0.75) {
 #' @return Currently a list with the clustering results.
 SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
                        filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
-                       seed = 127350, comm.method = igraph::cluster_infomap, ncom = NULL,
+                       seed = 127350, comm.method = igraph::cluster_louvain, ncom = NULL,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                        plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png', ...) {
     
@@ -425,7 +425,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
 
     ret <- list(MEMB = memb$membership, MEMB.true = ClassAssignment,
                 DISTM = ADJ, ConfMatrix = ConfMatrix, 
-                miscl = misclErr, GRAO = GRAO, plotGRAO = NULL, plotLVis = NULL)
+                miscl = misclErr, GRAO = GRAO, plotGRAO = NULL, plotLVis = NULL, complete_MEMB=memb)
 
     ######### graph visualization
     if (plot_) {
