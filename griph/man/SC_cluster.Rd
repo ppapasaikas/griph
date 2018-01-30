@@ -7,7 +7,7 @@
 SC_cluster(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
   filter = FALSE, do.glasso = TRUE, rho = 0.25, pr.iter = 1,
   batch.penalty = 0.5, seed = 127350,
-  comm.method = igraph::cluster_infomap, ncom = NULL,
+  comm.method = igraph::cluster_louvain, ncom = NULL,
   ClassAssignment = rep(1, ncol(DM)), BatchAssignment = NULL,
   plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format = "png", ...)
 }
