@@ -169,6 +169,7 @@ PPR <- function(G, df = 0.75) {
 #' @param ... Additional arguments passed from griph_cluster
 #' 
 #' @return Currently a list with the clustering results.
+
 SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
                        filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
                        seed = 127350, comm.method = igraph::cluster_louvain, ncom = NULL,
@@ -425,16 +426,14 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
 
     ret <- list(MEMB = memb$membership, MEMB.true = ClassAssignment,
                 DISTM = ADJ, ConfMatrix = ConfMatrix, 
-                miscl = misclErr, GRAO = GRAO, plotGRAO = NULL, plotLVis = NULL, complete_MEMB=memb)
+                miscl = misclErr, GRAO = GRAO,  plotLVis = NULL, complete_MEMB=memb)
 
     ######### graph visualization
-    if (plot_) {
-        if (is.null(fsuffix))
-            fsuffix <- RandString()
-        # ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,
-        #                                image.format = image.format, quiet = FALSE)
-        ret[["plotLVis"]] <- plotLVis(ret, fsuffix = fsuffix, image.format = image.format, quiet = FALSE)
-    }
+    #if (plot_) {
+    #    if (is.null(fsuffix))
+    #        fsuffix <- RandString()
+    #    ret[["plotLVis"]] <- plotLVis(ret, fsuffix = fsuffix, image.format = image.format, quiet = FALSE)
+    #}
     
     return(ret)
 }
