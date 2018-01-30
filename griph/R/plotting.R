@@ -97,7 +97,7 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
         lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
     }
     # ... for fill
-    if (fill.type != "none" && length(fillColorPalette) > 0) {
+    if (length(fill.type)==1 && fill.type != "none" && length(fillColorPalette) > 0) {
         if (is.numeric(fill.type)) {
             # draw a continuous color legend
             llevs <- as.numeric(names(fillColorPalette))
@@ -127,7 +127,7 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
         }
     }
     # ... for line
-    if (line.type != "none" && length(lineColorPalette) > 0) {
+    if (length(line.type)==1 && line.type != "none" && length(lineColorPalette) > 0) {
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
                col = lineColorPalette, pt.bg = "white",
@@ -638,7 +638,7 @@ plotLVis <- function(gr,
     checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers (can come as arguments)
-    plot.args$lwd <- if (line.type == "none") 0.5 else plot.args$lwd
+    plot.args$lwd <- if (length(line.type)==1 && line.type == "none") 0.5 else plot.args$lwd
 
     
     # get largeVis projection
@@ -705,7 +705,7 @@ plotLVis <- function(gr,
         drawPolygons(e = t(res), markElements = markElements, markColorPalette = markColorPalette)
     
     # add cells
-    points(t(res), col = if (line.type == "none") "black" else lineColor,
+    points(t(res), col = if (length(line.type)==1 && line.type == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
     
     
