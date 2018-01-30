@@ -117,8 +117,18 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
 #' 
 #' @param comm.method  Community detection algorithm. See igraph "communities". By default multilevel louvain is used. 
-#' @return Currently a list with the clustering results.
 #' 
+#' @return Currently a list with the clustering results:
+#' @return MEMB: A vector of membership assignment for each cell
+#' @return MEMB.true: A vector with the true cell assignment if one was specified.
+#' @return DISTM: A sparse (dgCMatrix) k x k cell distance matrix 
+#' @return ConfMatrix: Confusion matrix based on the MEMB and MEMB.true vectors.
+#' @return miscl: Misclassification error based on the MEMB and MEMB.true vectors.
+#' @return GRAO: An igraph graph object modelling the cell population
+#' @return plotLVis: The plotLVis projection of the graph if plot_ was set to TRUE. NULL otherwise
+#' @return complete_MEMB: The igraph communities object returned by the community detection algorithm 
+#' @return GeneList: A character vector with the genes that survived the filtering.
+
 griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
@@ -345,31 +355,10 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
         }
         
         ######Top FeatureGenes:
+        # PLACEHOLDER
+        #######################
         
-        
-        ######Mark Doublets:
-        #if (markDoublets==TRUE){
-        #memb=cluster.res$MEMB
-        #n=length(memb)
-        #nsq=n^2
-        #TBL=table(memb)
-        #nclust=length(TBL)
-        #between=sapply(1:nclust, function(x)  rowMeans(cluster.res$DISTM[,memb==x])    )
-        #expected=matrix(0,nclust,nclust)
-        #    for (c1 in 1: nclust){
-        #        for (c2 in 1: nclust){
-        #        expected[c1,c2]=(1+sum(between[,c1] * between[,c2] > 0)   ) 
-        #        }
-        #    }
-        
-        #    get.mixr <- function (x) {
-        #    o=order(x,decreasing=TRUE)
-        #    mixr=x[o[2]]/(x[o[1]]+1e-3)
-        #    mixr=1/ ((expected[ o[1],o[2] ]) )
-        #    }
-        #mixing.ratio=apply(between,1,get.mixr )
-        #}
-        
+        ######### graph visualization
         if (plot_ == TRUE) {
             if (is.null(fsuffix))
                 fsuffix <- RandString()

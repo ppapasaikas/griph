@@ -68,7 +68,25 @@ it will use a random 5 character string.}
 \item{comm.method}{Community detection algorithm. See igraph "communities". By default multilevel louvain is used.}
 }
 \value{
-Currently a list with the clustering results.
+Currently a list with the clustering results:
+
+MEMB: A vector of membership assignment for each cell
+
+MEMB.true: A vector with the true cell assignment if one was specified.
+
+DISTM: A sparse (dgCMatrix) k x k cell distance matrix
+
+ConfMatrix: Confusion matrix based on the MEMB and MEMB.true vectors.
+
+miscl: Misclassification error based on the MEMB and MEMB.true vectors.
+
+GRAO: An igraph graph object modelling the cell population
+
+plotLVis: The plotLVis projection of the graph if plot_ was set to try. NULL otherwise
+
+complete_MEMB: The igraph communities object returned by the community detection algorithm
+
+GeneList: A character vector with the genes that survived the filtering.
 }
 \description{
 \code{griph_cluster} takes a gene-by-cell matrix with read counts as
