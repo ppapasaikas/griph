@@ -23,7 +23,7 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
     R <- vapply(c(1:ncol(D)), function(x) rank(D[,x]), FUN.VALUE = double(length = nrow(D)))  # Pearson's cor    
     
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("\nP (Elapsed Time: ", Te1, ")")
+    message("\n..PearsonC: (Elapsed Time: ", Te1, ")")
     
     ######## Counts per 100K:
     CellCounts <- colSums(FB)
@@ -38,20 +38,20 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
     Dt <- 1 - ((Dt - min(Dt)) / diff(range(Dt)))
     R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Canberra
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("C (Elapsed Time: ", Te1, ")")
+    message("..Canberra: (Elapsed Time: ", Te1, ")")
     
     ptm1 <- proc.time() #Start clock
     Dt <- PSpearmanCor(FB, M)
     R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Spearman's cor
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("S (Elapsed Time: ", Te1, ")")
+    message("..SpearmanC: (Elapsed Time: ", Te1, ")")
     
     ptm1 <- proc.time() #Start clock
     Dt <- PHellinger(FB, M)
     Dt <- 1 - ((Dt - min(Dt)) / diff(range(Dt)))
     R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Hellinger distance
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("H (Elapsed Time: ", Te1, ")")
+    message("..Hellinger: (Elapsed Time: ", Te1, ")")
     
     ptm1 <- proc.time() #Start clock
     R <- (R / 4)^2
@@ -60,7 +60,7 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
     R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K   )    #
     R <- Matrix::sparseMatrix(i = R$i, j = R$j, x = 1 - (R$x / 2), dims = attr(R,"dims"), dimnames = list(CellIds,CellIds))
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("bEM (Elapsed Time: ", Te1, ")")
+    message("Calculating KNNGraph (Elapsed Time: ", Te1, ")")
     
     return(R)    #This is NOT a symmetric matrix
 }
@@ -292,8 +292,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 params$ClassAssignment <- ClassAssignment
                 params$BatchAssignment <- BatchAssignment  
 
-                message("MISCL","\n",cluster.res$miscl,"\n")
-                
+
                 ####### construct cell2cell correlation matrix using the current cluster.res: ########
                 memb <- cluster.res$MEMB
                 min.csize <- max(4, ceiling(0.25*sqrt(length(memb))))

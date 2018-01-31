@@ -312,7 +312,6 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     else{
     Kmnn=add.args$Kmnn    
     }
-    message("\rKmnn:", Kmnn, "\r")
     ADJ <- keep.mknn2(ADJ, k = Kmnn)
     ADJ <- sparsify2(ADJ,quant=0.1)
 
