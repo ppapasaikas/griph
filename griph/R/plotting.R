@@ -212,7 +212,7 @@ plotGraph <- function(gr, maxG=2500,
                       seed=91919,
                       fsuffix=NULL, image.format=NA,
                       forceRecalculation=FALSE, quiet=FALSE,
-                      plot.args=list(pch=21L, cex=1.5,lwd=2.5)
+                      plot.args=list(pch=21L, cex=1.0,lwd=2.5)
                       ) {
     if (!quiet)
         message("Computing Graph Layout and Rendering...")
@@ -484,7 +484,7 @@ plotTsne <- function(gr,
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
-                     plot.args=list(pch=21L, cex=1.5,lwd=2.5),
+                     plot.args=list(pch=21L, cex=1.0,lwd=2.5),
                      quiet=FALSE, ...) {
     if (!is.element("Rtsne", utils::installed.packages()[,1])) {
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
@@ -634,7 +634,7 @@ plotLVis <- function(gr,
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
-                     quiet=FALSE, plot.args=list(pch=21L, cex=1.5,lwd=2.5),
+                     quiet=FALSE, plot.args=list(pch=21L, cex=1.0,lwd=2.5),
                      use.par = TRUE, ncores = "all",
                      ...) {
     # digest arguments
@@ -660,7 +660,7 @@ plotLVis <- function(gr,
         
         
         
-        # Register cluster here, remove registration block from SC_cluster
+        # Register cluster here if one not already registered.
         do.register=FALSE
         if (isTRUE(use.par) & !foreach::getDoParRegistered() ) {
             do.register=TRUE
@@ -700,9 +700,11 @@ plotLVis <- function(gr,
         
         }, # end of tryCatch expression, cluster object cl not needed anymore    
        finally = { 
-           ##### Stop registered cluster:
+           ##### Stop registered cluster and unregister if initiated infunction (tracked by do.register):
            if (isTRUE(use.par) & foreach::getDoParRegistered() & do.register==TRUE)
                parallel::stopCluster(cl)
+               env <- foreach:::.foreachGlobals
+               rm(list=ls(name=env), pos=env)
        })    
         
     }
