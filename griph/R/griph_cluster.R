@@ -270,7 +270,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                         use <- norm_GeneDispersion >= disp_cut_off
                         fraction <- signif((100 * sum(use)) / nrow(params$DM), digits = 3)
                         params$DM <- params$DM[use,]
-                        message("Retained the top ", fraction, "% overdispersed gene(s) \n", appendLF = FALSE)
+                        message("\nRetained the top ", fraction, "% overdispersed gene(s)\n", appendLF = FALSE)
                     }
                 }
                 
@@ -281,7 +281,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                     params$BatchAssignment <- BatchAssignment[SMPL]   
                 }
                 
-                message("done")
+                message("...done")
                 
                 cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1)))
             } else {

@@ -322,7 +322,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
     if (pr.iter > 0) {
         for (i in 1:pr.iter) {
-            message("Pruning based on global node similarity: ",i," / ",pr.iter, "\r", appendLF = FALSE)
+            message("Pruning based on global node similarity: ",i," / ",pr.iter, appendLF = FALSE)
             flush.console()
             df <- 0.75
             PR <- PPRank(GRAO, df = df)
@@ -366,7 +366,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
         pct <- min(1, 1 / (median(igraph::degree(GRAO))^0.1))
-        message("\tkeeping ", round(100 * pct, 1), "% of edges")
+        #message("\tkeeping ", round(100 * pct, 1), "% of edges")
         ADJtemp <- sparsify(ADJ, pct)
         GRAO <- igraph::graph.adjacency(ADJtemp, mode = c("max"), weighted = TRUE, diag = FALSE)
         ADJtemp <- NULL
@@ -376,7 +376,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     GRAO <- igraph::set.vertex.attribute(GRAO, "class", value = as.character(ClassAssignment))
 
     ######## COMMUNITY DETECTION #########
-    message("Detecting Graph Communities...")
+    message("Detecting Graph Communities...", appendLF = FALSE)
     memb <- comm.method(GRAO)
     
     #if called with ncom:
