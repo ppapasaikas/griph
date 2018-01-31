@@ -661,7 +661,9 @@ plotLVis <- function(gr,
         
         
         # Register cluster here, remove registration block from SC_cluster
+        do.register=FALSE
         if (isTRUE(use.par) & !foreach::getDoParRegistered() ) {
+            do.register=TRUE
             if (ncores == "all") {
                 ncores <- parallel::detectCores()
             } else {
@@ -699,7 +701,7 @@ plotLVis <- function(gr,
         }, # end of tryCatch expression, cluster object cl not needed anymore    
        finally = { 
            ##### Stop registered cluster:
-           if (isTRUE(use.par) & foreach::getDoParRegistered())
+           if (isTRUE(use.par) & foreach::getDoParRegistered() & do.register==TRUE)
                parallel::stopCluster(cl)
        })    
         
