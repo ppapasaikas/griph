@@ -16,6 +16,8 @@ cell cycle stages or batch effects.
 ```r
 library(devtools)
 install_git("git://github.com/ppapasaikas/griph.git", subdir = "griph")
+#Or on a windows machine substitute the previous line with:
+install_git("https://github.com/ppapasaikas/griph.git", subdir = "griph")
 ```
 
 ## Documentation and Examples
