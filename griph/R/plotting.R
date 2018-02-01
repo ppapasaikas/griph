@@ -87,7 +87,6 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                         line.type, lineColor, lineColorType, lineColorPalette,
                         my.pch, my.pt.lwd, my.pt.cex) {
     
-    
     # draw the legends
     # ... for mark
     if (mark.type != "none") {
@@ -100,7 +99,7 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
         lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
     }
     # ... for fill
-    if (length(fill.type)==1 && fill.type != "none" && length(fillColorPalette) > 0) {
+    if ((length(fill.type)==1 && fill.type != "none") || length(fill.type) > 1) {
         if (is.numeric(fill.type)) {
 
             # draw a continuous color legend
@@ -126,13 +125,13 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
             # draw a discrete color legend
             lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                           pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                          col = if (line.type == "none") "black" else "white",
+                          col = if (line.type[1] == "none") "black" else "white",
                           pt.bg = fillColorPalette,
                           title = fillColorType, legend = names(fillColorPalette))
         }
     }
     # ... for line
-    if (length(line.type)==1 && line.type != "none" && length(lineColorPalette) > 0) {
+    if ((length(line.type)==1 && line.type != "none") || length(line.type) > 1) {
 
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
@@ -228,7 +227,7 @@ plotGraph <- function(gr, maxG=2500,
 
     
     # global plotting paramterers (can come as arguments)
-    plot.args$lwd <- if (line.type == "none" || collapse.type != "none") 0.1 else plot.args$lwd
+    plot.args$lwd <- if (line.type[1] == "none" || collapse.type[1] != "none") 0.1 else plot.args$lwd
     
     pct <- 1
     edge.lwd.max <- 12.0
@@ -397,7 +396,7 @@ plotGraph <- function(gr, maxG=2500,
     }
     
     # add vertices
-    points(l[,1], l[,2], col = if (line.type == "none") "black" else lineColor,
+    points(l[,1], l[,2], col = if (line.type[1] == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, 
            cex =  plot.args$cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
     
@@ -499,7 +498,7 @@ plotTsne <- function(gr,
     checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers (can come as arguments)
-    plot.args$lwd <- if (line.type == "none") 0.1 else plot.args$lwd
+    plot.args$lwd <- if (line.type[1] == "none") 0.1 else plot.args$lwd
     
 
     # get t-SNE projection
@@ -555,7 +554,7 @@ plotTsne <- function(gr,
         drawPolygons(e = res$Y, markElements = markElements, markColorPalette = markColorPalette)
     
     # add cells
-    points(res$Y, col = if (line.type == "none") "black" else lineColor,
+    points(res$Y, col = if (line.type[1] == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
     
     # add MST segments if MST is present
