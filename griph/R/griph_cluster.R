@@ -202,7 +202,10 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
             if (i == 0) {
 
                 if (ref.iter == 0) {
-                    params$ncom <- ncom    
+                    params$ncom <- ncom
+                }
+                else {
+                    params$ncom <- NULL
                 }
                 
                 Gcounts <- colSums(DM > 0)
@@ -287,7 +290,15 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
             } else {
                 
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
-                params$ncom <- ncom
+                
+                if (ref.iter >= i) {  #Only set the number of communities in the last iteration
+                    params$ncom <- ncom
+                }
+                else {
+                    params$ncom <- NULL
+                }
+                #params$ncom <- ncom
+                
                 params$is.cor <- TRUE
                 params$ClassAssignment <- ClassAssignment
                 params$BatchAssignment <- BatchAssignment  
