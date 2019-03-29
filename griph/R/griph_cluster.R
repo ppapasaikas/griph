@@ -116,7 +116,7 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
 #' 
-#' @param comm.method  Community detection algorithm. See igraph "communities". By default multilevel louvain is used. 
+## @param comm.method  Community detection algorithm. See igraph "communities". By default multilevel louvain is used. 
 #' 
 #' @return Currently a list with the clustering results:
 #' @return MEMB: A vector of membership assignment for each cell
@@ -132,8 +132,8 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
 griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
-                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png',
-                          comm.method = igraph::cluster_louvain){
+                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png')
+                          {
     if (ref.iter == 0 && !is.null(SamplingSize) && ncol(DM) > SamplingSize)
         warning("only ", SamplingSize," of ", ncol(DM)," cells selected for clustering")
     
@@ -200,14 +200,8 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
     tryCatch({    
         for (i in 0:ref.iter) { 
             if (i == 0) {
+                params$ncom <- ncom
 
-                if (ref.iter == 0) {
-                    params$ncom <- ncom
-                }
-                else {
-                    params$ncom <- NULL
-                }
-                
                 Gcounts <- colSums(DM > 0)
                 LowQual <- which(Gcounts <= quantile(Gcounts, 0.01))
                 
@@ -233,14 +227,15 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                     params$DM <- params$DM[-AllZeroRows, ] 
                 }
                 ##########  Remove invariant  (completely flat) genes:
-                meanDM <- mean(params$DM)
-                nSD <- apply(params$DM, 1, function(x) sd(x)/meanDM)
-                ConstRows <- which(nSD < 1e-3)
+                meanDM <- rowMeans(params$DM)
+                sdDM <-  apply(params$DM, 1, function(x) sd(x) )
+                nSD <- sdDM/mean(meanDM)
+                ConstRows <- which(nSD < 1e-2 | sdDM < 0.5)
                 if (length(ConstRows) > 0) {
                     params$DM <- params$DM[-ConstRows , ]
                 }
 
-                message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (invariant/no-show) gene(s)...\n", appendLF = FALSE)
+                message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (completely flat) gene(s)...\n", appendLF = FALSE)
 
                 
                 ##########  Remove promiscuous cells (this only affects the sampling iteration):
@@ -286,18 +281,12 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 
                 message("...done")
                 
-                cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1)))
+                cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1, iter.number=i)))
             } else {
                 
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
                 
-                if (ref.iter >= i) {  #Only set the number of communities in the last iteration
-                    params$ncom <- ncom
-                }
-                else {
-                    params$ncom <- NULL
-                }
-                #params$ncom <- ncom
+                params$ncom <- ncom
                 
                 params$is.cor <- TRUE
                 params$ClassAssignment <- ClassAssignment
@@ -357,7 +346,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 
                 
 
-                cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn) ) )
+                cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn, iter.number=i) ) )
                 cluster.res$GeneList <- genelist        
                 
             }

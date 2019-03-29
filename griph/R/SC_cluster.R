@@ -318,11 +318,11 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
     
     GRAO <- igraph::graph.adjacency(ADJ, mode = c("max"), weighted = TRUE, diag = FALSE)
-    message("done")
+    message("done", appendLF = TRUE)
     
     if (pr.iter > 0) {
         for (i in 1:pr.iter) {
-            message("Pruning based on global node similarity: ",i," / ",pr.iter, appendLF = FALSE)
+            message("Pruning based on global node similarity: ",i," / ",pr.iter," ", appendLF = FALSE)
             flush.console()
             df <- 0.75
             PR <- PPRank(GRAO, df = df)
@@ -376,32 +376,52 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     GRAO <- igraph::set.vertex.attribute(GRAO, "class", value = as.character(ClassAssignment))
 
     ######## COMMUNITY DETECTION #########
-    message("Detecting Graph Communities...", appendLF = FALSE)
+    message("Detecting Graph Communities...", appendLF = TRUE)
     
     
     memb <- comm.method(GRAO)
     min.csize <- max(4, ceiling(0.1 * sqrt(length(memb$membership))))
     detected.com <- length(unique(memb$membership))
-    # &  detected.com != ncom
-    if (!is.null(ncom)    ) {
+    substantial.clusters.per.llevel <- apply(memb$memberships, 1, function(x) sum(table(x) > min.csize) )
+
+        
+if (!is.null(ncom)) {    
+    
+    if (add.args$iter.number < add.args$ref.iter  ) {
+    target <- ncom + 2.1
+        if (detected.com < target | detected.com > 1.4 * target){
+        message( "adjusting louvain resolution to set ncom...", appendLF = TRUE)
+        memb$membership <- memb$memberships[which.min(abs(substantial.clusters.per.llevel - target)),]
+        }
+    }
+    
+    # Only in the last iteration when the optimal louvain level does not match ncom:
+    if (detected.com != ncom & add.args$iter.number==add.args$ref.iter  ) {
+        #first check if any louvain level matches the set ncom, and if so set membership to that level:
+        clusters.per.llevel <- apply(memb$memberships, 1, function(x) sum(table(x) > 0 ) )
+        if (ncom %in% clusters.per.llevel) {
+        matched.level <-which(is.element(substantial.clusters.per.llevel,ncom))
+        memb$membership <- memb$memberships[matched.level,]
+        }
+        
         if (detected.com != ncom){
-        message( "ncom set. Switching to fast-greedy commnunity detection...")
+        message( "ncom set but no matching louvain level. Switching to fast-greedy commnunity detection...", appendLF = TRUE)
         memb <- igraph::cluster_fast_greedy(GRAO)    #Switch to fast greedy in case ncom parameter is set.
         memb$membership <- cut_at(memb,ncom)
             if ( min(table(memb$membership) ) <= min.csize ) {
-                message( "fast-greedy returned isolated nodes for set ncom. Switching to k-NN clustering...")
-                x <- projectKNNs(as_adj(GRAO, names = FALSE, sparse = TRUE), dim=6,
+                message( "fast-greedy returned isolated nodes for set ncom. Switching to k-NN clustering...", appendLF = TRUE)
+                x <- projectKNNs(as_adj(GRAO, names = FALSE, sparse = TRUE), dim=5,
                                  sgd_batches = min(20000 / (sum(ADJ != 0) / 2), 0.99),
                                  M = 3, gamma = 10, alpha = 0.1, useDegree = TRUE)
                 ncenters <- ncom
-                memb$membership <- kmeans(t(x), centers = ncenters)$cluster
+                memb$membership <- kmeans(t(x), centers = ncenters, nstart=5)$cluster
                 nclust <- sum(table(memb$membership) > min.csize)   
             }
         }
         
     }
     
-
+}
     
     
     #if called with ncom:
@@ -434,7 +454,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     #}
     csize <- table(memb$membership)
     ConfMatrix <- table(predicted = memb$membership, true = ClassAssignment)
-    message("done")
+    message("done", appendLF = TRUE)
     
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
