@@ -694,7 +694,7 @@ plotLVis <- function(gr,
             add.args$useDegree <- TRUE    
 
         #res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
-        res <- do.call(projectKNNs, c(list(wij = gr$DISTM, seed = seed), add.args))
+        res <- do.call(projectKNNs, c(list(wij = gr$DISTM, seed = seed, threads=foreach::getDoParWorkers()   ), add.args))
         
         
         }, # end of tryCatch expression, cluster object cl not needed anymore    

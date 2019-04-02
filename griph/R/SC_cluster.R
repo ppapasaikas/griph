@@ -423,7 +423,7 @@ if (!is.null(ncom)) {
                 message( "fast-greedy returned isolated nodes for set ncom. Switching to k-NN clustering...", appendLF = TRUE)
                 x <- projectKNNs(as_adj(GRAO, names = FALSE, sparse = TRUE), dim=5,
                                  sgd_batches = min(20000 / (sum(ADJ != 0) / 2), 0.99),
-                                 M = 3, gamma = 10, alpha = 0.1, useDegree = TRUE)
+                                 M = 3, gamma = 10, alpha = 0.1, useDegree = TRUE, threads=foreach::getDoParWorkers() )
                 ncenters <- ncom
                 memb$membership <- kmeans(t(x), centers = ncenters, nstart=5)$cluster
                 nclust <- sum(table(memb$membership) > min.csize)   
