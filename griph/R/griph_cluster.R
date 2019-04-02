@@ -57,7 +57,7 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
     R <- (R / 4)^2
     #R <- sweep(R, 2, colMeans(R), "-")
     #K=min(max(floor(0.25 * ( sqrt(ncol(R)) + nrow(R) )) , 10), floor(ncol(R)) / 1.5) 
-    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K   )    #
+    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K, threads=foreach::getDoParWorkers()    )    #
     R <- Matrix::sparseMatrix(i = R$i, j = R$j, x = 1 - (R$x / 2), dims = attr(R,"dims"), dimnames = list(CellIds,CellIds))
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
     message("Calculating KNNGraph (Elapsed Time: ", Te1, ")")
