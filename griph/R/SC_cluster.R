@@ -396,13 +396,24 @@ if (!is.null(ncom)) {
     }
     
     # Only in the last iteration when the optimal louvain level does not match ncom:
-    if (detected.com != ncom & add.args$iter.number==add.args$ref.iter  ) {
+    if (detected.com != ncom & add.args$iter.number>=add.args$ref.iter  ) {
+
         #first check if any louvain level matches the set ncom, and if so set membership to that level:
         clusters.per.llevel <- apply(memb$memberships, 1, function(x) sum(table(x) > 0 ) )
         if (ncom %in% clusters.per.llevel) {
-        matched.level <-which(is.element(substantial.clusters.per.llevel,ncom))
+        matched.level <-which(is.element(clusters.per.llevel,ncom))
         memb$membership <- memb$memberships[matched.level,]
+        detected.com <- length(unique(memb$membership))
         }
+        
+        #If louvain returns too many communities compared to target at any resolution level run for one extra refinement iteration:
+        if (detected.com != ncom & min(clusters.per.llevel - ncom) > 2 & add.args$ref.iter <2 & add.args$iter.number <2) {
+        message( "Warning: ncom set too low compared to optimal partition. Attempting extra refinement iteration to match set resolution...", appendLF = TRUE)
+        #current.iter <<- add.args$iter.number-1 #Repeat refinement iteration
+        assign( "current.iter", add.args$iter.number-1,envir=parent.frame(n=1)) #Repeat refinement iteration
+        detected.com<-ncom
+        }
+        
         
         if (detected.com != ncom){
         message( "ncom set but no matching louvain level. Switching to fast-greedy commnunity detection...", appendLF = TRUE)

@@ -197,9 +197,12 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
     }
     
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
-    tryCatch({    
-        for (i in 0:ref.iter) { 
-            if (i == 0) {
+    tryCatch({   
+        current.iter=0
+        iter.number=0
+        continue=TRUE
+        while (continue==TRUE) { 
+            if (current.iter == 0) {
                 params$ncom <- ncom
 
                 Gcounts <- colSums(DM > 0)
@@ -281,7 +284,11 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 
                 message("...done")
                 
-                cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1, iter.number=i)))
+                cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1, iter.number=iter.number)))
+                if (current.iter >= ref.iter) {continue=FALSE}
+                current.iter <- current.iter +1
+                iter.number <- iter.number +1
+
             } else {
                 
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
@@ -346,8 +353,14 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 
                 
 
-                cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn, iter.number=i) ) )
-                cluster.res$GeneList <- genelist        
+                cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn, iter.number=iter.number) ) )
+                cluster.res$GeneList <- genelist   
+                
+                if (current.iter >= ref.iter) {continue=FALSE}
+                current.iter <- current.iter + 1
+                iter.number <- iter.number+1
+                
+                
                 
             }
             gc() #Call garbage collector
