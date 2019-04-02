@@ -350,8 +350,6 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                                      PPearsonCor = PPearsonCor, PHellinger = PHellinger,
                                      PCanberra = PCanberra, ShrinkCor = ShrinkCor, K=Kmnn)
                 message("done")
-                
-                
 
                 cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn, iter.number=iter.number) ) )
                 cluster.res$GeneList <- genelist   
@@ -359,8 +357,6 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                 if (current.iter >= ref.iter) {continue=FALSE}
                 current.iter <- current.iter + 1
                 iter.number <- iter.number+1
-                
-                
                 
             }
             gc() #Call garbage collector

@@ -407,7 +407,7 @@ if (!is.null(ncom)) {
         }
         
         #If louvain returns too many communities compared to target at any resolution level run for one extra refinement iteration:
-        if (detected.com != ncom & min(clusters.per.llevel - ncom) > 2 & add.args$ref.iter <2 & add.args$iter.number <2) {
+        if (detected.com != ncom & min(clusters.per.llevel - ncom) > 1 & add.args$ref.iter <2 & add.args$iter.number <2) {
         message( "Warning: ncom set too low compared to optimal partition. Attempting extra refinement iteration to match set resolution...", appendLF = TRUE)
         #current.iter <<- add.args$iter.number-1 #Repeat refinement iteration
         assign( "current.iter", add.args$iter.number-1,envir=parent.frame(n=1)) #Repeat refinement iteration
