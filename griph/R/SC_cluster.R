@@ -287,8 +287,9 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             multp <- 1 - batch.penalty
             BatchAssignmentN <- as.numeric(BatchAssignment)
             q <- BatchAssignmentN[ADJdgT@i + 1] == BatchAssignmentN[ADJdgT@j + 1]
+
             ADJ@x[q] <- ADJ@x[q] * multp
-            ADJ <- Matrix::drop0((ADJ), 1e-20)
+            ADJ <- Matrix::drop0((ADJ), 1e-9)
             ADJdgT <- NULL
             BatchAssignmentN <- NULL
             q <- NULL
@@ -298,9 +299,10 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
     ######## Graph weights:
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
-    ave <- mean(Cuse@x)
+    ADJ@x <- round(ADJ@x, digits=4)
+    ave <- mean(ADJ@x) #4-4-19 Was mean (Cuse@x)
     
-    ADJ@x <- exp(-(((1 - Cuse@x)^2) / ((1 - ave)^2)))   #Kernelize distance according to Haren and Koren 2001 section 3
+    ADJ@x <- exp(-(((1 - ADJ@x)^2) / ((1 - ave)^2)))   #Kernelize distance according to Haren and Koren 2001 section 3. #4-4-19 Was  (1-Cuse@x)^2...
     ADJ <- Matrix::drop0((ADJ), 1e-20)
     
     
@@ -334,10 +336,10 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             PR <- PR / (max(PR[upper.tri(PR)]) + 0.01 / ncol(ADJ)) 
             diag(PR) <- 1
 
-            ADJ[which(Cuse==0)] <- 0
+            ADJ[which(Cuse==0)] <- 0 #4-4-19 This looks redundant
             ADJ[which(ADJtemp==0)] <- 0
+            ADJ[ADJ > 0] <- ADJtemp[which(ADJ > 0)]  #4-4-19 
             rm(ADJtemp)
-            ADJ[ADJ > 0] <- Cuse[which(ADJ > 0)] 
 
             ave <- mean(ADJ[ADJ > 0])
             ADJ[ADJ > 0] <- exp(-(((1 - ADJ[ADJ > 0])^2) / ((1 - ave)^2)))   #According to Harel and Koren 2001 SIGKDD section 3
