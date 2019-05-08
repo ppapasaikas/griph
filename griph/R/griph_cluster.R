@@ -129,7 +129,7 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
 #' @return complete_MEMB: The igraph communities object returned by the community detection algorithm 
 #' @return GeneList: A character vector with the genes that survived the filtering.
 
-griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
+griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 3, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
                           plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png')
