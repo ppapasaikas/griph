@@ -86,6 +86,7 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                         fill.type, fillColor, fillColorType, fillColorPalette,
                         line.type, lineColor, lineColorType, lineColorPalette,
                         my.pch, my.pt.lwd, my.pt.cex) {
+    
     # draw the legends
     # ... for mark
     if (mark.type != "none") {
@@ -93,12 +94,14 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                       xjust = 1, yjust = 1, bty = "n", cex = 1,
                       fill = paste0(markColorPalette, "66"), title = markColorType,
                       legend = names(markColorPalette))
+
     } else {
         lgd <- list(rect = list(left = par("usr")[2] + 12 * par("cxy")[1]))
     }
     # ... for fill
-    if (fill.type != "none" && length(fillColorPalette) > 0) {
+    if ((length(fill.type)==1 && fill.type != "none") || length(fill.type) > 1) {
         if (is.numeric(fill.type)) {
+
             # draw a continuous color legend
             llevs <- as.numeric(names(fillColorPalette))
             lcols <- fillColorPalette
@@ -118,16 +121,18 @@ drawLegends <- function(mark.type, markColor, markColorType, markColorPalette,
                  labels = zlabs, adj = c(0, 0.5), srt = 0, cex = 0.75)
             lgd <- list(rect = list(left = xl - 0.5 * pcxy[1]))
         } else {
+
             # draw a discrete color legend
             lgd <- legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                           pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
-                          col = if (line.type == "none") "black" else "white",
+                          col = if (line.type[1] == "none") "black" else "white",
                           pt.bg = fillColorPalette,
                           title = fillColorType, legend = names(fillColorPalette))
         }
     }
     # ... for line
-    if (line.type != "none" && length(lineColorPalette) > 0) {
+    if ((length(line.type)==1 && line.type != "none") || length(line.type) > 1) {
+
         legend(x = lgd$rect$left, y = par("usr")[4], xjust = 1, yjust = 1, bty = "n",
                pch = my.pch, pt.lwd = my.pt.lwd, cex = 1, pt.cex = my.pt.cex,
                col = lineColorPalette, pt.bg = "white",
@@ -196,7 +201,7 @@ drawPolygons <- function(e, markElements, markColorPalette) {
 #' @return Invisibly the plot-optimized version of the graph as an \code{igraph} object.
 plotGraph <- function(gr, maxG=2500,
                       fill.type="predicted",
-                      line.type="true",
+                      line.type="none",
                       mark.type="none",
                       collapse.type=c("none","predicted","true"),
                       fill.col="Spectral",
@@ -206,7 +211,7 @@ plotGraph <- function(gr, maxG=2500,
                       seed=91919,
                       fsuffix=NULL, image.format=NA,
                       forceRecalculation=FALSE, quiet=FALSE,
-                      plot.args=list(pch=21L, cex=1.5,lwd=2.5)
+                      plot.args=list(pch=21L, cex=1.0,lwd=2.5)
                       ) {
     if (!quiet)
         message("Computing Graph Layout and Rendering...")
@@ -222,7 +227,7 @@ plotGraph <- function(gr, maxG=2500,
 
     
     # global plotting paramterers (can come as arguments)
-    plot.args$lwd <- if (line.type == "none" || collapse.type != "none") 0.5 else plot.args$lwd
+    plot.args$lwd <- if (line.type[1] == "none" || collapse.type[1] != "none") 0.1 else plot.args$lwd
     
     pct <- 1
     edge.lwd.max <- 12.0
@@ -396,7 +401,7 @@ plotGraph <- function(gr, maxG=2500,
     }
     
     # add vertices
-    points(l[,1], l[,2], col = if (line.type == "none") "black" else lineColor,
+    points(l[,1], l[,2], col = if (line.type[1] == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, 
            cex =  plot.args$cex * if (collapse.type == "none") 1.0 else (as.numeric(csize / median(csize)))^0.5)
     
@@ -475,7 +480,7 @@ plotGraph <- function(gr, maxG=2500,
 #' @seealso \code{Rtsne} used to calculate the t-SNE projection.
 plotTsne <- function(gr,
                      fill.type="predicted",
-                     line.type="true",
+                     line.type="none",
                      mark.type="none",
                      fill.col="Spectral",
                      line.col="Dark2",
@@ -483,7 +488,7 @@ plotTsne <- function(gr,
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
-                     plot.args=list(pch=21L, cex=1.5,lwd=2.5),
+                     plot.args=list(pch=21L, cex=1.0,lwd=2.5),
                      quiet=FALSE, ...) {
     if (!is.element("Rtsne", utils::installed.packages()[,1])) {
         stop('"plotTsne" requires the "Rtsne" package. Please install it with:\n\t',
@@ -498,7 +503,7 @@ plotTsne <- function(gr,
     checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers (can come as arguments)
-    plot.args$lwd <- if (line.type == "none") 0.5 else plot.args$lwd
+    plot.args$lwd <- if (line.type[1] == "none") 0.1 else plot.args$lwd
     
 
     # get t-SNE projection
@@ -554,7 +559,7 @@ plotTsne <- function(gr,
         drawPolygons(e = res$Y, markElements = markElements, markColorPalette = markColorPalette)
     
     # add cells
-    points(res$Y, col = if (line.type == "none") "black" else lineColor,
+    points(res$Y, col = if (line.type[1] == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
     
     # add MST segments if MST is present
@@ -625,7 +630,7 @@ plotTsne <- function(gr,
 #' @seealso \code{largeVis} used to calculate the largeVis projection.
 plotLVis <- function(gr,
                      fill.type="predicted",
-                     line.type="true",
+                     line.type="none",
                      mark.type="none",
                      fill.col="Spectral",
                      line.col="Dark2",
@@ -633,7 +638,8 @@ plotLVis <- function(gr,
                      seed=91919,
                      fsuffix=NULL, image.format=NA,
                      forceRecalculation=FALSE,
-                     quiet=FALSE, plot.args=list(pch=21L, cex=1.5,lwd=2.5),
+                     quiet=FALSE, plot.args=list(pch=21L, cex=1.0,lwd=2.5),
+                     use.par = TRUE, ncores = "all",
                      ...) {
     # digest arguments
     add.args <- list(...)
@@ -643,8 +649,10 @@ plotLVis <- function(gr,
     checkColorType(mark.type, length(MEMB))
     
     # global plotting paramterers (can come as arguments)
-    plot.args$lwd <- if (line.type == "none") 0.5 else plot.args$lwd
+    plot.args$lwd <- if (length(line.type)==1 && line.type == "none") 0.1 else plot.args$lwd
 
+    
+    
     
     # get largeVis projection
     if (!forceRecalculation && "plotLVis" %in% names(gr) && !is.null(gr$plotLVis)) {
@@ -652,6 +660,28 @@ plotLVis <- function(gr,
             message("Using existing LargeVis embedding")
         res <- t(gr$plotLVis)
     } else {
+        
+        
+        
+        
+        # Register cluster here if one not already registered.
+        do.register=FALSE
+        if (isTRUE(use.par) & !foreach::getDoParRegistered() ) {
+            do.register=TRUE
+            if (ncores == "all") {
+                ncores <- parallel::detectCores()
+            } else {
+                ncores <- min(ncores, parallel::detectCores() )
+            }
+            cl <- parallel::makeCluster(ncores)
+            doParallel::registerDoParallel(cl)
+        }
+        ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
+        tryCatch({    
+        
+        
+            
+            
         if (!quiet)
             message("Computing LargeVis embedding...")
     
@@ -669,9 +699,21 @@ plotLVis <- function(gr,
             add.args$useDegree <- TRUE    
 
         #res <- do.call(projectKNNs, c( list(wij=igraph::as_adj(gr$GRAO,names=FALSE, attr = 'weight', sparse=TRUE),seed=seed),add.args )    )
-        res <- do.call(projectKNNs, c(list(wij = gr$DISTM, seed = seed), add.args))
+        res <- do.call(projectKNNs, c(list(wij = gr$DISTM, seed = seed, threads=foreach::getDoParWorkers()   ), add.args))
+        
+        
+        }, # end of tryCatch expression, cluster object cl not needed anymore    
+       finally = { 
+           ##### Stop registered cluster and unregister if initiated infunction (tracked by do.register):
+           if (isTRUE(use.par) & foreach::getDoParRegistered() & do.register==TRUE)
+               parallel::stopCluster(cl)
+               env <- foreach:::.foreachGlobals
+               rm(list=ls(name=env), pos=env)
+       })    
+        
     }
     
+
     # get colors
     fillColor <- getPlotColors(gr = gr, val = fill.type, col = fill.col)
     fillColorPalette <- attr(x = fillColor, which = "palette")
@@ -710,7 +752,7 @@ plotLVis <- function(gr,
         drawPolygons(e = t(res), markElements = markElements, markColorPalette = markColorPalette)
     
     # add cells
-    points(t(res), col = if (line.type == "none") "black" else lineColor,
+    points(t(res), col = if (length(line.type)==1 && line.type == "none") "black" else lineColor,
            bg = fillColor, pch = plot.args$pch, lwd = plot.args$lwd, cex = plot.args$cex)
     
     
@@ -742,5 +784,12 @@ plotLVis <- function(gr,
     
     rres <- t(res)
     dimnames(rres) <- list(names(gr$MEMB), c("x","y"))
+    
+    
+    
+
+    
+    
+    
     return(invisible(rres))
 }

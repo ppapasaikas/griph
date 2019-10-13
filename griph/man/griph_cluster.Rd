@@ -8,7 +8,8 @@ griph_cluster(DM, K = NULL, SamplingSize = NULL, ref.iter = 1,
   use.par = TRUE, ncores = "all", filter = TRUE, rho = 0.25,
   batch.penalty = 0.5, seed = 127350, ClassAssignment = rep(1, ncol(DM)),
   BatchAssignment = NULL, ncom = NULL, plot_ = TRUE, maxG = 2500,
-  fsuffix = NULL, image.format = "png")
+  fsuffix = NULL, image.format = "png",
+  comm.method = igraph::cluster_louvain)
 }
 \arguments{
 \item{DM}{Count data (n genes-by-k cells) or directly a correlation k-by-k matrix.
@@ -63,9 +64,29 @@ batch labels (e.g-> c(1,2,1,1,1,2,3,3,3,1,2))}
 it will use a random 5 character string.}
 
 \item{image.format}{Specifies the format of the created images. Currently only pdf and png filetypes are supported.}
+
+\item{comm.method}{Community detection algorithm. See igraph "communities". By default multilevel louvain is used.}
 }
 \value{
-Currently a list with the clustering results.
+Currently a list with the clustering results:
+
+MEMB: A vector of membership assignment for each cell
+
+MEMB.true: A vector with the true cell assignment if one was specified.
+
+DISTM: A sparse (dgCMatrix) k x k cell distance matrix
+
+ConfMatrix: Confusion matrix based on the MEMB and MEMB.true vectors.
+
+miscl: Misclassification error based on the MEMB and MEMB.true vectors.
+
+GRAO: An igraph graph object modelling the cell population
+
+plotLVis: The plotLVis projection of the graph if plot_ was set to try. NULL otherwise
+
+complete_MEMB: The igraph communities object returned by the community detection algorithm
+
+GeneList: A character vector with the genes that survived the filtering.
 }
 \description{
 \code{griph_cluster} takes a gene-by-cell matrix with read counts as

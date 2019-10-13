@@ -23,7 +23,7 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
     R <- vapply(c(1:ncol(D)), function(x) rank(D[,x]), FUN.VALUE = double(length = nrow(D)))  # Pearson's cor    
     
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("\nP (Elapsed Time: ", Te1, ")")
+    message("\n..PearsonC: (Elapsed Time: ", Te1, ")")
     
     ######## Counts per 100K:
     CellCounts <- colSums(FB)
@@ -38,29 +38,29 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
     Dt <- 1 - ((Dt - min(Dt)) / diff(range(Dt)))
     R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Canberra
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("C (Elapsed Time: ", Te1, ")")
+    message("..Canberra: (Elapsed Time: ", Te1, ")")
     
     ptm1 <- proc.time() #Start clock
     Dt <- PSpearmanCor(FB, M)
     R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Spearman's cor
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("S (Elapsed Time: ", Te1, ")")
+    message("..SpearmanC: (Elapsed Time: ", Te1, ")")
     
     ptm1 <- proc.time() #Start clock
     Dt <- PHellinger(FB, M)
     Dt <- 1 - ((Dt - min(Dt)) / diff(range(Dt)))
     R <- R + vapply(c(1:ncol(Dt)), function(x) rank(Dt[,x]), FUN.VALUE = double(length = nrow(Dt)))  # Hellinger distance
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("H (Elapsed Time: ", Te1, ")")
+    message("..Hellinger: (Elapsed Time: ", Te1, ")")
     
     ptm1 <- proc.time() #Start clock
     R <- (R / 4)^2
     #R <- sweep(R, 2, colMeans(R), "-")
     #K=min(max(floor(0.25 * ( sqrt(ncol(R)) + nrow(R) )) , 10), floor(ncol(R)) / 1.5) 
-    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K   )    #
+    R <- buildEdgeMatrix(R, distance_method = "Cosine", K = K, threads=foreach::getDoParWorkers()    )    #
     R <- Matrix::sparseMatrix(i = R$i, j = R$j, x = 1 - (R$x / 2), dims = attr(R,"dims"), dimnames = list(CellIds,CellIds))
     Te1 <- signif((proc.time() - ptm1)[3], digits = 6)
-    message("bEM (Elapsed Time: ", Te1, ")")
+    message("Calculating KNNGraph (Elapsed Time: ", Te1, ")")
     
     return(R)    #This is NOT a symmetric matrix
 }
@@ -116,12 +116,24 @@ WScorFB <- function(M, FB, K=50, PSpearmanCor, PPearsonCor, PHellinger, PCanberr
 #'     it will use a random 5 character string.
 #' @param image.format Specifies the format of the created images. Currently only pdf and png filetypes are supported.
 #' 
-#' @return Currently a list with the clustering results.
+## @param comm.method  Community detection algorithm. See igraph "communities". By default multilevel louvain is used. 
 #' 
-griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par = TRUE, ncores = "all",
+#' @return Currently a list with the clustering results:
+#' @return MEMB: A vector of membership assignment for each cell
+#' @return MEMB.true: A vector with the true cell assignment if one was specified.
+#' @return DISTM: A sparse (dgCMatrix) k x k cell distance matrix 
+#' @return ConfMatrix: Confusion matrix based on the MEMB and MEMB.true vectors.
+#' @return miscl: Misclassification error based on the MEMB and MEMB.true vectors.
+#' @return GRAO: An igraph graph object modelling the cell population
+#' @return plotLVis: The plotLVis projection of the graph if plot_ was set to TRUE. NULL otherwise
+#' @return complete_MEMB: The igraph communities object returned by the community detection algorithm 
+#' @return GeneList: A character vector with the genes that survived the filtering.
+
+griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 3, use.par = TRUE, ncores = "all",
                           filter = TRUE, rho = 0.25, batch.penalty = 0.5, seed = 127350,
                           ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL, ncom = NULL,
-                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png'){
+                          plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png')
+                          {
     if (ref.iter == 0 && !is.null(SamplingSize) && ncol(DM) > SamplingSize)
         warning("only ", SamplingSize," of ", ncol(DM)," cells selected for clustering")
     
@@ -185,14 +197,14 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
     }
     
     ### wrap code in tryCatch block, ensuring that stopCluster(cl) is called even when a condition is raised  
-    tryCatch({    
-        for (i in 0:ref.iter) { 
-            if (i == 0) {
+    tryCatch({   
+        current.iter=0
+        iter.number=0
+        continue=TRUE
+        while (continue==TRUE) { 
+            if (current.iter == 0) {
+                params$ncom <- ncom
 
-                if (ref.iter == 0) {
-                    params$ncom <- ncom    
-                }
-                
                 Gcounts <- colSums(DM > 0)
                 LowQual <- which(Gcounts <= quantile(Gcounts, 0.01))
                 
@@ -218,14 +230,15 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                     params$DM <- params$DM[-AllZeroRows, ] 
                 }
                 ##########  Remove invariant  (completely flat) genes:
-                meanDM <- mean(params$DM)
-                nSD <- apply(params$DM, 1, function(x) sd(x)/meanDM)
-                ConstRows <- which(nSD < 1e-3)
+                meanDM <- rowMeans(params$DM)
+                sdDM <-  apply(params$DM, 1, function(x) sd(x) )
+                nSD <- sdDM/mean(meanDM)
+                ConstRows <- which(nSD < 1e-2 | sdDM < 0.5)
                 if (length(ConstRows) > 0) {
                     params$DM <- params$DM[-ConstRows , ]
                 }
 
-                message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (invariant/no-show) gene(s)...\n", appendLF = FALSE)
+                message("\nRemoved ", length(c(ConstRows,AllZeroRows)), " uninformative (completely flat) gene(s)...\n", appendLF = FALSE)
 
                 
                 ##########  Remove promiscuous cells (this only affects the sampling iteration):
@@ -258,7 +271,7 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                         use <- norm_GeneDispersion >= disp_cut_off
                         fraction <- signif((100 * sum(use)) / nrow(params$DM), digits = 3)
                         params$DM <- params$DM[use,]
-                        message("Retained the top ", fraction, "% overdispersed gene(s) \n", appendLF = FALSE)
+                        message("\nRetained the top ", fraction, "% overdispersed gene(s)\n", appendLF = FALSE)
                     }
                 }
                 
@@ -269,19 +282,24 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                     params$BatchAssignment <- BatchAssignment[SMPL]   
                 }
                 
-                message("done")
+                message("...done")
                 
-                cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, pr.iter = 1)))
+                cluster.res <- do.call(SC_cluster, c(params, list(pr.iter = 1, iter.number=iter.number)))
+                if (current.iter >= ref.iter) {continue=FALSE}
+                current.iter <- current.iter +1
+                iter.number <- iter.number +1
+
             } else {
                 
                 message("\n\nRefining Cluster Structure...\n", appendLF = FALSE)
+                
                 params$ncom <- ncom
+                
                 params$is.cor <- TRUE
                 params$ClassAssignment <- ClassAssignment
                 params$BatchAssignment <- BatchAssignment  
 
-                message("MISCL","\n",cluster.res$miscl,"\n")
-                
+
                 ####### construct cell2cell correlation matrix using the current cluster.res: ########
                 memb <- cluster.res$MEMB
                 min.csize <- max(4, ceiling(0.25*sqrt(length(memb))))
@@ -332,11 +350,13 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
                                      PPearsonCor = PPearsonCor, PHellinger = PHellinger,
                                      PCanberra = PCanberra, ShrinkCor = ShrinkCor, K=Kmnn)
                 message("done")
-                
-                
 
-                cluster.res <- do.call(SC_cluster, c(params, list(comm.method = igraph::cluster_louvain, do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn) ) )
-                cluster.res$GeneList <- genelist        
+                cluster.res <- do.call(SC_cluster, c(params, list(do.glasso = FALSE, pr.iter = 0, Kmnn=Kmnn, iter.number=iter.number) ) )
+                cluster.res$GeneList <- genelist   
+                
+                if (current.iter >= ref.iter) {continue=FALSE}
+                current.iter <- current.iter + 1
+                iter.number <- iter.number+1
                 
             }
             gc() #Call garbage collector
@@ -344,12 +364,11 @@ griph_cluster <- function(DM, K=NULL, SamplingSize= NULL, ref.iter = 1, use.par 
         
         
         ######Top FeatureGenes:
+        # PLACEHOLDER
+        #######################
         
-        
-        ######Mark Doublets:
 
-    
-        
+        ######### graph visualization
         if (plot_ == TRUE) {
             if (is.null(fsuffix))
                 fsuffix <- RandString()

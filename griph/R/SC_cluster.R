@@ -169,9 +169,10 @@ PPR <- function(G, df = 0.75) {
 #' @param ... Additional arguments passed from griph_cluster
 #' 
 #' @return Currently a list with the clustering results.
+
 SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
                        filter = FALSE, do.glasso=TRUE, rho = 0.25, pr.iter = 1, batch.penalty = 0.5,
-                       seed = 127350, comm.method = igraph::cluster_infomap, ncom = NULL,
+                       seed = 127350, comm.method = igraph::cluster_louvain, ncom = NULL,
                        ClassAssignment = rep(1,ncol(DM)), BatchAssignment = NULL,
                        plot_ = TRUE, maxG = 2500, fsuffix = NULL, image.format='png', ...) {
     
@@ -286,8 +287,9 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             multp <- 1 - batch.penalty
             BatchAssignmentN <- as.numeric(BatchAssignment)
             q <- BatchAssignmentN[ADJdgT@i + 1] == BatchAssignmentN[ADJdgT@j + 1]
+
             ADJ@x[q] <- ADJ@x[q] * multp
-            ADJ <- Matrix::drop0((ADJ), 1e-20)
+            ADJ <- Matrix::drop0((ADJ), 1e-9)
             ADJdgT <- NULL
             BatchAssignmentN <- NULL
             q <- NULL
@@ -297,9 +299,10 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     
     ######## Graph weights:
     message("Calculating edge weights and knn-based pruning...", appendLF = FALSE)
-    ave <- mean(Cuse@x)
+    ADJ@x <- round(ADJ@x, digits=4)
+    ave <- mean(ADJ@x) #4-4-19 Was mean (Cuse@x)
     
-    ADJ@x <- exp(-(((1 - Cuse@x)^2) / ((1 - ave)^2)))   #Kernelize distance according to Haren and Koren 2001 section 3
+    ADJ@x <- exp(-(((1 - ADJ@x)^2) / ((1 - ave)^2)))   #Kernelize distance according to Haren and Koren 2001 section 3. #4-4-19 Was  (1-Cuse@x)^2...
     ADJ <- Matrix::drop0((ADJ), 1e-20)
     
     
@@ -311,18 +314,17 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     else{
     Kmnn=add.args$Kmnn    
     }
-    message("\rKmnn:", Kmnn, "\r")
     ADJ <- keep.mknn2(ADJ, k = Kmnn)
     ADJ <- sparsify2(ADJ,quant=0.1)
 
     
     
     GRAO <- igraph::graph.adjacency(ADJ, mode = c("max"), weighted = TRUE, diag = FALSE)
-    message("done")
+    message("done", appendLF = TRUE)
     
     if (pr.iter > 0) {
         for (i in 1:pr.iter) {
-            message("Pruning based on global node similarity: ",i," / ",pr.iter, "\r", appendLF = FALSE)
+            message("Pruning based on global node similarity: ",i," / ",pr.iter," ", appendLF = FALSE)
             flush.console()
             df <- 0.75
             PR <- PPRank(GRAO, df = df)
@@ -334,10 +336,10 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
             PR <- PR / (max(PR[upper.tri(PR)]) + 0.01 / ncol(ADJ)) 
             diag(PR) <- 1
 
-            ADJ[which(Cuse==0)] <- 0
+            ADJ[which(Cuse==0)] <- 0 #4-4-19 This looks redundant
             ADJ[which(ADJtemp==0)] <- 0
+            ADJ[ADJ > 0] <- ADJtemp[which(ADJ > 0)]  #4-4-19 
             rm(ADJtemp)
-            ADJ[ADJ > 0] <- Cuse[which(ADJ > 0)] 
 
             ave <- mean(ADJ[ADJ > 0])
             ADJ[ADJ > 0] <- exp(-(((1 - ADJ[ADJ > 0])^2) / ((1 - ave)^2)))   #According to Harel and Koren 2001 SIGKDD section 3
@@ -366,7 +368,7 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     pct <- 1
     if (median(igraph::degree(GRAO)) > 10) {
         pct <- min(1, 1 / (median(igraph::degree(GRAO))^0.1))
-        message("\tkeeping ", round(100 * pct, 1), "% of edges")
+        #message("\tkeeping ", round(100 * pct, 1), "% of edges")
         ADJtemp <- sparsify(ADJ, pct)
         GRAO <- igraph::graph.adjacency(ADJtemp, mode = c("max"), weighted = TRUE, diag = FALSE)
         ADJtemp <- NULL
@@ -376,39 +378,96 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
     GRAO <- igraph::set.vertex.attribute(GRAO, "class", value = as.character(ClassAssignment))
 
     ######## COMMUNITY DETECTION #########
-    message("Detecting Graph Communities...")
-    memb <- comm.method(GRAO)
+    message("Detecting Graph Communities...", appendLF = TRUE)
     
-    #if called with ncom:
-    if (!is.null(ncom)) {
-        min.csize <- max(4, ceiling(0.2 * sqrt(length(memb$membership))))
-        if (!is.null(memb$memberships) &
-            max(apply(memb$memberships, 1, function(x) sum(table(x) > min.csize))) >= ncom) {    #check if multi level louvain was used and a level has enough substantial clusters
-            nclust <- apply(memb$memberships, 1, function(x) sum(table(x) > min.csize))
-            memb$membership <- memb$memberships[which.min(abs(nclust - ncom)),]
+    
+    memb <- comm.method(GRAO)
+    min.csize <- max(4, ceiling(0.1 * sqrt(length(memb$membership))))
+    detected.com <- length(unique(memb$membership))
+    substantial.clusters.per.llevel <- apply(memb$memberships, 1, function(x) sum(table(x) > min.csize) )
 
-        } else {# otherwise run simple kmeans on a 6D projection generated by largeVis
-            message(memb$algorithm, " returned too few clusters, switching to k-NN...")
-            x <- projectKNNs(as_adj(GRAO, names = FALSE, sparse = TRUE), dim=6,
-                             sgd_batches = min(20000 / (sum(ADJ != 0) / 2), 0.99),
-                             M = 3, gamma = 10, alpha = 0.1, useDegree = TRUE)
-
-            ncenters <- ncom
-            for (i in 0:4) { # try up to five times to get ncom clusters with at least min.csize members
-                memb$membership <- kmeans(t(x), centers = ncenters)$cluster
-                nclust <- sum(table(memb$membership) > min.csize)
-
-                if (nclust >= ncom) {
-                    break
-                } else {
-                    ncenters <- ncenters + (ncom - nclust)
-                }
-            }
+        
+if (!is.null(ncom)) {    
+    
+    if (add.args$iter.number < add.args$ref.iter  ) {
+    target <- ncom + 2.1
+        if (detected.com < target | detected.com > 1.4 * target){
+        message( "adjusting louvain resolution to set ncom...", appendLF = TRUE)
+        memb$membership <- memb$memberships[which.min(abs(substantial.clusters.per.llevel - target)),]
         }
     }
+    
+    # Only in the last iteration when the optimal louvain level does not match ncom:
+    if (detected.com != ncom & add.args$iter.number>=add.args$ref.iter  ) {
+
+        #first check if any louvain level matches the set ncom, and if so set membership to that level:
+        clusters.per.llevel <- apply(memb$memberships, 1, function(x) sum(table(x) > 0 ) )
+        if (ncom %in% clusters.per.llevel) {
+        matched.level <-which(is.element(clusters.per.llevel,ncom))
+        memb$membership <- memb$memberships[matched.level,]
+        detected.com <- length(unique(memb$membership))
+        }
+        
+        #If louvain returns too many communities compared to target at any resolution level run for one extra refinement iteration:
+        if (detected.com != ncom & min(clusters.per.llevel - ncom) > 1 & add.args$ref.iter <2 & add.args$iter.number <2) {
+        message( "Warning: ncom set too low compared to optimal partition. Attempting extra refinement iteration to match set resolution...", appendLF = TRUE)
+        #current.iter <<- add.args$iter.number-1 #Repeat refinement iteration
+        assign( "current.iter", add.args$iter.number-1,envir=parent.frame(n=1)) #Repeat refinement iteration
+        detected.com<-ncom
+        }
+        
+        
+        if (detected.com != ncom){
+        message( "ncom set but no matching louvain level. Switching to fast-greedy commnunity detection...", appendLF = TRUE)
+        memb <- igraph::cluster_fast_greedy(GRAO)    #Switch to fast greedy in case ncom parameter is set.
+        memb$membership <- cut_at(memb,ncom)
+            if ( min(table(memb$membership) ) <= min.csize ) {
+                message( "fast-greedy returned isolated nodes for set ncom. Switching to k-NN clustering...", appendLF = TRUE)
+                x <- projectKNNs(as_adj(GRAO, names = FALSE, sparse = TRUE), dim=5,
+                                 sgd_batches = min(20000 / (sum(ADJ != 0) / 2), 0.99),
+                                 M = 3, gamma = 10, alpha = 0.1, useDegree = TRUE, threads=foreach::getDoParWorkers() )
+                ncenters <- ncom
+                memb$membership <- kmeans(t(x), centers = ncenters, nstart=5)$cluster
+                nclust <- sum(table(memb$membership) > min.csize)   
+            }
+        }
+        
+    }
+    
+}
+    
+    
+    #if called with ncom:
+    #if (!is.null(ncom)) {
+    #    min.csize <- max(4, ceiling(0.2 * sqrt(length(memb$membership))))
+    #    if (!is.null(memb$memberships) &
+    #        max(apply(memb$memberships, 1, function(x) sum(table(x) > min.csize))) >= ncom) {    #check if multi level louvain was used and a level has enough substantial clusters
+    #        nclust <- apply(memb$memberships, 1, function(x) sum(table(x) > min.csize))
+    #        #memb$membership <- memb$memberships[which.min(abs(nclust - ncom)),]
+    #        memb$membership <- cut_at(memb,ncom)
+
+    #   } else {# otherwise run simple kmeans on a 6D projection generated by largeVis
+    #        message(memb$algorithm, " returned too few clusters, switching to k-NN...")
+    #        x <- projectKNNs(as_adj(GRAO, names = FALSE, sparse = TRUE), dim=6,
+    #                         sgd_batches = min(20000 / (sum(ADJ != 0) / 2), 0.99),
+    #                         M = 3, gamma = 10, alpha = 0.1, useDegree = TRUE)
+
+    #        ncenters <- ncom
+    #        for (i in 0:4) { # try up to five times to get ncom clusters with at least min.csize members
+    #            memb$membership <- kmeans(t(x), centers = ncenters)$cluster
+    #            nclust <- sum(table(memb$membership) > min.csize)
+
+    #            if (nclust >= ncom) {
+    #                break
+    #            } else {
+    #                ncenters <- ncenters + (ncom - nclust)
+    #            }
+    #        }
+    #    }
+    #}
     csize <- table(memb$membership)
     ConfMatrix <- table(predicted = memb$membership, true = ClassAssignment)
-    message("done")
+    message("done", appendLF = TRUE)
     
     V(GRAO)$membership <- memb$membership
     V(GRAO)$community.size <- csize[memb$membership]
@@ -425,16 +484,14 @@ SC_cluster <- function(DM, use.par = FALSE, ncores = "all", is.cor = FALSE,
 
     ret <- list(MEMB = memb$membership, MEMB.true = ClassAssignment,
                 DISTM = ADJ, ConfMatrix = ConfMatrix, 
-                miscl = misclErr, GRAO = GRAO, plotGRAO = NULL, plotLVis = NULL)
+                miscl = misclErr, GRAO = GRAO,  plotLVis = NULL, complete_MEMB=memb)
 
     ######### graph visualization
-    if (plot_) {
-        if (is.null(fsuffix))
-            fsuffix <- RandString()
-        # ret[["plotGRAO"]] <- plotGraph(ret, maxG = maxG, fsuffix = fsuffix,
-        #                                image.format = image.format, quiet = FALSE)
-        ret[["plotLVis"]] <- plotLVis(ret, fsuffix = fsuffix, image.format = image.format, quiet = FALSE)
-    }
+    #if (plot_) {
+    #    if (is.null(fsuffix))
+    #        fsuffix <- RandString()
+    #    ret[["plotLVis"]] <- plotLVis(ret, fsuffix = fsuffix, image.format = image.format, quiet = FALSE)
+    #}
     
     return(ret)
 }
