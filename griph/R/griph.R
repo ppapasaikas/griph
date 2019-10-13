@@ -1,7 +1,7 @@
 #' Graph Inference of Population Heterogeneity.
 #'
 #' griph identifies cell types in single cell RNA-seq datasets,
-#' allowing to control for unwanted sources of variance (e.g. cell cycle)
+#' allowing to control for unwanted sources of variance (e.g. batch/cell cycle)
 #' that may confound the cell types.
 #'
 #' The most important function that combines all the steps of cell type identification
